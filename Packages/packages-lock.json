@@ -233,6 +233,15 @@
       },
       "url": "https://packages.unity.com"
     },
+    "info.someiyoshino.t2font": {
+      "version": "file:info.someiyoshino.t2font",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.2.2",
+        "com.unity.ugui": "2.0.0"
+      }
+    },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",
       "depth": 0,
