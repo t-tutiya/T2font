@@ -7,6 +7,9 @@ namespace info.someiyoshino.T2Font
     /// </summary>
     public static class SdfEncoding
     {
+        /// <summary>生成仕様の <c>representation.kind</c> の綴り（種類の記述子と表現の資産が同じ値を名乗る）。</summary>
+        public const string KindName = "sdf";
+
         /// <summary>
         /// SDF の片側距離域（em）。符号化は <c>d = 0.5 + 距離 / (2 × RangeEm × emPx)</c>（墨の内側が正）で、距離域の外は 0 か 1 に
         /// 飽和する。

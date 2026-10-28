@@ -37,7 +37,7 @@ namespace info.someiyoshino.T2Font
 
         /// <summary>
         /// 全キーを上限にした組の外延（em）＝墨の外接から外へ、効果が描かれうる最大の距離（README §6.2）。外縁のぼかしは
-        /// 外縁を中心に置くので半分だけ外へ出る。表現の幾何はこれ＋1 表示 px を覆う（README §4.3）。
+        /// 外縁を中心に置くので半分だけ外へ出る。表現の幾何はこれ＋AA の半分を覆う（README §4.3）。
         /// </summary>
         public const float MaxOuterExtentEm = FaceDilateMax + OutlineWidthMax + (OutlineSoftnessMax / 2f);
 

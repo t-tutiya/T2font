@@ -26,7 +26,7 @@ namespace info.someiyoshino.T2Font.Bake
         {
         }
 
-        public override string Name => "sdf";
+        public override string Name => SdfEncoding.KindName;
 
         /// <summary>距離場から縁の 4 値を全部描ける（README §6.3）。外延は距離域（<see cref="SdfEncoding.RangeEm"/>）に収まる。</summary>
         public override GlyphEffects Effects => GlyphEffects.All;
