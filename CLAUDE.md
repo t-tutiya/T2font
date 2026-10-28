@@ -53,4 +53,6 @@ Unity の版は `ProjectSettings/ProjectVersion.txt` が正典（LTS の最新�
   Unity 非依存のロジックは Core（`Assets/T2font.Core/`）に置き、外部 NUnit で検査する。
 - **パッケージ T2Font**（パッケージの README・`docs/architecture/01-assemblies-and-tests.md`「パッケージ T2Font」・D-T2FONT）: Core と Bake は
   純 C# で外部 NUnit がリンクする。Runtime・Editor・Viewer は PR の Job B が見る。
+- **TrueType から SDF アトラスまで**（`docs/architecture/02-truetype-to-atlas.html`・契約はパッケージの README §7・§9）: 読取・字の表・焼きの工程の図解。
+  焼き器の出力を変えたら図が古くなる（図の作り方と出力のハッシュは同書の末尾）。
 - **テストの三層**（`docs/guides/testing-workflow.md`・D-TESTARCH）: 外部 NUnit／EditMode／Play Mode。安い層で表現できるものは安い層へ置く。
