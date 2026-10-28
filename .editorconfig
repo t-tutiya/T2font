@@ -1,0 +1,551 @@
+# =============================================================================
+# .editorconfig — Unity プロジェクト用
+# =============================================================================
+# 元ファイル: Visual Studio IntelliCode により自動生成（2022/07/31）
+# Unity C# 開発向けに設定を追加・更新済み
+#
+# 参考: https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference
+#       https://unity.com/how-to/formatting-best-practices-c-scripting-unity
+# =============================================================================
+
+# このファイルより上位のディレクトリの .editorconfig を継承しない
+root = true
+
+# =============================================================================
+# 全ファイル共通設定
+# =============================================================================
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+tab_width = 4
+
+# YAML ファイル（Unity の .meta 等を手動編集する場合）
+[*.{yml,yaml}]
+indent_size = 2
+
+# JSON ファイル
+[*.json]
+indent_size = 2
+
+# XML ファイル（.asmdef, .csproj 等）
+[*.{xml,asmdef,csproj,props,targets,ruleset}]
+indent_size = 2
+
+# シェーダーファイル
+[*.{shader,cginc,hlsl,compute}]
+indent_size = 4
+
+# =============================================================================
+# C# ファイル設定
+# =============================================================================
+[*.cs]
+
+
+# ==========================================================
+#  基本フォーマット — インデント
+# ==========================================================
+
+# ソフトタブ（スペース）を使用
+indent_style = space
+indent_size = 4
+
+# switch 文の case 内容をインデントする
+csharp_indent_case_contents = true
+
+# switch 文の case ラベル自体をインデントする
+csharp_indent_switch_labels = true
+
+# ブロック内容をインデントする
+csharp_indent_block_contents = true
+
+# ラベル（goto 先）のインデント位置: 現在のインデントより1つ浅い位置に配置
+csharp_indent_labels = one_less_than_current
+
+
+# ==========================================================
+#  フォーマット — 改行オプション
+# ==========================================================
+
+# catch 文を新しい行に配置する
+csharp_new_line_before_catch = true
+
+# else 文を新しい行に配置する
+csharp_new_line_before_else = true
+
+# finally 文を閉じ波括弧の後の新しい行に配置する
+csharp_new_line_before_finally = true
+
+# オブジェクト初期化子のメンバーを同一行に配置する（false = 改行しない）
+csharp_new_line_before_members_in_object_initializers = false
+
+# 匿名型のメンバーを新しい行に配置する
+csharp_new_line_before_members_in_anonymous_types = true
+
+# LINQ クエリ句を新しい行に配置する
+csharp_new_line_between_query_expression_clauses = true
+
+# 波括弧を新しい行に配置する対象（Allman スタイル）
+# accessors:          アクセサー（get/set）
+# types:              型宣言（class/struct/interface/enum）
+# control_blocks:     制御構文（if/for/while/switch 等）
+# lambdas:            ラムダ式
+# methods:            メソッド宣言
+# properties:         プロパティ宣言
+# object_collection_array_initializers: オブジェクト/コレクション/配列初期化子
+# anonymous_methods:  匿名メソッド
+csharp_new_line_before_open_brace = accessors, types, control_blocks, lambdas, methods, properties, object_collection_array_initializers, anonymous_methods
+
+
+# ==========================================================
+#  フォーマット — using ディレクティブの整理
+# ==========================================================
+
+# System.* の using を先頭に配置し、アルファベット順にソートする
+dotnet_sort_system_directives_first = true
+
+# using ディレクティブの区切りに空行を挿入しない
+dotnet_separate_import_directive_groups = false
+
+
+# ==========================================================
+#  フォーマット — スペースオプション
+# ==========================================================
+
+# キャスト式と値の間にスペースを入れない: (int)value
+csharp_space_after_cast = false
+
+# 継承/インターフェース宣言のコロンの後にスペースを入れる: class Foo : Bar
+csharp_space_after_colon_in_inheritance_clause = true
+
+# 制御フロー文のキーワードの後にスペースを入れる: if (true)
+csharp_space_after_keywords_in_control_flow_statements = true
+
+# カンマの後にスペースを入れる
+csharp_space_after_comma = true
+
+# ドットの後にスペースを入れない
+csharp_space_after_dot = false
+
+# セミコロンの後にスペースを入れる（for 文内）
+csharp_space_after_semicolon_in_for_statement = true
+
+# 継承/インターフェース宣言のコロンの前にスペースを入れる: class Foo : Bar
+csharp_space_before_colon_in_inheritance_clause = true
+
+# カンマの前にスペースを入れない
+csharp_space_before_comma = false
+
+# ドットの前にスペースを入れない
+csharp_space_before_dot = false
+
+# 開き丸括弧の前にスペースを入れない
+csharp_space_before_open_square_brackets = false
+
+# セミコロンの前にスペースを入れない（for 文内）
+csharp_space_before_semicolon_in_for_statement = false
+
+# 空の角括弧内にスペースを入れない
+csharp_space_between_empty_square_brackets = false
+
+# 空の引数リストの丸括弧内にスペースを入れない: Method()
+csharp_space_between_method_call_empty_parameter_list_parentheses = false
+
+# メソッド呼び出し名と開き丸括弧の間にスペースを入れない: Method(args)
+csharp_space_between_method_call_name_and_opening_parenthesis = false
+
+# メソッド呼び出しの引数リストの丸括弧内にスペースを入れない
+csharp_space_between_method_call_parameter_list_parentheses = false
+
+# 空のパラメータリストの丸括弧内にスペースを入れない: void Method()
+csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
+
+# メソッド宣言のパラメータリストの丸括弧内にスペースを入れない
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+
+# メソッド宣言名と開き丸括弧の間にスペースを入れない
+csharp_space_between_method_declaration_name_and_open_parenthesis = false
+
+# 丸括弧内にスペースを入れない
+csharp_space_between_parentheses = false
+
+# 角括弧内にスペースを入れない
+csharp_space_between_square_brackets = false
+
+
+# ==========================================================
+#  フォーマット — 折り返しオプション
+# ==========================================================
+
+# 単一行のコードブロックをそのまま維持する
+csharp_preserve_single_line_blocks = true
+
+# 単一行のステートメント・メンバー宣言をそのまま維持する
+csharp_preserve_single_line_statements = true
+
+
+# ==========================================================
+#  スタイル — コードブロック設定
+# ==========================================================
+
+# 波括弧を常に使用する（省略しない）
+# ※ 元の設定は false でしたが、Unity 公式スタイルガイドに従い true:warning に変更
+#    ネストしたコードの可読性と安全性が向上します
+csharp_prefer_braces = true:warning
+
+
+# ==========================================================
+#  スタイル — 式本体メンバー（expression-bodied members）
+# ==========================================================
+
+# アクセサー: ブロック本体を優先する
+csharp_style_expression_bodied_accessors = false:suggestion
+
+# コンストラクター: ブロック本体を優先する
+csharp_style_expression_bodied_constructors = false:suggestion
+
+# メソッド: ブロック本体を優先する
+csharp_style_expression_bodied_methods = false:suggestion
+
+# プロパティ: 式本体を優先する（読み取り専用プロパティ等で簡潔に書ける）
+csharp_style_expression_bodied_properties = true:suggestion
+
+# インデクサー: ブロック本体を優先する
+csharp_style_expression_bodied_indexers = false:suggestion
+
+# 演算子: ブロック本体を優先する
+csharp_style_expression_bodied_operators = false:suggestion
+
+# ラムダ式: 式本体を優先する
+csharp_style_expression_bodied_lambdas = true:suggestion
+
+# ローカル関数: ブロック本体を優先する
+csharp_style_expression_bodied_local_functions = false:suggestion
+
+
+# ==========================================================
+#  スタイル — 式レベルオプション
+# ==========================================================
+
+# out 変数をインラインで宣言する
+# ※ 元の設定は false でしたが、C# 7.0+ では true が一般的
+#    例: if (int.TryParse(s, out var result)) { ... }
+csharp_style_inlined_variable_declaration = true:suggestion
+
+# 言語キーワードをメンバーアクセス式に優先する（int.MaxValue を Int32.MaxValue より優先）
+dotnet_style_predefined_type_for_member_access = true:suggestion
+
+# default(T) より default を優先する（C# 7.1+）
+# ※ 元の設定は false でしたが、モダン C# では true が推奨
+csharp_prefer_simple_default_expression = true:suggestion
+
+# オブジェクト初期化子を使用する
+dotnet_style_object_initializer = true:suggestion
+
+# コレクション初期化子を使用する
+dotnet_style_collection_initializer = true:suggestion
+
+# タプル名を明示的に使用する
+dotnet_style_explicit_tuple_names = true:warning
+
+# null 合体演算子（??）を使用する
+dotnet_style_coalesce_expression = true:suggestion
+
+# null 条件演算子（?.）を使用する
+dotnet_style_null_propagation = true:suggestion
+
+# 条件式を単純化する
+dotnet_style_prefer_conditional_expression_over_assignment = true:suggestion
+
+# 複合代入を使用する（+= 等）
+dotnet_style_prefer_compound_assignment = true:suggestion
+
+# 推論されたタプル要素名を使用する
+dotnet_style_prefer_inferred_tuple_names = true:suggestion
+
+# auto プロパティを使用する
+dotnet_style_prefer_auto_properties = true:suggestion
+
+# is null チェックを使用する（ReferenceEquals より優先）
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
+
+
+# ==========================================================
+#  スタイル — var と明示的型指定
+# ==========================================================
+
+# 明示的な型指定を基本とし、型が明白な場合は var を許可する
+# ※ Unity コードでは型を明示する方が可読性が高いケースが多い
+
+# 組み込み型（int, string 等）: var を使用する
+csharp_style_var_for_built_in_types = true:suggestion
+
+# 型が右辺から明白な場合: var を使用する
+csharp_style_var_when_type_is_apparent = true:suggestion
+
+# その他の場合: 明示的な型指定を優先する
+csharp_style_var_elsewhere = false:suggestion
+
+
+# ==========================================================
+#  スタイル — 言語キーワードとフレームワーク型
+# ==========================================================
+
+# ローカル変数・パラメータ・クラスメンバーに言語キーワードを使用する
+# 例: int を System.Int32 より優先する
+dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
+
+
+# ==========================================================
+#  スタイル — 修飾子の設定
+# ==========================================================
+
+# 修飾子の記述順序を指定する
+csharp_preferred_modifier_order = public, private, internal, protected, static, readonly, override, virtual, sealed, abstract, new, extern, unsafe, volatile, async:warning
+
+# アクセシビリティ修飾子を常に明示する
+# ※ 新規追加: Unity ではアクセス修飾子の省略（暗黙の private/internal）が
+#    シリアライゼーション動作に影響するため、常に明示することを推奨
+dotnet_style_require_accessibility_modifiers = always:warning
+
+# 読み取り専用のフィールドに readonly を付ける
+dotnet_style_readonly_field = true:warning
+
+
+# ==========================================================
+#  スタイル — パターンマッチング
+# ==========================================================
+
+# as + null チェックよりパターンマッチングを使用する
+# 例: if (obj is SomeType t) { ... }
+csharp_style_pattern_matching_over_as_with_null_check = true:suggestion
+
+# is + キャストよりパターンマッチングを使用する
+# 例: if (obj is int i) { ... }
+csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
+
+
+# ==========================================================
+#  スタイル — this. 修飾
+# ==========================================================
+
+# フィールドに this. を付けない
+dotnet_style_qualification_for_field = false:suggestion
+
+# メソッドに this. を付けない
+dotnet_style_qualification_for_method = false:suggestion
+
+# プロパティに this. を付けない
+dotnet_style_qualification_for_property = false:suggestion
+
+# イベントに this. を付けない
+dotnet_style_qualification_for_event = false:suggestion
+
+
+# ==========================================================
+#  スタイル — using ディレクティブの配置
+# ==========================================================
+
+# using ディレクティブを名前空間の外に配置する
+csharp_using_directive_placement = outside_namespace:warning
+
+
+# ==========================================================
+#  スタイル — 名前付けルール
+# ==========================================================
+
+# --- インターフェース: I プレフィックス + PascalCase ---
+dotnet_naming_rule.interface_should_begin_with_i.severity = warning
+dotnet_naming_rule.interface_should_begin_with_i.symbols = interface_symbols
+dotnet_naming_rule.interface_should_begin_with_i.style = begins_with_i
+
+dotnet_naming_symbols.interface_symbols.applicable_kinds = interface
+dotnet_naming_symbols.interface_symbols.applicable_accessibilities = *
+
+dotnet_naming_style.begins_with_i.required_prefix = I
+dotnet_naming_style.begins_with_i.capitalization = pascal_case
+
+# --- 型（class, struct, enum, delegate）: PascalCase ---
+dotnet_naming_rule.types_should_be_pascal_case.severity = warning
+dotnet_naming_rule.types_should_be_pascal_case.symbols = type_symbols
+dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case_style
+
+dotnet_naming_symbols.type_symbols.applicable_kinds = class, struct, enum, delegate
+dotnet_naming_symbols.type_symbols.applicable_accessibilities = *
+
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+# --- public/internal メンバー（メソッド, プロパティ, イベント）: PascalCase ---
+dotnet_naming_rule.public_members_should_be_pascal_case.severity = warning
+dotnet_naming_rule.public_members_should_be_pascal_case.symbols = public_member_symbols
+dotnet_naming_rule.public_members_should_be_pascal_case.style = pascal_case_style
+
+dotnet_naming_symbols.public_member_symbols.applicable_kinds = method, property, event
+dotnet_naming_symbols.public_member_symbols.applicable_accessibilities = public, internal, protected, protected_internal
+
+# --- 定数: PascalCase ---
+dotnet_naming_rule.constants_should_be_pascal_case.severity = warning
+dotnet_naming_rule.constants_should_be_pascal_case.symbols = constant_symbols
+dotnet_naming_rule.constants_should_be_pascal_case.style = pascal_case_style
+
+dotnet_naming_symbols.constant_symbols.applicable_kinds = field
+dotnet_naming_symbols.constant_symbols.applicable_accessibilities = *
+dotnet_naming_symbols.constant_symbols.required_modifiers = const
+
+# --- private/protected フィールド: _camelCase ---
+dotnet_naming_rule.private_fields_should_be_underscore_camel.severity = warning
+dotnet_naming_rule.private_fields_should_be_underscore_camel.symbols = private_field_symbols
+dotnet_naming_rule.private_fields_should_be_underscore_camel.style = underscore_camel_case
+
+dotnet_naming_symbols.private_field_symbols.applicable_kinds = field
+dotnet_naming_symbols.private_field_symbols.applicable_accessibilities = private, protected
+
+dotnet_naming_style.underscore_camel_case.required_prefix = _
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+
+# --- パラメータ・ローカル変数: camelCase ---
+dotnet_naming_rule.parameters_should_be_camel_case.severity = warning
+dotnet_naming_rule.parameters_should_be_camel_case.symbols = parameter_symbols
+dotnet_naming_rule.parameters_should_be_camel_case.style = camel_case_style
+
+dotnet_naming_symbols.parameter_symbols.applicable_kinds = parameter, local
+dotnet_naming_symbols.parameter_symbols.applicable_accessibilities = *
+
+dotnet_naming_style.camel_case_style.capitalization = camel_case
+
+# --- async メソッド: Async サフィックス ---
+dotnet_naming_rule.async_methods_should_end_with_async.severity = suggestion
+dotnet_naming_rule.async_methods_should_end_with_async.symbols = async_method_symbols
+dotnet_naming_rule.async_methods_should_end_with_async.style = async_suffix_style
+
+dotnet_naming_symbols.async_method_symbols.applicable_kinds = method
+dotnet_naming_symbols.async_method_symbols.applicable_accessibilities = *
+dotnet_naming_symbols.async_method_symbols.required_modifiers = async
+
+dotnet_naming_style.async_suffix_style.required_suffix = Async
+dotnet_naming_style.async_suffix_style.capitalization = pascal_case
+
+
+# ==========================================================
+#  スタイル — その他の追加設定
+# ==========================================================
+
+# throw 式を使用する（C# 7.0+）
+csharp_style_throw_expression = true:suggestion
+
+# 条件付きデリゲート呼び出しを使用する: handler?.Invoke() を handler.Invoke() より優先
+csharp_style_conditional_delegate_call = true:suggestion
+
+# ローカル関数を匿名関数より優先する
+csharp_style_pattern_local_over_anonymous_function = true:suggestion
+
+# 分解宣言を使用する: var (x, y) = point;
+csharp_style_deconstructed_variable_declaration = true:suggestion
+
+# 範囲演算子を使用する（C# 8.0+）: array[1..3]
+csharp_style_prefer_range_operator = true:suggestion
+
+# インデックス演算子を使用する（C# 8.0+）: array[^1]
+csharp_style_prefer_index_operator = true:suggestion
+
+# switch 式を使用する（C# 8.0+）
+csharp_style_prefer_switch_expression = true:suggestion
+
+# 不要な括弧を削除する
+dotnet_style_parentheses_in_arithmetic_binary_operators = always_for_clarity:suggestion
+dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:suggestion
+dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:suggestion
+dotnet_style_parentheses_in_other_operators = never_if_unnecessary:suggestion
+
+
+# ==========================================================
+#  診断ルールの重大度設定
+# ==========================================================
+
+# --- フォーマット ---
+# IDE0055: フォーマット違反
+dotnet_diagnostic.IDE0055.severity = warning
+
+# --- 一般的な品質ルール ---
+# IDE0051: 未使用の private メンバーを削除する
+# ※ Unity メッセージメソッド（Start, Update 等）は Microsoft.Unity.Analyzers が
+#    USP0003 で抑制するため、誤検出は発生しない
+dotnet_diagnostic.IDE0051.severity = warning
+
+# IDE0052: 未読の private メンバーを削除する
+dotnet_diagnostic.IDE0052.severity = warning
+
+# IDE0044: readonly 修飾子を追加する
+# ※ Unity の [SerializeField] 付きフィールドは書き換わるため、
+#    Microsoft.Unity.Analyzers が USP0004 で誤検出を抑制する
+dotnet_diagnostic.IDE0044.severity = warning
+
+# IDE0060: 未使用パラメータを削除する
+# ※ Unity メッセージのパラメータは USP0015 で抑制される
+dotnet_diagnostic.IDE0060.severity = warning
+
+# IDE0130: 名前空間がフォルダ構造と一致しない
+dotnet_diagnostic.IDE0130.severity = suggestion
+
+# --- 不要なコードの検出 ---
+# IDE0005: 不要な using ディレクティブ
+dotnet_diagnostic.IDE0005.severity = warning
+
+# IDE0003: this. の不要な使用
+dotnet_diagnostic.IDE0003.severity = suggestion
+
+# --- Unity 固有の推奨ルール（Microsoft.Unity.Analyzers） ---
+# ※ これらは Visual Studio の Unity ワークロードに同梱されており、
+#    .editorconfig で重大度を調整できます
+
+# UNT0001: 空の Unity メッセージ（Update, Awake 等が空の場合オーバーヘッドがある）
+dotnet_diagnostic.UNT0001.severity = warning
+
+# UNT0002: CompareTag を使わないタグ比較（アロケーションが発生する）
+dotnet_diagnostic.UNT0002.severity = warning
+
+# UNT0003: GetComponent 等の戻り値に対する不正な null チェック方法
+dotnet_diagnostic.UNT0003.severity = warning
+
+# UNT0004: Update 内で Time.fixedDeltaTime を使用している
+dotnet_diagnostic.UNT0004.severity = warning
+
+# UNT0005: FixedUpdate 内で Time.deltaTime を使用している
+dotnet_diagnostic.UNT0005.severity = warning
+
+# UNT0006: SendMessage / BroadcastMessage / SendMessageUpwards（文字列ベース、非推奨）
+dotnet_diagnostic.UNT0006.severity = warning
+
+# UNT0008: null 伝播演算子を Unity オブジェクトに使用している
+# ※ Unity の Object は独自の == null 判定を持つため、?. は意図通りに動作しない場合がある
+dotnet_diagnostic.UNT0008.severity = warning
+
+# UNT0009: null 合体代入演算子（??=）を Unity オブジェクトに使用している
+dotnet_diagnostic.UNT0009.severity = warning
+
+# UNT0010: MonoBehaviour を new でインスタンス化している（AddComponent を使うべき）
+dotnet_diagnostic.UNT0010.severity = error
+
+# UNT0011: ScriptableObject を new でインスタンス化している（CreateInstance を使うべき）
+dotnet_diagnostic.UNT0011.severity = error
+
+# UNT0014: GetComponent に無効な型引数を使用している
+dotnet_diagnostic.UNT0014.severity = warning
+
+# UNT0015: InitializeOnLoadMethod/RuntimeInitializeOnLoadMethod のシグネチャが不正
+dotnet_diagnostic.UNT0015.severity = warning
+
+# UNT0022: Position/Rotation の設定に非効率な方法を使用している
+dotnet_diagnostic.UNT0022.severity = suggestion
+
+# UNT0023: Unity オブジェクトに対する合体代入（??）
+dotnet_diagnostic.UNT0023.severity = warning
+
+# UNT0024: 不要な CompareTag 引数のメモリ割り当て
+dotnet_diagnostic.UNT0024.severity = suggestion
+
+# UNT0026: GetComponent の結果を bool 変換する際の問題
+dotnet_diagnostic.UNT0026.severity = warning

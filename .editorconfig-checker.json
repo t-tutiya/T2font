@@ -1,0 +1,25 @@
+{
+  "_comment": "editorconfig-checker 設定。詳細は docs/guides/code-quality.md「Job A」を参照。",
+  "_comment_disable": "IndentSize/Indentation は .editorconfig の indent_size=4 / indent_style=space を全ファイルに強制する。Markdown のネスト・Unity 生成 YAML(2スペース)・シェーダ等のタブインデントで大量の誤検出を生むため無効化する。.cs の字下げは dotnet format whitespace と IDE で別途担保。残す実質検査は行末空白・final newline・改行コード・文字コード。",
+  "Disable": {
+    "IndentSize": true,
+    "Indentation": true
+  },
+  "_comment_exclude": "Unity 生成テキスト資産を除外する（Unity が final newline や行末空白を書き戻すため）。画像/音声/フォント等のバイナリは ec が content-type で自動スキップする。ベンダー製・生成物の置き場が増えたらここへ足す。",
+  "Exclude": [
+    "^ProjectSettings/",
+    "^Packages/packages-lock\\.json$",
+    "\\.meta$",
+    "\\.asset$",
+    "\\.unity$",
+    "\\.prefab$",
+    "\\.mat$",
+    "\\.anim$",
+    "\\.controller$",
+    "\\.physicMaterial$",
+    "\\.shadergraph$",
+    "\\.shadersubgraph$",
+    "\\.asmdef$",
+    "\\.inputactions$"
+  ]
+}

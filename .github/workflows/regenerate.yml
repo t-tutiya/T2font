@@ -1,0 +1,91 @@
+# 生成物の再生成（リモートセッション用の書き出し経路・D-REGEN）
+#
+# リモートセッション（docs/guides/working-agreement.md「実行環境」②）のコンテナには dotnet が無く、
+# 生成物（.g.cs・docs/generated/ の生成文書など、golden テストが検査するもの）を作り直せない。
+# quality.yml は検査だけで書き出さないので、生成元を変えるたびに CI が赤のまま止まる。本ワークフローがその穴を塞ぐ。
+#
+# 起動条件: `claude/**` ブランチへの push のうち、**最後のコミットのメッセージに `[regen]` を含むもの**だけ。
+# 動作: `UPDATE_GENERATED=1 dotnet test` で生成物を書き出し、差分があれば**同じブランチへコミットして push する**。
+#
+# - 差分はパッチとしてアーティファクト（regenerated-patch）にも残す（何が書き換わったかの記録）。
+# - GITHUB_TOKEN による push は新しいワークフローを起動しない（GitHub の仕様）ので、ループしない。
+#   その代わり quality.yml も自動では走らない——検証は push 後に quality.yml を手動実行する。
+# - 起動した側は、このジョブの完了後に**ブランチを pull してから**次のコミットを積む（bot のコミットが先に乗る）。
+# - 生成器がまだ 1 つも無いうちは「差分なし」で終わる（害は無い）。生成器の書き方は Tests/GeneratedGolden.cs。
+name: regenerate
+
+on:
+  push:
+    branches: ['claude/**']
+
+permissions:
+  contents: write
+
+# 同じブランチで 2 本が同時に push しようとすると後の方が non-fast-forward で落ちる。直列にする。
+concurrency:
+  group: regenerate-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  regenerate:
+    if: contains(github.event.head_commit.message, '[regen]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore Tests/TemplateProject.Tests.csproj
+
+      # コンパイルが通らなければ生成器も動かない。ここで落とす（黙って「差分なし」で終えない）。
+      - name: Build
+        run: dotnet build Tests/TemplateProject.Tests.csproj --no-restore
+
+      # 書き出しモード。生成物が古い間は、それを検査するテスト（コンパイル済みの古い .g.cs を見るもの等）が
+      # 落ちるのが正常なので、テストの成否ではジョブを止めない。書き出し自体は golden テスト（GeneratedGolden）が行う。
+      - name: Regenerate (UPDATE_GENERATED=1)
+        env:
+          UPDATE_GENERATED: '1'
+        run: |
+          if dotnet test Tests/TemplateProject.Tests.csproj --no-build --verbosity normal; then
+            echo "書き出しモードのテストは全件成功。"
+          else
+            echo "::notice::書き出しモードのテスト失敗は想定内（生成物が古い間は整合テストが落ちる）。検証は再生成後の quality.yml で行う。"
+          fi
+
+      - name: Collect diff
+        id: diff
+        run: |
+          git add -A
+          git status --short
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "生成物に差分なし。" | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff --cached --binary > "$RUNNER_TEMP/regenerated.patch"
+            { echo '### 再生成された生成物'; echo '```'; git diff --cached --stat; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+            git diff --cached --stat
+          fi
+
+      - name: Upload patch
+        if: steps.diff.outputs.changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: regenerated-patch
+          path: ${{ runner.temp }}/regenerated.patch
+          retention-days: 7
+
+      # コミットメッセージに起動キーワードを入れない（入れると、この commit が先頭に来る push で再び起動しうる）。
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -q -m "chore(gen): 生成物を再生成する（regenerate.yml）" -m "起点コミット: ${GITHUB_SHA}"
+          git push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"
+          echo "再生成コミットを ${GITHUB_REF_NAME} へ push した: $(git rev-parse HEAD)" | tee -a "$GITHUB_STEP_SUMMARY"

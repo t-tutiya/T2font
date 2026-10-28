@@ -1,0 +1,20 @@
+{
+    "name": "TemplateProject.TestSupport",
+    "rootNamespace": "",
+    "references": [
+        "TemplateProject",
+        "TemplateProject.Core",
+        "TemplateProject.CoreTestSupport"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

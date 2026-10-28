@@ -1,0 +1,119 @@
+# コード品質ゲート
+#
+# 設計と位置づけは docs/guides/code-quality.md「CI（GitHub Actions）」を参照。PR と main への push をゲートする
+# （Job B は PR だけ・下記）。
+#
+# Job A: lint & unit（Unity ライセンス不要・高速・無料）
+# - dotnet format whitespace --verify-no-changes : リンク済みソースの空白整形検査（意味論的修正は
+#   Unity を壊すため掛けない。理由は docs/guides/code-quality.md「dotnet format は whitespace 限定」を参照）
+# - dotnet test                                  : 外部 NUnit テスト（Unity 非依存）
+# - editorconfig-checker                         : 全ファイルの空白/改行/文字コード横断検査（ブロッキング）。
+#   Unity 生成物の除外と indent 検査の無効化は .editorconfig-checker.json を参照。
+#
+# Job B: Unity コンパイルチェック（要 UNITY_LICENSE secret・未設定なら自動スキップ）
+# - GameCI unity-test-runner で EditMode テスト（CompilationSmokeTests）を実行する。
+#   EditMode 実行には全 asmdef のコンパイル成功が前提のため、「Unity 側コンパイルを壊す PR が
+#   Job A を素通りする」穴を塞ぐ。セットアップ手順は docs/guides/code-quality.md「Job B」。
+#
+# Job B は pull_request でだけ回す（D-JOBBPR）。main への push と手動実行（workflow_dispatch）は Job A だけ。
+# Job B は 7〜9 分かかり、private リポジトリでは Actions 分の大半を占める。main へ入る変更は必ず PR を通り、
+# その PR の head で Job B が回っているので、マージ後の push で同じ検査を繰り返さない。
+# リモートセッションの手動実行（検証経路③・D-ENV4）は Job A の確認に使う。
+name: quality
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  # ブランチ上で手動実行できるようにする（リモート開発環境からのテスト実行用＝D-ENV4）。
+  # 入力は持たない（Job B は回らない・D-JOBBPR）。入力を渡して起動すると GitHub が 422 で拒む。
+  workflow_dispatch:
+
+jobs:
+  lint-and-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore Tests/TemplateProject.Tests.csproj
+
+      # 空白整形検査（whitespace 限定）。using/意味論には触れないため Unity を壊さない。
+      - name: Format check (whitespace only)
+        run: dotnet format whitespace Tests/TemplateProject.Tests.csproj --verify-no-changes --no-restore
+
+      # 外部 NUnit テスト（Unity 非依存）
+      - name: Unit tests
+        run: dotnet test Tests/TemplateProject.Tests.csproj --no-restore --verbosity normal
+
+      # 全ファイル横断の空白/改行/文字コード検査。
+      # このアクションは ec を PATH に入れるだけ（検査は次の run ステップで実行する）。
+      - name: Setup editorconfig-checker
+        uses: editorconfig-checker/action-editorconfig-checker@main
+
+      - name: EditorConfig check
+        run: editorconfig-checker
+
+  # Unity batchmode コンパイルチェック（Job B）。
+  # UNITY_LICENSE secret（Personal ライセンスの .ulf 内容）未設定のリポジトリでは
+  # 各ステップが自動スキップされ、ジョブは成功扱いになる（fork PR でも壊れない）。
+  unity-compile:
+    # PR だけで回す（D-JOBBPR）。main への push と手動実行ではジョブごと skipped になる。
+    # Job A は Core とテストしかコンパイルしないので、RunTime・Editor のコンパイル誤りは本ジョブでしか見えない。
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      # secrets はジョブレベル if で参照できないため、ステップで有無を判定して出力に落とす。
+      - name: Detect Unity license secret
+        id: license
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        run: |
+          if [ -n "$UNITY_LICENSE" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::UNITY_LICENSE secret が未設定のため Unity コンパイルチェックをスキップします（docs/guides/code-quality.md「Job B」参照）"
+          fi
+
+      # Unity Editor の Docker イメージは十数 GB あり、ubuntu-latest の既定の空き容量では
+      # docker pull が「no space left on device」で失敗する。本ジョブで使わないプリインストール群
+      # （Android SDK / dotnet / CodeQL / Haskell）を削除して約 25GB を確保する（GameCI 既知の定石）。
+      - name: Free disk space for Unity Editor image
+        if: steps.license.outputs.available == 'true'
+        run: |
+          echo "Before:" && df -h /
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/hostedtoolcache/CodeQL /opt/ghc /usr/local/.ghcup
+          sudo docker image prune -af
+          echo "After:" && df -h /
+
+      - uses: actions/checkout@v4
+        if: steps.license.outputs.available == 'true'
+
+      # Library をキャッシュしてインポート時間を短縮する（初回のみフルインポート）。
+      # キャッシュは鍵が外れたときにしか保存されないので、取り込みの重い入力（独自の取込器やその元データ）を
+      # 足したら鍵の hashFiles にも足す。足さないと、それらを変えた後は毎回の実行で取り込み直す。
+      - uses: actions/cache@v4
+        if: steps.license.outputs.available == 'true'
+        with:
+          path: Library
+          key: unity-library-${{ hashFiles('Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: unity-library-
+
+      # EditMode テスト（CompilationSmokeTests）＝実質コンパイルゲート。
+      # unityVersion は ProjectSettings/ProjectVersion.txt から自動検出される。
+      - name: Unity EditMode tests (compile gate)
+        if: steps.license.outputs.available == 'true'
+        uses: game-ci/unity-test-runner@v4.3.1
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          testMode: EditMode
+          checkName: Unity EditMode (compile gate)

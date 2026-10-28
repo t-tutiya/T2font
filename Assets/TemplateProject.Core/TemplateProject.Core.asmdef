@@ -1,0 +1,14 @@
+{
+    "name": "TemplateProject.Core",
+    "rootNamespace": "info.someiyoshino.TemplateProject",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

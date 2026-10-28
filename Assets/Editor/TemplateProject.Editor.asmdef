@@ -1,0 +1,19 @@
+{
+    "name": "TemplateProject.Editor",
+    "rootNamespace": "info.someiyoshino.TemplateProject.EditorTools",
+    "references": [
+        "TemplateProject",
+        "TemplateProject.Core"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

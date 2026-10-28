@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <!-- nullable 警告（CS8600/8602/8618 等）をビルドエラー化する。Unity 側の csc.rsp と同じ強度に揃える
+         （docs/guides/code-quality.md「2 つのコンパイル世界」・D-NRTCORE）。nullable 系のみをエラー化するため、
+         他の無害な警告ではビルドは失敗しない。 -->
+    <WarningsAsErrors>Nullable</WarningsAsErrors>
+    <!-- enable 固定。disable にするとテスト側の using が足りなくなる。帰結として、フルの dotnet format は
+         リンクした Assets/ のファイルから using を誤って消すので、整形は whitespace 限定で使う
+         （docs/guides/code-quality.md「dotnet format は whitespace 限定」）。 -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <!-- テスト失敗時にスタックトレースを見やすくする -->
+    <Optimize>false</Optimize>
+    <!--
+      Core の [Conditional("UNITY_EDITOR")] 付きメソッドや #if UNITY_EDITOR ブロックもテストできるよう、
+      UNITY_EDITOR シンボルを定義する（Unity Editor 環境と同条件でテストする）。
+    -->
+    <DefineConstants>UNITY_EDITOR</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+  </ItemGroup>
+
+  <!--
+    本番の Unity 非依存コード（asmdef `TemplateProject.Core`・noEngineReferences）をディレクトリ参照（再帰 glob）で
+    リンクする。Core は asmdef 側の noEngineReferences: true で Unity 非依存が保証されるため、全 glob でも
+    UnityEngine 依存が混入しない（混入時は本ビルドが即失敗して検出する）。
+    コピーではなくリンクのため、Unity 側を編集すればテスト側にも即反映される。
+  -->
+  <ItemGroup>
+    <Compile Include="..\Assets\TemplateProject.Core\**\*.cs" />
+  </ItemGroup>
+
+  <!--
+    Unity 非依存の共有テスト支援（asmdef `TemplateProject.CoreTestSupport`）。両方のテストの世界で同じソースを引く
+    （Unity 側は asmdef 参照、外部 NUnit はここでリンク）。複製しないのは Fake の単一正典のため（D-TESTARCH の R2）。
+  -->
+  <ItemGroup>
+    <Compile Include="..\Assets\Tests\CoreSupport\**\*.cs" />
+  </ItemGroup>
+
+</Project>

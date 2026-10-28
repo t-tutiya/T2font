@@ -1,0 +1,10 @@
+* text=auto eol=lf
+
+# Unity 生成の .meta は空の YAML 値の後ろに末尾半角空白を持つ（正規フォーマット）。
+# git の空白チェック（git diff --check / pre-commit フックの git diff-index --check）が
+# 新規 .meta を「trailing whitespace」で弾かないよう、.meta は空白チェックを無効化する。
+*.meta -whitespace
+
+# 生成物の文書（D-DOCTREE）。GitHub の差分表示で「生成物」として畳まれる。手で編集しない
+# （golden テストが落ちる）。直すのは生成元で、再生成は UPDATE_GENERATED=1 の dotnet test か [regen] 付きの push（D-REGEN）。
+docs/generated/** linguist-generated=true

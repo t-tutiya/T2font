@@ -1,0 +1,3 @@
+# blame で飛ばすコミット（移動だけ・整形だけのもの）。GitHub の blame はこのファイルを読む。
+# ローカル: git config blame.ignoreRevsFile .git-blame-ignore-revs
+# 運用は docs/guides/code-quality.md「移動だけのコミットと blame」。
