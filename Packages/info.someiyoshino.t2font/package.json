@@ -1,0 +1,25 @@
+{
+  "name": "info.someiyoshino.t2font",
+  "version": "0.1.0",
+  "displayName": "T2Font",
+  "description": "Glyph representation API for Unity uGUI text: a font asset split into a typography table and a pluggable glyph representation (SDF included), a pure C# TrueType reader and baker, a .t2font importer, a viewer and a conformance suite.",
+  "unity": "6000.3",
+  "license": "MIT",
+  "author": {
+    "name": "t-tutiya",
+    "url": "https://github.com/t-tutiya"
+  },
+  "documentationUrl": "https://github.com/t-tutiya/T2font",
+  "keywords": [
+    "font",
+    "text",
+    "sdf",
+    "glyph",
+    "cjk",
+    "ugui"
+  ],
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.2",
+    "com.unity.ugui": "2.0.0"
+  }
+}

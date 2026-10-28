@@ -20,6 +20,7 @@
 
 | ファイル | 対象 | 決定 ID |
 |---|---|---|
+| [`completed-designs/t2font-v0.1-plan.md`](completed-designs/t2font-v0.1-plan.md) | T2Font v0.1.0 の段取り（S1〜S7・各段の中身と検証） | D-T2FONT |
 
 ## evaluations/（客観評価・コードレビュー）
 
@@ -34,3 +35,4 @@
 
 | 日付 | 操作 | 文書 | 理由・決定 ID |
 |---|---|---|---|
+| 2026-10-28 | 退避 | `t2font-v0.1-plan.md` | v0.1.0 の段 S1〜S7 を終えた（D-T2FONT・D-DOCLIFE） |

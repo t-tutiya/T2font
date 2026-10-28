@@ -8,7 +8,11 @@
         "T2font.Core",
         "T2font.CoreTestSupport",
         "T2font.TestSupport",
-        "T2font.Editor"
+        "T2font.Editor",
+        "Someiyoshino.T2Font.Core",
+        "Someiyoshino.T2Font",
+        "Someiyoshino.T2Font.Viewer",
+        "Someiyoshino.T2Font.Conformance"
     ],
     "includePlatforms": [
         "Editor"

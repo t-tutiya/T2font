@@ -1,0 +1,20 @@
+{
+    "name": "Someiyoshino.T2Font.Editor",
+    "rootNamespace": "info.someiyoshino.T2Font",
+    "references": [
+        "Someiyoshino.T2Font.Core",
+        "Someiyoshino.T2Font",
+        "Someiyoshino.T2Font.Bake"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

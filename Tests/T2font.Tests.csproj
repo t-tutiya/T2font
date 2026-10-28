@@ -23,6 +23,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <!-- パッケージの Bake（生成仕様の読取）が使う。Unity 側は com.unity.nuget.newtonsoft-json の DLL を参照する。 -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NUnit" Version="3.14.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
@@ -44,6 +46,16 @@
   -->
   <ItemGroup>
     <Compile Include="..\Assets\Tests\CoreSupport\**\*.cs" />
+  </ItemGroup>
+
+  <!--
+    パッケージ T2Font の Unity 非依存のアセンブリ（Someiyoshino.T2Font.Core・Someiyoshino.T2Font.Bake。どちらも
+    noEngineReferences）。Core と同じくリンクで引く。Runtime・Editor・Viewer は UnityEngine を使うので、ここには入らない
+    （Unity 側のコンパイルは PR の Job B が見る）。
+  -->
+  <ItemGroup>
+    <Compile Include="..\Packages\info.someiyoshino.t2font\Core\**\*.cs" />
+    <Compile Include="..\Packages\info.someiyoshino.t2font\Bake\**\*.cs" />
   </ItemGroup>
 
 </Project>

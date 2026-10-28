@@ -3,7 +3,10 @@
     "rootNamespace": "info.someiyoshino.T2font.EditorTools",
     "references": [
         "T2font",
-        "T2font.Core"
+        "T2font.Core",
+        "Someiyoshino.T2Font.Core",
+        "Someiyoshino.T2Font",
+        "Someiyoshino.T2Font.Viewer"
     ],
     "includePlatforms": [
         "Editor"

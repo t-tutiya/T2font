@@ -40,6 +40,19 @@
 
 `internal` はテストアセンブリへ `InternalsVisibleTo` で見せる（各層の `AssemblyInfo.cs`）。外部 NUnit はソースを直接リンクするので不要。
 
+## パッケージ T2Font（本リポジトリの成果物）
+
+`Packages/info.someiyoshino.t2font/` は埋め込みパッケージで、アセンブリは `Someiyoshino.T2Font.*`（D-T2FONT）。構成・役割・契約は
+パッケージの README（`Packages/info.someiyoshino.t2font/README.md` の §1）が正典で、本書は繰り返さない。2 つのコンパイル世界との関係だけを書く:
+
+- **Core と Bake** は `noEngineReferences: true` の純 C# で、外部 NUnit のテストプロジェクトがソースをリンクする（Core と同じ扱い）。
+  パッケージの外部 NUnit は本リポジトリの `Tests/` に置く——テストはパッケージの写しには入らない。
+- **Runtime・Editor・Viewer・Conformance** は UnityEngine を使い、Job A ではコンパイルされない（PR の Job B が見る）。
+- 適合検査はパッケージの `Conformance`（Editor 専用・自動参照しない）に、テストの枠組みに依らない検査の関数として置く——表現を足す別の
+  パッケージのテストからも呼べるようにするため。それを呼ぶ Unity 側のテストは本プロジェクトの `Assets/Tests/EditMode/T2Font/` に置く
+  （検査に使うフォント資産＝検証用の M+ 1c の生成仕様 `Assets/Content/Fonts/` がプロジェクトにあるため。`testables` は使わない）。
+- 本プロジェクトの生成仕様が取込の純 C# の手順を通ることは、外部 NUnit（`Tests/T2Font/ProjectFontSpecTests.cs`）が Unity を開く前に確かめる。
+
 ## テストの置き場
 
 どのテストをどの層へ置くかの判定基準と規約（R1〜R3）は `../guides/testing-workflow.md`（D-TESTARCH）。
