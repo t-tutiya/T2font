@@ -1,4 +1,4 @@
-# TemplateProject ドキュメント索引
+# T2font ドキュメント索引
 
 全ドキュメントの索引と、ドキュメント運用ルールの正典。
 プロジェクト概要は リポジトリ直下の [`CLAUDE.md`](../CLAUDE.md)、作業規約は [`guides/working-agreement.md`](guides/working-agreement.md) を参照。

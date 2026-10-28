@@ -2,7 +2,7 @@
 
 using System.Text;
 
-namespace info.someiyoshino.TemplateProject
+namespace info.someiyoshino.T2font
 {
     /// <summary>
     /// リポジトリへコミットされる生成物のテキスト規約——<b>改行は常に LF</b>（D-GENEOL）。

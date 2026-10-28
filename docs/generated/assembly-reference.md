@@ -6,10 +6,10 @@
 
 | アセンブリ | 置き場 | 参照 | UnityEngine | プラットフォーム | 条件シンボル |
 |---|---|---|---|---|---|
-| `TemplateProject` | `Assets/RunTime/` | `TemplateProject.Core` | 使う | 全て | — |
-| `TemplateProject.Core` | `Assets/TemplateProject.Core/` | — | 使わない | 全て | — |
-| `TemplateProject.CoreTestSupport` | `Assets/Tests/CoreSupport/` | `TemplateProject.Core` | 使わない | 全て | `UNITY_INCLUDE_TESTS` |
-| `TemplateProject.EditModeTests` | `Assets/Tests/EditMode/` | `UnityEngine.TestRunner`・`UnityEditor.TestRunner`・`TemplateProject`・`TemplateProject.Core`・`TemplateProject.CoreTestSupport`・`TemplateProject.TestSupport`・`TemplateProject.Editor`・`nunit.framework.dll` | 使う | `Editor` | `UNITY_INCLUDE_TESTS` |
-| `TemplateProject.Editor` | `Assets/Editor/` | `TemplateProject`・`TemplateProject.Core` | 使う | `Editor` | — |
-| `TemplateProject.PlayModeTests` | `Assets/Tests/PlayMode/` | `UnityEngine.TestRunner`・`UnityEditor.TestRunner`・`TemplateProject`・`TemplateProject.Core`・`TemplateProject.CoreTestSupport`・`TemplateProject.TestSupport`・`nunit.framework.dll` | 使う | 全て | `UNITY_INCLUDE_TESTS` |
-| `TemplateProject.TestSupport` | `Assets/Tests/Shared/` | `TemplateProject`・`TemplateProject.Core`・`TemplateProject.CoreTestSupport` | 使う | 全て | `UNITY_INCLUDE_TESTS` |
+| `T2font` | `Assets/RunTime/` | `T2font.Core` | 使う | 全て | — |
+| `T2font.Core` | `Assets/T2font.Core/` | — | 使わない | 全て | — |
+| `T2font.CoreTestSupport` | `Assets/Tests/CoreSupport/` | `T2font.Core` | 使わない | 全て | `UNITY_INCLUDE_TESTS` |
+| `T2font.EditModeTests` | `Assets/Tests/EditMode/` | `UnityEngine.TestRunner`・`UnityEditor.TestRunner`・`T2font`・`T2font.Core`・`T2font.CoreTestSupport`・`T2font.TestSupport`・`T2font.Editor`・`nunit.framework.dll` | 使う | `Editor` | `UNITY_INCLUDE_TESTS` |
+| `T2font.Editor` | `Assets/Editor/` | `T2font`・`T2font.Core` | 使う | `Editor` | — |
+| `T2font.PlayModeTests` | `Assets/Tests/PlayMode/` | `UnityEngine.TestRunner`・`UnityEditor.TestRunner`・`T2font`・`T2font.Core`・`T2font.CoreTestSupport`・`T2font.TestSupport`・`nunit.framework.dll` | 使う | 全て | `UNITY_INCLUDE_TESTS` |
+| `T2font.TestSupport` | `Assets/Tests/Shared/` | `T2font`・`T2font.Core`・`T2font.CoreTestSupport` | 使う | 全て | `UNITY_INCLUDE_TESTS` |

@@ -1,14 +1,14 @@
 {
-    "name": "TemplateProject.EditModeTests",
+    "name": "T2font.EditModeTests",
     "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "TemplateProject",
-        "TemplateProject.Core",
-        "TemplateProject.CoreTestSupport",
-        "TemplateProject.TestSupport",
-        "TemplateProject.Editor"
+        "T2font",
+        "T2font.Core",
+        "T2font.CoreTestSupport",
+        "T2font.TestSupport",
+        "T2font.Editor"
     ],
     "includePlatforms": [
         "Editor"

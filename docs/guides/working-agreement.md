@@ -15,7 +15,7 @@
 | ① ローカル PC（CLI・Windows） | `CLAUDE_CODE_REMOTE` 未設定 | ✅ | ✅ | ✅（手元が速いので常用しない） |
 | ② リモート（claude.ai/code・Linux コンテナ） | `CLAUDE_CODE_REMOTE=true` | SessionStart フックの出力に従う | ❌ 恒久的に不可 | ✅ **②の主たる検証手段** |
 
-- ②では `.claude/hooks/session-start.sh` が `[TemplateProject 環境判定]` を出力する。その出力を正とし、「実行不可」とされた
+- ②では `.claude/hooks/session-start.sh` が `[T2font 環境判定]` を出力する。その出力を正とし、「実行不可」とされた
   検証は**コンテナ内では**試行しない（出力が見当たらなければ `dotnet --version` の成否 1 回で判定）。
 - ①（ユーザーのローカル環境）へ委譲が必要なのは **Play Mode テストと実機目視だけ**（Unity コンパイルは経路③の PR で回る）。
 

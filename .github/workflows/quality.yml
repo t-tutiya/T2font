@@ -41,15 +41,15 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore
-        run: dotnet restore Tests/TemplateProject.Tests.csproj
+        run: dotnet restore Tests/T2font.Tests.csproj
 
       # 空白整形検査（whitespace 限定）。using/意味論には触れないため Unity を壊さない。
       - name: Format check (whitespace only)
-        run: dotnet format whitespace Tests/TemplateProject.Tests.csproj --verify-no-changes --no-restore
+        run: dotnet format whitespace Tests/T2font.Tests.csproj --verify-no-changes --no-restore
 
       # 外部 NUnit テスト（Unity 非依存）
       - name: Unit tests
-        run: dotnet test Tests/TemplateProject.Tests.csproj --no-restore --verbosity normal
+        run: dotnet test Tests/T2font.Tests.csproj --no-restore --verbosity normal
 
       # 全ファイル横断の空白/改行/文字コード検査。
       # このアクションは ec を PATH に入れるだけ（検査は次の run ステップで実行する）。

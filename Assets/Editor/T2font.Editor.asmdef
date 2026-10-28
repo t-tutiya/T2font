@@ -1,9 +1,9 @@
 {
-    "name": "TemplateProject.Editor",
-    "rootNamespace": "info.someiyoshino.TemplateProject.EditorTools",
+    "name": "T2font.Editor",
+    "rootNamespace": "info.someiyoshino.T2font.EditorTools",
     "references": [
-        "TemplateProject",
-        "TemplateProject.Core"
+        "T2font",
+        "T2font.Core"
     ],
     "includePlatforms": [
         "Editor"

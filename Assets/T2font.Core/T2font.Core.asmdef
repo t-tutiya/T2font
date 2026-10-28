@@ -1,9 +1,7 @@
 {
-    "name": "TemplateProject",
-    "rootNamespace": "info.someiyoshino.TemplateProject",
-    "references": [
-        "TemplateProject.Core"
-    ],
+    "name": "T2font.Core",
+    "rootNamespace": "info.someiyoshino.T2font",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
@@ -12,5 +10,5 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": false
+    "noEngineReferences": true
 }

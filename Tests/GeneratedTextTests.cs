@@ -3,7 +3,7 @@
 using System.Text;
 using NUnit.Framework;
 
-namespace info.someiyoshino.TemplateProject.Tests
+namespace info.someiyoshino.T2font.Tests
 {
     /// <summary>
     /// <see cref="GeneratedText"/> の規約（生成物の改行は LF 固定・D-GENEOL）の検査。

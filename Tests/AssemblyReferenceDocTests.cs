@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.Json;
 using NUnit.Framework;
 
-namespace info.someiyoshino.TemplateProject.Tests
+namespace info.someiyoshino.T2font.Tests
 {
     /// <summary>
     /// アセンブリ一覧（<c>docs/generated/assembly-reference.md</c>）の生成器と golden 検査。

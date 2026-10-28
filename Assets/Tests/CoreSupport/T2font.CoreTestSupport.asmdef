@@ -1,8 +1,8 @@
 {
-    "name": "TemplateProject.CoreTestSupport",
-    "rootNamespace": "info.someiyoshino.TemplateProject.TestSupport",
+    "name": "T2font.CoreTestSupport",
+    "rootNamespace": "info.someiyoshino.T2font.TestSupport",
     "references": [
-        "TemplateProject.Core"
+        "T2font.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

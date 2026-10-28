@@ -25,7 +25,7 @@
 
 # プロジェクト概要
 
-Unity 6 プロジェクト「TemplateProject」。
+Unity 6 プロジェクト「T2font」。
 
 （何を作るか・目標・コアコンセプトを 2〜5 行で書く。詳細は `docs/architecture/` へ置き、ここには要約を置かない。）
 
@@ -40,5 +40,5 @@ Unity の版は `ProjectSettings/ProjectVersion.txt` が正典（LTS の最新�
 要約は置かない。各項目の正典は括弧内。
 
 - **アセンブリと 2 つのコンパイル世界**（`docs/architecture/01-assemblies-and-tests.md`・一覧は `docs/generated/assembly-reference.md`）:
-  Unity 非依存のロジックは Core（`Assets/TemplateProject.Core/`）に置き、外部 NUnit で検査する。
+  Unity 非依存のロジックは Core（`Assets/T2font.Core/`）に置き、外部 NUnit で検査する。
 - **テストの三層**（`docs/guides/testing-workflow.md`・D-TESTARCH）: 外部 NUnit／EditMode／Play Mode。安い層で表現できるものは安い層へ置く。

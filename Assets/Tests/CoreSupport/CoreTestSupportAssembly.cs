@@ -1,9 +1,9 @@
 #nullable enable
 
-namespace info.someiyoshino.TemplateProject.TestSupport
+namespace info.someiyoshino.T2font.TestSupport
 {
     /// <summary>
-    /// 共有テスト支援 <c>TemplateProject.CoreTestSupport</c> の置き場を示す型（中身は持たない）。
+    /// 共有テスト支援 <c>T2font.CoreTestSupport</c> の置き場を示す型（中身は持たない）。
     ///
     /// <para>
     /// ここには<b>両方のテストの世界（外部 NUnit <c>Tests/</c> と Unity 側）で使う、Core にだけ依存する

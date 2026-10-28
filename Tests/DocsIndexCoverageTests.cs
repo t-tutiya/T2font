@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 
-namespace info.someiyoshino.TemplateProject.Tests
+namespace info.someiyoshino.T2font.Tests
 {
     /// <summary>
     /// ドキュメントの索引が実体を覆っているかの検査（D-DOCLIFE）。

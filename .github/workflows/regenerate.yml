@@ -39,11 +39,11 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore
-        run: dotnet restore Tests/TemplateProject.Tests.csproj
+        run: dotnet restore Tests/T2font.Tests.csproj
 
       # コンパイルが通らなければ生成器も動かない。ここで落とす（黙って「差分なし」で終えない）。
       - name: Build
-        run: dotnet build Tests/TemplateProject.Tests.csproj --no-restore
+        run: dotnet build Tests/T2font.Tests.csproj --no-restore
 
       # 書き出しモード。生成物が古い間は、それを検査するテスト（コンパイル済みの古い .g.cs を見るもの等）が
       # 落ちるのが正常なので、テストの成否ではジョブを止めない。書き出し自体は golden テスト（GeneratedGolden）が行う。
@@ -51,7 +51,7 @@ jobs:
         env:
           UPDATE_GENERATED: '1'
         run: |
-          if dotnet test Tests/TemplateProject.Tests.csproj --no-build --verbosity normal; then
+          if dotnet test Tests/T2font.Tests.csproj --no-build --verbosity normal; then
             echo "書き出しモードのテストは全件成功。"
           else
             echo "::notice::書き出しモードのテスト失敗は想定内（生成物が古い間は整合テストが落ちる）。検証は再生成後の quality.yml で行う。"

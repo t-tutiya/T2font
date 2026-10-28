@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 
-namespace TemplateProject.EditModeTests
+namespace T2font.EditModeTests
 {
     /// <summary>
     /// CI のコンパイルゲート用スモークテスト（docs/guides/code-quality.md「Job B」・D-JOBBPR）。
@@ -18,12 +18,12 @@ namespace TemplateProject.EditModeTests
         public void 全アセンブリがコンパイルされテストランナーが起動できる()
         {
             // Core の型が参照解決できる（参照が壊れていればこのファイル自体がコンパイルに失敗する）。
-            Assert.That(typeof(info.someiyoshino.TemplateProject.GeneratedText), Is.Not.Null);
+            Assert.That(typeof(info.someiyoshino.T2font.GeneratedText), Is.Not.Null);
 
             // RunTime と Editor は公開型を持たないうちもアセンブリとしてロードされている。
             string[] loaded = AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetName().Name).ToArray();
-            Assert.That(loaded, Does.Contain("TemplateProject"));
-            Assert.That(loaded, Does.Contain("TemplateProject.Editor"));
+            Assert.That(loaded, Does.Contain("T2font"));
+            Assert.That(loaded, Does.Contain("T2font.Editor"));
         }
     }
 }

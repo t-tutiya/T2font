@@ -1,10 +1,10 @@
 {
-    "name": "TemplateProject.TestSupport",
+    "name": "T2font.TestSupport",
     "rootNamespace": "",
     "references": [
-        "TemplateProject",
-        "TemplateProject.Core",
-        "TemplateProject.CoreTestSupport"
+        "T2font",
+        "T2font.Core",
+        "T2font.CoreTestSupport"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

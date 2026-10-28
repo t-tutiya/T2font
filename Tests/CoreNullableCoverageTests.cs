@@ -5,16 +5,16 @@ using System.Collections.Generic;
 using System.IO;
 using NUnit.Framework;
 
-namespace info.someiyoshino.TemplateProject.Tests
+namespace info.someiyoshino.T2font.Tests
 {
     /// <summary>
-    /// `Assets/TemplateProject.Core/` 配下の全 .cs が `#nullable enable` を持つことを固定するソース走査ガード（D-NRTCORE）。
+    /// `Assets/T2font.Core/` 配下の全 .cs が `#nullable enable` を持つことを固定するソース走査ガード（D-NRTCORE）。
     ///
     /// <para>
     /// <b>なぜ必要か</b>: Core は 2 つのツールチェーンでコンパイルされ、nullable の既定が食い違う。
     /// Unity は <c>csc.rsp</c> が無ければ既定 <c>disable</c>、本テストプロジェクトは
     /// <c>&lt;Nullable&gt;enable&lt;/Nullable&gt;</c> ＋ <c>&lt;WarningsAsErrors&gt;Nullable&lt;/WarningsAsErrors&gt;</c> を持ち、
-    /// <c>&lt;Compile Include="..\Assets\TemplateProject.Core\**\*.cs" /&gt;</c> で Core 全体を glob リンクする。
+    /// <c>&lt;Compile Include="..\Assets\T2font.Core\**\*.cs" /&gt;</c> で Core 全体を glob リンクする。
     /// <b>プロジェクト既定はディレクティブの無いファイルにも適用される</b>ため、ディレクティブの有無が分けるのは
     /// 「検査の有無」ではなく「Unity 側から見た公開 API の形状」（oblivious か非 null か）である。
     /// </para>
@@ -124,7 +124,7 @@ namespace info.someiyoshino.TemplateProject.Tests
 
         private static string FindCoreRoot()
         {
-            string candidate = Path.Combine(RepoRoot.Find(), "Assets", "TemplateProject.Core");
+            string candidate = Path.Combine(RepoRoot.Find(), "Assets", "T2font.Core");
             if (!Directory.Exists(candidate))
             {
                 throw new InvalidOperationException($"Core のフォルダが見つかりません: {candidate}");

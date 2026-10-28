@@ -38,14 +38,14 @@
 - **(a) 統合 ＝ `Assets/Tests/PlayMode/Integration/`**: 実ブート／実アセットを**正典のローダ経由**で読む。**実データの読み取りはここだけ**。
   アサートは**配線・キー**（「ブートで〜が空でない」「予約 ID が解決する」）にし、変動しうる本番の値は assert しない。
 - **(b) コンポーネント ＝ `Assets/Tests/PlayMode/<要素>/`**: Fake だけを使い、実データを読まない。実データを読みたくなったら (a) へ移す。
-  名前空間は `TemplateProject.PlayModeTests.<要素>`。
+  名前空間は `T2font.PlayModeTests.<要素>`。
 
 ### 共有テスト支援（2 つのアセンブリ）
 
 | 置き場 | asmdef | 置くもの | 使う側 |
 |---|---|---|---|
-| `Assets/Tests/CoreSupport/` | `TemplateProject.CoreTestSupport`（`noEngineReferences`） | Core にだけ依存する Fake・テスト用の組み立て関数 | 外部 NUnit（csproj がリンク）と Unity 側（asmdef 参照）の両方 |
-| `Assets/Tests/Shared/` | `TemplateProject.TestSupport` | Unity 側だけで使う共有 Fake | EditMode・PlayMode |
+| `Assets/Tests/CoreSupport/` | `T2font.CoreTestSupport`（`noEngineReferences`） | Core にだけ依存する Fake・テスト用の組み立て関数 | 外部 NUnit（csproj がリンク）と Unity 側（asmdef 参照）の両方 |
+| `Assets/Tests/Shared/` | `T2font.TestSupport` | Unity 側だけで使う共有 Fake | EditMode・PlayMode |
 
 - 本番 API の省略可能引数を避けるため、テストでだけ要る既定値は CoreSupport の組み立て関数が持つ（D-ARGOPT）。
 - インターフェースの替え玉は**基底スタブ 1 つから派生させる**（既定は全呼び出しを `NotSupportedException` で拒否し、テストは使う分だけ override する）。
@@ -96,16 +96,16 @@ pwsh Tools/verify-unity-compile.ps1 -RunTests
 
 ```bash
 # 全件
-dotnet test Tests/TemplateProject.Tests.csproj
+dotnet test Tests/T2font.Tests.csproj
 
 # 特定のテストだけ
-dotnet test Tests/TemplateProject.Tests.csproj --filter "FullyQualifiedName~GeneratedTextTests"
+dotnet test Tests/T2font.Tests.csproj --filter "FullyQualifiedName~GeneratedTextTests"
 
 # 生成物を書き出す（golden テストが検査する生成物を作り直す・D-REGEN）
-UPDATE_GENERATED=1 dotnet test Tests/TemplateProject.Tests.csproj
+UPDATE_GENERATED=1 dotnet test Tests/T2font.Tests.csproj
 ```
 
-PowerShell では `$env:UPDATE_GENERATED = "1"; dotnet test Tests/TemplateProject.Tests.csproj; Remove-Item Env:UPDATE_GENERATED`。
+PowerShell では `$env:UPDATE_GENERATED = "1"; dotnet test Tests/T2font.Tests.csproj; Remove-Item Env:UPDATE_GENERATED`。
 
 ### 最初から入っている検査
 
@@ -120,6 +120,6 @@ PowerShell では `$env:UPDATE_GENERATED = "1"; dotnet test Tests/TemplateProjec
 
 ### NUnit テストを追加する手順
 
-1. Core（`Assets/TemplateProject.Core/`）にロジックを書く。新しいファイルは先頭に `#nullable enable` を置く。
-2. `Tests/` にテストクラスを足す（名前空間 `info.someiyoshino.TemplateProject.Tests`）。csproj は Core を再帰 glob でリンクしているので、csproj の編集は要らない。
+1. Core（`Assets/T2font.Core/`）にロジックを書く。新しいファイルは先頭に `#nullable enable` を置く。
+2. `Tests/` にテストクラスを足す（名前空間 `info.someiyoshino.T2font.Tests`）。csproj は Core を再帰 glob でリンクしているので、csproj の編集は要らない。
 3. `dotnet test` で通す（リモートでは push → CI・`working-agreement.md`「検証経路③」）。

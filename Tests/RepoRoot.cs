@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace info.someiyoshino.TemplateProject.Tests
+namespace info.someiyoshino.T2font.Tests
 {
     /// <summary>
     /// 外部 NUnit からリポジトリルート（<c>Assets/</c> の親）を解決する共有ヘルパ。

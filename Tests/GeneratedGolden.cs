@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using NUnit.Framework;
 
-namespace info.someiyoshino.TemplateProject.Tests
+namespace info.someiyoshino.T2font.Tests
 {
     /// <summary>
     /// 生成物（<c>.g.cs</c>／<c>docs/generated/</c> の生成 Markdown）の golden 検証の共通手順（D-REGEN）。

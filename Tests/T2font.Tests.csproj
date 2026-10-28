@@ -29,17 +29,17 @@
   </ItemGroup>
 
   <!--
-    本番の Unity 非依存コード（asmdef `TemplateProject.Core`・noEngineReferences）をディレクトリ参照（再帰 glob）で
+    本番の Unity 非依存コード（asmdef `T2font.Core`・noEngineReferences）をディレクトリ参照（再帰 glob）で
     リンクする。Core は asmdef 側の noEngineReferences: true で Unity 非依存が保証されるため、全 glob でも
     UnityEngine 依存が混入しない（混入時は本ビルドが即失敗して検出する）。
     コピーではなくリンクのため、Unity 側を編集すればテスト側にも即反映される。
   -->
   <ItemGroup>
-    <Compile Include="..\Assets\TemplateProject.Core\**\*.cs" />
+    <Compile Include="..\Assets\T2font.Core\**\*.cs" />
   </ItemGroup>
 
   <!--
-    Unity 非依存の共有テスト支援（asmdef `TemplateProject.CoreTestSupport`）。両方のテストの世界で同じソースを引く
+    Unity 非依存の共有テスト支援（asmdef `T2font.CoreTestSupport`）。両方のテストの世界で同じソースを引く
     （Unity 側は asmdef 参照、外部 NUnit はここでリンク）。複製しないのは Fake の単一正典のため（D-TESTARCH の R2）。
   -->
   <ItemGroup>

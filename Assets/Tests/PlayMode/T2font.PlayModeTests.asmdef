@@ -1,13 +1,13 @@
 {
-    "name": "TemplateProject.PlayModeTests",
+    "name": "T2font.PlayModeTests",
     "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "TemplateProject",
-        "TemplateProject.Core",
-        "TemplateProject.CoreTestSupport",
-        "TemplateProject.TestSupport"
+        "T2font",
+        "T2font.Core",
+        "T2font.CoreTestSupport",
+        "T2font.TestSupport"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

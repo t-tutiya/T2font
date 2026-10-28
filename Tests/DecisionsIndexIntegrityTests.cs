@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
 
-namespace info.someiyoshino.TemplateProject.Tests
+namespace info.someiyoshino.T2font.Tests
 {
     /// <summary>
     /// 設計判断ログの索引（<c>docs/archive/decisions.md</c>）と月別本文の整合検査（D-DOCLIFE）。

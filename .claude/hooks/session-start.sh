@@ -17,7 +17,7 @@
 #   NuGet 復元: api.nuget.org
 set -uo pipefail
 
-TEST_PROJECT="Tests/TemplateProject.Tests.csproj"
+TEST_PROJECT="Tests/T2font.Tests.csproj"
 
 # ローカル PC（dotnet/Unity 完備）では何もしない
 if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
@@ -49,7 +49,7 @@ MSG
 
 note_unavailable() {
   cat <<'MSG'
-[TemplateProject 環境判定] リモートセッション: dotnet 導入失敗（ネットワークポリシーで SDK 取得元が遮断）。
+[T2font 環境判定] リモートセッション: dotnet 導入失敗（ネットワークポリシーで SDK 取得元が遮断）。
 - コンテナ内で実行可能な検証: なし
 - NUnit / dotnet build / pwsh Tools/verify-unity-compile.ps1 を試行しないこと（必ず失敗する）
 MSG
@@ -58,7 +58,7 @@ MSG
 
 note_nunit_ok() {
   cat <<MSG
-[TemplateProject 環境判定] リモートセッション: dotnet 利用可・NuGet 復元済み。
+[T2font 環境判定] リモートセッション: dotnet 利用可・NuGet 復元済み。
 - コンテナ内で実行可能な検証: 外部 NUnit（dotnet test ${TEST_PROJECT}）
 - コンテナ内で実行不可: Unity 系（verify-unity-compile.ps1 / Play Mode。Unity Editor 必須）
 MSG
@@ -93,7 +93,7 @@ if dotnet restore "${CLAUDE_PROJECT_DIR:-.}/${TEST_PROJECT}" >>"$LOG" 2>&1; then
   note_nunit_ok
 else
   cat <<'MSG'
-[TemplateProject 環境判定] リモートセッション: dotnet はあるが NuGet 復元に失敗（api.nuget.org 遮断の可能性）。
+[T2font 環境判定] リモートセッション: dotnet はあるが NuGet 復元に失敗（api.nuget.org 遮断の可能性）。
 - コンテナ内で実行可能な検証: なし（dotnet test はパッケージ復元不能のため必ず失敗する。試行しないこと）
 MSG
   note_ci_route

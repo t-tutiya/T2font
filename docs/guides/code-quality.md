@@ -7,7 +7,7 @@
 
 ## 2 つのコンパイル世界と、その帰結
 
-本プロジェクトのコードは Unity（asmdef）と外部 SDK csproj（`Tests/TemplateProject.Tests.csproj`）の 2 つから見える
+本プロジェクトのコードは Unity（asmdef）と外部 SDK csproj（`Tests/T2font.Tests.csproj`）の 2 つから見える
 （構造の正典は `../architecture/01-assemblies-and-tests.md`）。品質の強制手段は、この非対称の上に組み立てる。
 
 - **外部 csproj は本物の MSBuild プロジェクト**なので `dotnet format`・`dotnet test`・アナライザを即座に効かせられる。ただし対象は
@@ -22,8 +22,8 @@ Core は両方の世界からコンパイルされるので、nullable の**文�
 | 置き場 | 内容 | 意図 |
 |---|---|---|
 | Core の各 `.cs` の先頭 | `#nullable enable` | ファイル単体で意図が読める。IDE の csproj 生成が `csc.rsp` を反映しない場合にも効く。網羅は `Tests/CoreNullableCoverageTests.cs` が固定する |
-| `Tests/TemplateProject.Tests.csproj` | `<Nullable>enable</Nullable>` ＋ `<WarningsAsErrors>Nullable</WarningsAsErrors>` | 外部 NUnit 側の強度 |
-| `Assets/TemplateProject.Core/csc.rsp`・`Assets/Tests/CoreSupport/csc.rsp` | `-nullable:enable` ＋ nullable 診断の `-warnaserror+` | 外部 csproj からもコンパイルされる 2 アセンブリを csproj 側と同じ強度に揃える |
+| `Tests/T2font.Tests.csproj` | `<Nullable>enable</Nullable>` ＋ `<WarningsAsErrors>Nullable</WarningsAsErrors>` | 外部 NUnit 側の強度 |
+| `Assets/T2font.Core/csc.rsp`・`Assets/Tests/CoreSupport/csc.rsp` | `-nullable:enable` ＋ nullable 診断の `-warnaserror+` | 外部 csproj からもコンパイルされる 2 アセンブリを csproj 側と同じ強度に揃える |
 | `Assets/RunTime/csc.rsp`・`Assets/Editor/csc.rsp` | 上と同じ | RunTime と Editor は Job A でコンパイルされないので、null の誤りを Job B で確実に止める |
 
 片側だけで設定すると「Unity では無警告で書けて、`dotnet test` で初めて落ちる」食い違いが生まれ、開発者が常には回せない側でしか
@@ -43,10 +43,10 @@ Core は両方の世界からコンパイルされるので、nullable の**文�
 
 ```bash
 # 検査（CI / pre-commit 向け・差分があれば非ゼロ終了）。using も意味論も触らない
-dotnet format whitespace Tests/TemplateProject.Tests.csproj --verify-no-changes
+dotnet format whitespace Tests/T2font.Tests.csproj --verify-no-changes
 
 # ローカル整形（空白・改行・インデントのみ書き換え）
-dotnet format whitespace Tests/TemplateProject.Tests.csproj
+dotnet format whitespace Tests/T2font.Tests.csproj
 ```
 
 ### ⚠️ 引数なしの `dotnet format` は必要な using を消し、Unity を壊す
@@ -109,8 +109,8 @@ CI を待たずにコミット前に弾きたいときは、リポジトリ管�
 ```bash
 # .githooks/pre-commit （実行権限を付与し、git config core.hooksPath .githooks を設定）
 #!/bin/sh
-dotnet format whitespace Tests/TemplateProject.Tests.csproj --verify-no-changes || {
-  echo "空白整形違反。'dotnet format whitespace Tests/TemplateProject.Tests.csproj' で修正してください"; exit 1; }
+dotnet format whitespace Tests/T2font.Tests.csproj --verify-no-changes || {
+  echo "空白整形違反。'dotnet format whitespace Tests/T2font.Tests.csproj' で修正してください"; exit 1; }
 ```
 
 CI が最終ゲート、フックは補助という位置づけにする。
