@@ -1,6 +1,11 @@
-# T2font
+# T2Font
 
-（プロジェクトの 1〜2 行の説明）
+**Glyph representation API for Unity uGUI text** — a font asset split into a typography table and a pluggable glyph
+representation (SDF included), with a pure C# TrueType reader and baker, a `.t2font` importer, a viewer and a conformance suite.
+The package lives in [`Packages/info.someiyoshino.t2font/`](Packages/info.someiyoshino.t2font/README.md). License: [MIT](LICENSE).
+
+Unity uGUI の文字描画のためのパッケージ。フォント資産を「字の表」と差し替えられる「字形の表現」に分け、表現を足しても字を置く側の
+コードが変わらない API を提供する。使い方と契約はパッケージの README、ライセンスは MIT（権利者 t-tutiya）。
 
 - 開発の規約と構造の入口は [`CLAUDE.md`](CLAUDE.md)、全ドキュメントの索引は [`docs/README.md`](docs/README.md)。
 - 現在地と今後は [`docs/roadmap.md`](docs/roadmap.md)。
@@ -9,10 +14,10 @@
 
 終わった項目にチェックを付け、全部終わったらこの節を消して `docs/roadmap.md` の着手候補 1 を完了記録へ退避する。
 
-- [ ] 1. **リポジトリを作る**: GitHub でテンプレートのページを開き、「Use this template」→「Create a new repository」。公開範囲は Private を推奨。
-- [ ] 2. **Claude の GitHub App の対象に入れる**（App を「選んだリポジトリだけ」で入れている場合）: GitHub 右上のアイコン → Settings → Applications → Installed GitHub Apps → Claude の Configure で新しいリポジトリを追加する。
-- [ ] 3. **クローンする**: GitHub Desktop の「Clone a repository」で手元に取得する。**まだ Unity で開かない**（開くとフォルダ名が変わる前の状態で Library が作られる）。
-- [ ] 4. **初期化する**: リポジトリのルートで `python Tools/init_project.py <プロジェクト名>` を実行する（プロジェクト名は英字で始まる英数字。例 `MyGame`）。
+- [x] 1. **リポジトリを作る**: GitHub でテンプレートのページを開き、「Use this template」→「Create a new repository」。公開範囲は Private を推奨。
+- [x] 2. **Claude の GitHub App の対象に入れる**（App を「選んだリポジトリだけ」で入れている場合）: GitHub 右上のアイコン → Settings → Applications → Installed GitHub Apps → Claude の Configure で新しいリポジトリを追加する。
+- [x] 3. **クローンする**: GitHub Desktop の「Clone a repository」で手元に取得する。**まだ Unity で開かない**（開くとフォルダ名が変わる前の状態で Library が作られる）。
+- [x] 4. **初期化する**: リポジトリのルートで `python Tools/init_project.py <プロジェクト名>` を実行する（プロジェクト名は英字で始まる英数字。例 `MyGame`）。
       `T2font` の綴りを全部置き換え、該当するファイル・フォルダの名前を変え、Unity の GUID を作り直す。Claude に「初期化して」と頼んでもよい。
       終わったら GitHub Desktop でコミットして push する。
 - [ ] 5. **Unity で開く**: Unity Hub の「Add」→「Add project from disk」で選んで開く。Unity の版を上げる場合はこの時点で行う（D-UNITYVER）。

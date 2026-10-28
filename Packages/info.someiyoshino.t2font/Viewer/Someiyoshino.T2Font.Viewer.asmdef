@@ -1,0 +1,17 @@
+{
+    "name": "Someiyoshino.T2Font.Viewer",
+    "rootNamespace": "info.someiyoshino.T2Font",
+    "references": [
+        "Someiyoshino.T2Font.Core",
+        "Someiyoshino.T2Font"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

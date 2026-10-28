@@ -1,0 +1,20 @@
+{
+    "name": "Someiyoshino.T2Font.Bake",
+    "rootNamespace": "info.someiyoshino.T2Font",
+    "references": [
+        "Someiyoshino.T2Font.Core"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

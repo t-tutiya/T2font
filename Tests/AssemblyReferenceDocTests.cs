@@ -33,14 +33,21 @@ namespace info.someiyoshino.T2font.Tests
         [Test]
         public void アセンブリ一覧が生成物と一致する()
         {
-            GeneratedGolden.AssertUpToDate(Generate(RepoRoot.Find()), OutputPath, "Assets/ 配下の .asmdef");
+            GeneratedGolden.AssertUpToDate(Generate(RepoRoot.Find()), OutputPath, "Assets/ と Packages/ 配下の .asmdef");
         }
 
-        /// <summary><paramref name="root"/>（リポジトリルート）の <c>Assets/</c> 配下の asmdef から一覧を作る。</summary>
+        /// <summary>
+        /// <paramref name="root"/>（リポジトリルート）の <c>Assets/</c> と <c>Packages/</c>（埋め込みパッケージ＝本リポジトリの成果物）
+        /// 配下の asmdef から一覧を作る。
+        /// </summary>
         internal static string Generate(string root)
         {
             var rows = new List<(string Name, string Line)>();
-            foreach (string path in Directory.EnumerateFiles(Path.Combine(root, "Assets"), "*.asmdef", SearchOption.AllDirectories))
+            IEnumerable<string> asmdefs = new[] { "Assets", "Packages" }
+                .Select(folder => Path.Combine(root, folder))
+                .Where(Directory.Exists)
+                .SelectMany(folder => Directory.EnumerateFiles(folder, "*.asmdef", SearchOption.AllDirectories));
+            foreach (string path in asmdefs)
             {
                 string relative = Path.GetRelativePath(root, path).Replace('\\', '/');
                 using JsonDocument doc = JsonDocument.Parse(File.ReadAllText(path));
@@ -62,7 +69,7 @@ namespace info.someiyoshino.T2font.Tests
             sb.AppendLineLf();
             sb.AppendLineLf("# アセンブリ一覧（asmdef）");
             sb.AppendLineLf();
-            sb.AppendLineLf("`Assets/` 配下の `.asmdef` から生成した一覧。構造と置き場の規則は [`architecture/01-assemblies-and-tests.md`](../architecture/01-assemblies-and-tests.md) を読む。");
+            sb.AppendLineLf("`Assets/` と `Packages/`（埋め込みパッケージ）配下の `.asmdef` から生成した一覧。構造と置き場の規則は [`architecture/01-assemblies-and-tests.md`](../architecture/01-assemblies-and-tests.md) を読む。");
             sb.AppendLineLf();
             sb.AppendLineLf("| アセンブリ | 置き場 | 参照 | UnityEngine | プラットフォーム | 条件シンボル |");
             sb.AppendLineLf("|---|---|---|---|---|---|");
