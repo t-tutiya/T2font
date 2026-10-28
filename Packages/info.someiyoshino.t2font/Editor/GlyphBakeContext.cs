@@ -45,7 +45,7 @@ namespace info.someiyoshino.T2Font.Editor
 
         /// <summary>
         /// パッケージ <paramref name="packageName"/> の中の <paramref name="relativePath"/> の資産パス（<c>Packages/…</c>）。
-        /// 表現のパッケージが自分のシェーダを指すのに使う——写しの置き場（README §11）によらず同じパスになる。
+        /// 表現のパッケージが自分のシェーダを指すのに使う——導入の方法（git URL か写しか・README §11）によらず同じパスになる。
         /// </summary>
         /// <exception cref="FontBakeException">そのパッケージが登録されていない（Packages/ の下に無い）。</exception>
         public string PackageAssetPath(string packageName, string relativePath)

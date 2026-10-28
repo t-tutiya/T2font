@@ -275,9 +275,22 @@ JSON。`//` のコメントを書ける。**未知のキー・重複したキー
     S6（透明の上で α が 1 回だけ掛かる）と矩形クリップを確かめる。字には「■」のような、墨が中央の列を上下の水平な縁で横切る塗りつぶしの字を渡す。
     描画装置が要る（`CanRender`）。Canvas もカメラも使わず RenderTexture へ直接描くので、描画パイプラインに依らない。
 
-## 11. 写しの運用
+## 11. 導入と写しの運用
 
-- 正本はリポジトリ `t-tutiya/T2font`。利用側のプロジェクトは**フォルダごと**（`.meta` と `LICENSE.md` を含めて）`Packages/` へ写す。
+正本はリポジトリ `t-tutiya/T2font`。導入の方法は 2 つで、どちらも同じパッケージが `Packages/info.someiyoshino.t2font` として入る。
+
+| 方法 | 向く場合 | 手順 |
+|---|---|---|
+| **git URL** | Unity の中だけで使う | Package Manager の「+」→「Add package from git URL…」に下の URL を入れる（Git が要る） |
+| **写す** | パッケージのソースを Unity の外（外部の NUnit など）からも読む | フォルダごと（`.meta` と `LICENSE.md` を含めて）利用側の `Packages/` へ写す |
+
+```
+https://github.com/t-tutiya/T2font.git?path=/Packages/info.someiyoshino.t2font#v0.1.0
+```
+
+- `#` の後ろは版のタグ（CHANGELOG の版に `v` を付けたもの）。付けないと既定のブランチの先端が入り、どの版を使っているかが決まらない。
+  版を上げるときは URL のタグを書き換える。
+- git URL で入れたパッケージは Library の中（読み取り専用）に置かれ、Unity の外のビルドからソースをリンクできない。その用途では写す。
 - 写しは手で直さない。直すときは正本で直し、版を上げて写し直す（どの版を写したかは `package.json` の版で分かる）。
 - パッケージはテストを持たない。表現の適合検査は、利用側のテストから `GlyphConformance` を呼んで回す（§10。`testables` は要らない）。
 
