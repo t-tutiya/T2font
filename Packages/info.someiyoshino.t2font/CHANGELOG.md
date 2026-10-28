@@ -8,3 +8,4 @@
 ### Added
 
 - パッケージの骨格（アセンブリ・ライセンス・契約の正典としての README）。
+- Core: 字の表の型（`FontFaceMetrics`・`GlyphMetrics`）・字形番号の検索（`GlyphTable`）・様式（縁）の契約（`GlyphEdgeStyle`・`GlyphEffects`）・字の走査（`TextCodepoints`）。
