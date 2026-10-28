@@ -279,7 +279,7 @@ JSON。`//` のコメントを書ける。**未知のキー・重複したキー
 
 - 正本はリポジトリ `t-tutiya/T2font`。利用側のプロジェクトは**フォルダごと**（`.meta` と `LICENSE.md` を含めて）`Packages/` へ写す。
 - 写しは手で直さない。直すときは正本で直し、版を上げて写し直す（どの版を写したかは `package.json` の版で分かる）。
-- パッケージの Unity 側のテストを利用側で回すときは、`Packages/manifest.json` の `testables` に `info.someiyoshino.t2font` を足す。
+- パッケージはテストを持たない。表現の適合検査は、利用側のテストから `GlyphConformance` を呼んで回す（§10。`testables` は要らない）。
 
 ## 12. ライセンス
 

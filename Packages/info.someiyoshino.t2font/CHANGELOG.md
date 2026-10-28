@@ -5,6 +5,10 @@
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-28
+
+最初の公開版。
+
 ### Added
 
 - パッケージの骨格（アセンブリ・ライセンス・契約の正典としての README）。
@@ -14,3 +18,6 @@
 - Editor: `.t2font` の取込器（焼き器を `TypeCache` で集めて種類で振り分ける・種類ごとの版数をカスタム依存にする）、焼き器の基底 `GlyphRepresentationBaker` と文脈 `GlyphBakeContext`、SDF の焼き器 `SdfGlyphBaker`。
 - Viewer: 検証ビュー `T2FontText`（字ごとに 1 つの `CanvasRenderer` で描く）。
 - Conformance: 表現の適合検査 `GlyphConformance`（幾何の検査と、描いた画素でのシェーダの契約の検査）。
+
+[Unreleased]: https://github.com/t-tutiya/T2font/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/t-tutiya/T2font/releases/tag/v0.1.0
