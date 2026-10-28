@@ -29,6 +29,7 @@ T2FontAsset（ScriptableObject・ロードの単位）
 | `Someiyoshino.T2Font.Bake` | `Bake/` | 使わない（Editor 専用） | TrueType の読取・字集合・生成仕様・字の表の生成・SDF の焼き・表現の種類の記述子 |
 | `Someiyoshino.T2Font.Editor` | `Editor/` | 使う（Editor 専用） | `.t2font` の取込器（表現の種類で焼き器へ振り分ける）・SDF の焼き器 |
 | `Someiyoshino.T2Font.Viewer` | `Viewer/` | 使う | 検証ビュー `T2FontText`（自動参照しない） |
+| `Someiyoshino.T2Font.Conformance` | `Conformance/` | 使う（Editor 専用） | 表現の適合検査 `GlyphConformance`（自動参照しない） |
 
 Core と Bake は UnityEngine を参照しない純 C# なので、Unity を起動せずに外部の NUnit で検査できる。
 
@@ -266,7 +267,13 @@ JSON。`//` のコメントを書ける。**未知のキー・重複したキー
 
 - **検証ビュー** `T2FontText`（Viewer）: 文字列 1 本を、字ごとに 1 つの `CanvasRenderer` で描く。様式（§6.1）とフォントを Inspector で替えられる。
   1 字 1 レンダラにしてあるのは、テクスチャとマテリアルの束縛・クリップ・α の扱いを、利用側の一般的なテキスト描画と同じ条件で試すため。
-- **適合検査**: 表現を渡すと、§4.3 の外延・§4.2 の UV0.zw・§5 の頂点色と α・クリップ・1px の AA を検査する。表現を足したら通す。
+- **適合検査** `GlyphConformance`（Conformance）: 表現で焼いたフォントを渡すと、誤りの文面の一覧を返す（空なら適合）。テストの枠組みに
+  依らないので、表現を足すパッケージのテストから呼べる。表現を足したら通す。
+  - `CheckGeometry(font)`: 全字形の幾何——墨の無い字形は何も書かない・UV0.zw＝頂点の em 座標（§4.2）・頂点の外接が墨の外接を描ける効果の
+    外延（`OuterExtentEm`）だけ広げた範囲を覆う（§4.3）。描画装置は要らない。
+  - `CheckRendering(font, codepoint)`: 実際に描いた画素で §5 の S2（面の色とフェード）・S3（1px の AA を 24px と 200px で）・S4（縁取りの幅と色）・
+    S6（透明の上で α が 1 回だけ掛かる）と矩形クリップを確かめる。字には「■」のような、墨が中央の列を上下の水平な縁で横切る塗りつぶしの字を渡す。
+    描画装置が要る（`CanRender`）。Canvas もカメラも使わず RenderTexture へ直接描くので、描画パイプラインに依らない。
 
 ## 11. 写しの運用
 

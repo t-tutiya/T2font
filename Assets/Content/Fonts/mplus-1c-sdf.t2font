@@ -1,0 +1,9 @@
+// 検証用の M+ 1c を SDF で焼く生成仕様（パッケージの README §7）。取込の EditMode テスト・適合検査・比較の場面が読む。
+// 適合検査の描画は「■」を基準の字にする（墨が中央の列を上下の水平な縁で横切る塗りつぶしの字）。
+{
+    "source": "Assets/Authoring/Fonts/mplus-1c-regular.ttf",
+    "coverage": "fixed",
+    "charsets": ["Ascii"],
+    "characters": "いろはにほへとちりぬるをわかよたれそつねならむうゐのおくやまけふこえてあさきゆめみしゑひもせすんアイウエオカキクケコサシスセソタチツテトナニヌネノ永東京都一二三色香散我誰常有為奥山今日越浅夢見酔字形表現縁取■□、。「」・ー",
+    "representation": { "kind": "sdf", "emPx": 48, "format": "R8" }
+}
