@@ -1,0 +1,1126 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>ベイク仕様の書き方</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&amp;family=M+PLUS+1+Code:wght@400;600&amp;family=Shippori+Mincho+B1:wght@600;800&amp;display=swap">
+<style>
+/* レイアウト: 本文は 1 列（約 44 字）、図版・表・付録の文字リストは本文より広い列。1100px 以上では左に目次の列を足す。 */
+:root {
+  --paper: #f2f4f3;
+  --surface: #fbfcfb;
+  --sunken: #e6eae9;
+  --ink: #15191b;
+  --muted: #56626a;
+  --rule: #d2d9d8;
+  --rule-strong: #a7b2b4;
+  --guide: #0a7280;
+  --ctrl: #b0136b;
+  --amber: #a85f00;
+  --tint-guide: rgba(10, 114, 128, 0.10);
+  --tint-ctrl: rgba(176, 19, 107, 0.12);
+  --tint-amber: rgba(168, 95, 0, 0.15);
+  --font-display: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  --font-body: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic UI", "Meiryo", "Noto Sans JP", sans-serif;
+  --font-mono: "M PLUS 1 Code", "SFMono-Regular", Menlo, Consolas, "Noto Sans Mono CJK JP", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1213;
+    --surface: #151a1c;
+    --sunken: #1d2427;
+    --ink: #e1e6e7;
+    --muted: #97a3a8;
+    --rule: #283134;
+    --rule-strong: #485559;
+    --guide: #46c1cc;
+    --ctrl: #ef68b4;
+    --amber: #e5a23b;
+    --tint-guide: rgba(70, 193, 204, 0.12);
+    --tint-ctrl: rgba(239, 104, 180, 0.16);
+    --tint-amber: rgba(229, 162, 59, 0.18);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1213;
+  --surface: #151a1c;
+  --sunken: #1d2427;
+  --ink: #e1e6e7;
+  --muted: #97a3a8;
+  --rule: #283134;
+  --rule-strong: #485559;
+  --guide: #46c1cc;
+  --ctrl: #ef68b4;
+  --amber: #e5a23b;
+  --tint-guide: rgba(70, 193, 204, 0.12);
+  --tint-ctrl: rgba(239, 104, 180, 0.16);
+  --tint-amber: rgba(229, 162, 59, 0.18);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.85;
+  -webkit-text-size-adjust: 100%;
+}
+.wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 96px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 56px;
+}
+.masthead, .toc, main { min-width: 0; }
+
+/* 見出しと本文 */
+.masthead { grid-column: 1 / -1; padding-bottom: 28px; border-bottom: 1px solid var(--rule); margin-bottom: 8px; }
+.eyebrow { margin: 0 0 10px; font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.06em; color: var(--guide); }
+h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.1rem, 1.5rem + 2.6vw, 3.4rem);
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-wrap: balance;
+}
+.lede { max-width: 40em; margin: 18px 0 0; font-size: 1.08rem; }
+.specimen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px 28px;
+  margin: 26px 0 0;
+  max-width: 960px;
+}
+.specimen div { min-width: 0; border-top: 2px solid var(--ink); padding-top: 8px; }
+.specimen dt { font-size: 0.78rem; letter-spacing: 0.08em; color: var(--muted); }
+.specimen dd { margin: 2px 0 0; font-size: 0.92rem; line-height: 1.6; overflow-wrap: anywhere; }
+.masthead .note { margin-top: 22px; }
+
+h2 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.45rem, 1.2rem + 0.9vw, 1.9rem);
+  line-height: 1.35;
+  margin: 72px 0 18px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rule);
+  text-wrap: balance;
+  max-width: 920px;
+}
+h2 .num { display: inline-block; min-width: 1.6em; font-family: var(--font-mono); font-weight: 600; color: var(--guide); }
+h3 { font-size: 1.14rem; line-height: 1.5; margin: 44px 0 10px; text-wrap: balance; max-width: 44em; }
+h3 .num { font-family: var(--font-mono); font-weight: 600; color: var(--guide); margin-right: 0.5em; }
+h4 { font-size: 1rem; margin: 30px 0 6px; max-width: 920px; }
+h4 .sub { display: inline-block; margin-left: 0.8em; font-weight: 400; font-size: 0.84rem; color: var(--muted); }
+p, ul, ol, dl.defs { max-width: 44em; }
+p { margin: 0 0 14px; }
+ul, ol { padding-left: 1.4em; margin: 0 0 14px; }
+li { margin-bottom: 4px; }
+a { color: var(--guide); text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--guide); outline-offset: 2px; border-radius: 2px; }
+code, .mono { font-family: var(--font-mono); }
+code { font-size: 0.86em; background: var(--sunken); padding: 0.05em 0.35em; border-radius: 3px; overflow-wrap: anywhere; }
+pre {
+  max-width: 920px;
+  overflow-x: auto;
+  background: var(--sunken);
+  padding: 14px 16px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  line-height: 1.7;
+  margin: 0 0 16px;
+}
+pre code { background: none; padding: 0; font-size: inherit; overflow-wrap: normal; }
+pre .cm { color: var(--muted); }
+pre var { font-style: normal; color: var(--muted); }
+.note {
+  max-width: 44em;
+  padding: 10px 14px;
+  border-left: 3px solid var(--guide);
+  background: var(--tint-guide);
+  font-size: 0.94rem;
+}
+.note.warn { border-left-color: var(--amber); background: var(--tint-amber); }
+
+/* 目次 */
+.toc { font-size: 0.9rem; margin: 24px 0 8px; }
+.toc h2 { all: unset; display: block; font-size: 0.78rem; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px; }
+.toc ol { list-style: none; padding: 0; margin: 0; max-width: none; columns: 2 15em; column-gap: 28px; }
+.toc li { margin: 0 0 4px; break-inside: avoid; line-height: 1.5; }
+.toc li li { padding-left: 1.6em; font-size: 0.86rem; }
+.toc ol ol { columns: auto; margin-top: 4px; }
+.toc a { text-decoration: none; color: var(--ink); }
+.toc a:hover { color: var(--guide); }
+.toc .n { font-family: var(--font-mono); color: var(--guide); display: inline-block; min-width: 1.6em; }
+@media (min-width: 1100px) {
+  .wrap { grid-template-columns: 210px minmax(0, 1fr); }
+  .toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; margin-top: 60px; }
+  .toc ol { columns: auto; }
+}
+
+/* 図版 */
+figure.fig {
+  margin: 26px 0 30px;
+  max-width: 920px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 16px;
+}
+figcaption { margin-top: 12px; font-size: 0.88rem; line-height: 1.7; color: var(--muted); max-width: 52em; }
+figcaption .fn { font-family: var(--font-mono); color: var(--guide); margin-right: 0.6em; font-weight: 600; }
+.scroll { overflow-x: auto; }
+svg.dia { display: block; width: 100%; height: auto; min-width: 600px; }
+svg.dia text { font-family: var(--font-body); }
+
+/* 表 */
+.tbl { max-width: 920px; overflow-x: auto; margin: 16px 0 22px; }
+.tbl table { min-width: 640px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; line-height: 1.6; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; vertical-align: top; padding: 7px 10px; border-bottom: 1px solid var(--rule); }
+th { font-weight: 700; font-size: 0.8rem; letter-spacing: 0.04em; color: var(--muted); background: var(--sunken); white-space: nowrap; }
+td.num, th.num { text-align: right; }
+td.mono, td .mono { font-family: var(--font-mono); font-size: 0.86rem; }
+td.nw { white-space: nowrap; }
+td.big { font-size: 1.3rem; line-height: 1.3; }
+th.rowh { text-align: left; background: var(--sunken); font-family: var(--font-mono); font-weight: 600; letter-spacing: 0; }
+td.diag { background: var(--tint-guide); font-weight: 700; }
+td.zero { color: var(--muted); }
+.nb { display: inline-block; }
+
+dl.defs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 18px; }
+@media (min-width: 640px) { dl.defs { grid-template-columns: 11em minmax(0, 1fr); } }
+dl.defs dt { font-weight: 700; }
+dl.defs dd { margin: 0 0 8px; }
+
+/* 手順 */
+ol.steps { list-style: none; padding: 0; counter-reset: step; max-width: 44em; }
+ol.steps > li { counter-increment: step; position: relative; padding-left: 2.4em; margin-bottom: 12px; }
+ol.steps > li::before {
+  content: counter(step);
+  position: absolute; left: 0; top: 0.1em;
+  width: 1.7em; height: 1.7em; border-radius: 50%;
+  display: grid; place-items: center;
+  font-family: var(--font-mono); font-size: 0.82rem; font-weight: 600;
+  color: var(--surface); background: var(--guide);
+}
+
+/* インポートの失敗の例 */
+.case { max-width: 920px; border-top: 1px solid var(--rule); padding: 14px 0 6px; }
+.case .what { margin: 0 0 8px; }
+.case pre { margin: 0 0 8px; }
+.case pre.log {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--ctrl);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.8rem;
+}
+.case .fix { font-size: 0.94rem; }
+.case .fix b { color: var(--guide); }
+
+/* 付録の文字リスト。記号は 16 の列（狭い画面では 8 の列）に並べ、列がコードポイントの下 1 桁と揃う。 */
+ol.cells {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 18px;
+  max-width: 920px;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 2px;
+}
+@media (min-width: 720px) { ol.cells { grid-template-columns: repeat(16, minmax(0, 1fr)); } }
+ol.cells li { margin: 0; min-width: 0; text-align: center; background: var(--surface); border: 1px solid var(--rule); border-radius: 2px; padding: 3px 0 1px; }
+ol.cells b { display: block; font-weight: 400; font-size: 1.3rem; line-height: 1.45; min-height: 1.45em; overflow: hidden; }
+ol.cells i { display: block; font-style: normal; font-family: var(--font-mono); font-size: 0.62rem; line-height: 1.4; color: var(--muted); letter-spacing: 0.02em; }
+ol.cells b.sp { color: var(--muted); }
+ol.cells li.ws b::before { content: ""; display: inline-block; width: 0.9em; height: 0.9em; border: 1px dashed var(--muted); vertical-align: -0.1em; }
+ol.cells li.na { background: var(--sunken); }
+ol.cells li.na i { opacity: 0.6; }
+ol.cells li.ex { background: repeating-linear-gradient(135deg, var(--sunken) 0 3px, var(--surface) 3px 7px); border-style: dashed; }
+ol.cells li.ex i { opacity: 0.6; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 10px 0 0; padding: 0; list-style: none; font-size: 0.84rem; color: var(--muted); max-width: none; }
+.legend li { display: flex; align-items: center; gap: 6px; margin: 0; }
+.sw { display: inline-block; width: 18px; height: 18px; border-radius: 2px; border: 1px solid var(--rule); background: var(--surface); flex: none; }
+.sw.ws { position: relative; }
+.sw.ws::after { content: ""; position: absolute; inset: 4px; border: 1px dashed var(--muted); }
+.sw.na { background: var(--sunken); }
+.sw.ex { background: repeating-linear-gradient(135deg, var(--sunken) 0 3px, var(--surface) 3px 7px); border-style: dashed; }
+.kanji { max-width: 920px; margin: 8px 0 18px; }
+.kr { display: grid; grid-template-columns: 2.6em minmax(0, 1fr); gap: 12px; border-top: 1px solid var(--rule); padding: 6px 0; }
+.kn { font-family: var(--font-mono); font-size: 0.8rem; color: var(--guide); padding-top: 0.35em; }
+.kn::after { content: " 区"; color: var(--muted); }
+.kr p { margin: 0; max-width: none; font-size: 1.15rem; line-height: 1.8; letter-spacing: 0.06em; word-break: break-all; overflow-wrap: anywhere; }
+
+footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 0.84rem; color: var(--muted); max-width: 920px; }
+
+/* SVG の部品（色はすべて上のトークンから） */
+.lbl-s { font-size: 11.5px; fill: var(--muted); }
+.node { fill: var(--surface); stroke: var(--rule-strong); stroke-width: 1.2; }
+.node.in { fill: var(--tint-guide); stroke: var(--guide); }
+.node.host { fill: var(--sunken); stroke: var(--rule-strong); }
+.node.out { stroke: var(--ctrl); stroke-width: 1.6; }
+.node.sub { fill: var(--sunken); stroke: var(--rule); }
+.node-t { font-size: 14px; font-weight: 700; fill: var(--ink); }
+.node-s { font-size: 12px; fill: var(--muted); font-family: var(--font-mono); }
+.key { font-size: 11.5px; fill: var(--guide); font-family: var(--font-mono); }
+.asm { font-size: 11px; fill: var(--guide); font-family: var(--font-mono); letter-spacing: 0.04em; }
+.flow { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+.flow.dash { stroke-dasharray: 4 4; }
+.ah-flow { fill: var(--muted); }
+.region { fill: none; stroke: var(--rule-strong); stroke-width: 1; stroke-dasharray: 5 4; }
+
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+html { scroll-behavior: smooth; }
+h2[id], h3[id], h4[id], .case[id] { scroll-margin-top: 20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="masthead">
+<p class="eyebrow">T2Font アーキテクチャ解説 04 ／ パッケージ info.someiyoshino.t2font</p>
+<h1><span class="nb">ベイク仕様</span><span class="nb">（.t2font）の</span><span class="nb">書き方</span></h1>
+<p class="lede">フォントアセット <code>T2FontAsset</code> の元になるベイク仕様（<code>.t2font</code>）を、キーごとに説明する。元フォントを置いてからアセットができるまでの手順、インポートの失敗の文面と直し方、固定の文字セット（<code>charsets</code>）の中身も載せる。文字セットごとの文字リストは付録 A に収める。</p>
+<dl class="specimen">
+<div><dt>見本のベイク仕様</dt><dd><code>Assets/Content/Fonts/mplus-1c-sdf.t2font</code><br>Ascii ＋ 指定文字・<code>sdf</code>・emPx 48・R8</dd></div>
+<div><dt>見本の元フォント</dt><dd><code>Assets/Authoring/Fonts/mplus-1c-regular.ttf</code><br>M+ 1c Regular</dd></div>
+<div><dt>インポートした結果</dt><dd><!-- gen:SAMPLE_CHARS -->206<!-- /gen --> 字・グリフ <!-- gen:SAMPLE_GLYPHS -->207<!-- /gen --><br><!-- gen:SAMPLE_PAGES -->1 ページ 1020×1008 px<!-- /gen -->・セル <!-- gen:SAMPLE_CELL -->68×72 px<!-- /gen --></dd></div>
+</dl>
+<p class="note">契約（何を守るか）の正典はパッケージの README（§7 ベイク仕様とインポート・§9 SDF）で、本書は書き方を例で補う。インポートの中で何が起きるか（TrueType の読み方・タイポグラフィテーブル・アトラスのベイク）は 02 章（<a href="02-truetype-to-atlas.html">TrueType からアトラスへ</a>）、描くところは 03 章（<a href="03-atlas-to-screen.html">アトラスから画面へ</a>）。数・誤りの文面・付録の文字リストは、記述時点のパッケージのコードを実際に走らせて作った（作り方は<a href="#method">§11</a>）。</p>
+</header>
+
+<nav class="toc" aria-label="目次">
+<h2>目次</h2>
+<ol>
+<li><a href="#overview"><span class="n">1</span>ベイク仕様とは</a></li>
+<li><a href="#steps"><span class="n">2</span>フォントアセットを作る</a>
+<ol>
+<li><a href="#place-font">元フォントを置く</a></li>
+<li><a href="#write-spec">ベイク仕様を書く</a></li>
+<li><a href="#check-import">インポートを確かめる</a></li>
+<li><a href="#use">使う</a></li>
+<li><a href="#edit">直す</a></li>
+<li><a href="#commit">リポジトリに入れる物</a></li>
+</ol></li>
+<li><a href="#syntax"><span class="n">3</span>書式の決まり</a></li>
+<li><a href="#keys"><span class="n">4</span>キー</a>
+<ol>
+<li><a href="#source">source</a></li>
+<li><a href="#coverage">coverage</a></li>
+<li><a href="#charsets-key">charsets</a></li>
+<li><a href="#characters">characters</a></li>
+<li><a href="#representation">representation</a></li>
+</ol></li>
+<li><a href="#codepoints"><span class="n">5</span>字が決まるまで</a></li>
+<li><a href="#charsets"><span class="n">6</span>文字セット</a>
+<ol>
+<li><a href="#cs-ascii">Ascii</a></li>
+<li><a href="#cs-jis">JisX0208</a></li>
+<li><a href="#cs-windows">WindowsVariants</a></li>
+<li><a href="#cs-nec">NecRow13</a></li>
+<li><a href="#cs-ibm">IbmExtensions</a></li>
+<li><a href="#cs-symbols">CommonSymbols</a></li>
+<li><a href="#cs-dev">DevelopmentDefault</a></li>
+<li><a href="#cs-choose">選び方</a></li>
+</ol></li>
+<li><a href="#examples"><span class="n">7</span>書き方の例</a></li>
+<li><a href="#errors"><span class="n">8</span>インポートの失敗と直し方</a></li>
+<li><a href="#reimport"><span class="n">9</span>再インポート</a></li>
+<li><a href="#terms"><span class="n">10</span>用語</a></li>
+<li><a href="#method"><span class="n">11</span>付録の作り方</a></li>
+<li><a href="#appendix"><span class="n">A</span>文字セットの文字リスト</a>
+<ol>
+<li><a href="#a-ascii">Ascii</a></li>
+<li><a href="#a-jis">JisX0208</a></li>
+<li><a href="#a-windows">WindowsVariants</a></li>
+<li><a href="#a-nec">NecRow13</a></li>
+<li><a href="#a-ibm">IbmExtensions</a></li>
+<li><a href="#a-symbols">CommonSymbols</a></li>
+</ol></li>
+</ol>
+</nav>
+
+<main>
+
+<h2 id="overview"><span class="num">1</span>ベイク仕様とは</h2>
+<p>ベイク仕様（<code>.t2font</code>）は、<b>どの元フォントから・どの字を・どの表現で</b>ベイクするかを書いた JSON のテキストファイル。Unity がこのファイルを見つけると、パッケージのインポーター <code>T2FontImporter</code>（拡張子 <code>t2font</code> の ScriptedImporter）がインポートし、<code>T2FontAsset</code>（メインアセット）と、表現とページのテクスチャ（サブアセット）を作る。</p>
+<p>アセットは生成物で、Unity の Library に作られる。リポジトリに置くのはベイク仕様と元フォントだけ（README §2.4）。実行時に元フォントは要らない——<code>T2FontAsset</code> はタイポグラフィテーブルと表現を自分で持ち、元フォントを参照しない。</p>
+
+<figure class="fig" id="fig-overview">
+<div class="scroll"><svg class="dia" viewBox="0 0 760 360" width="760" height="360" role="img" aria-label="元フォントとベイク仕様からインポーターが T2FontAsset を作る流れ" xmlns="http://www.w3.org/2000/svg">
+<text class="asm" x="16" y="28" text-anchor="start">リポジトリに置く</text>
+<rect class="region" x="8" y="38" width="216" height="186" rx="6"/>
+<rect class="node in" x="16" y="60" width="200" height="60" rx="6"/>
+<text class="node-t" x="28" y="85" text-anchor="start">元フォント</text>
+<text class="node-s" x="28" y="105" text-anchor="start">.ttf（TrueType 輪郭）</text>
+<rect class="node in" x="16" y="150" width="200" height="60" rx="6"/>
+<text class="node-t" x="28" y="175" text-anchor="start">ベイク仕様</text>
+<text class="node-s" x="28" y="195" text-anchor="start">.t2font（JSON）</text>
+<line class="flow" x1="216" y1="90" x2="254" y2="90"/><polygon class="ah-flow" points="256,90 248,86.4 248,93.6"/>
+<line class="flow" x1="216" y1="180" x2="254" y2="180"/><polygon class="ah-flow" points="256,180 248,176.4 248,183.6"/>
+<text class="lbl-s" x="16" y="250" text-anchor="start">coverage はインポートの流れでは</text>
+<text class="lbl-s" x="16" y="267" text-anchor="start">使わず、アセットにも入らない</text>
+<text class="lbl-s" x="16" y="284" text-anchor="start">（利用側の検査がベイク仕様を読む）</text>
+<text class="asm" x="258" y="28" text-anchor="start">T2FontImporter（README §7.3）</text>
+<rect class="node host" x="258" y="40" width="264" height="306" rx="6"/>
+<rect class="node" x="270" y="54" width="240" height="44" rx="5"/>
+<text class="node-t" x="282" y="74" text-anchor="start">1 元フォントを読む</text>
+<text class="key" x="282" y="91" text-anchor="start">source</text>
+<line class="flow" x1="390" y1="98" x2="390" y2="108"/><polygon class="ah-flow" points="390,110 386.4,102 393.6,102"/>
+<rect class="node" x="270" y="112" width="240" height="44" rx="5"/>
+<text class="node-t" x="282" y="132" text-anchor="start">2 字を決める</text>
+<text class="key" x="282" y="149" text-anchor="start">charsets ∪ characters</text>
+<line class="flow" x1="390" y1="156" x2="390" y2="166"/><polygon class="ah-flow" points="390,168 386.4,160 393.6,160"/>
+<rect class="node" x="270" y="170" width="240" height="44" rx="5"/>
+<text class="node-t" x="282" y="190" text-anchor="start">3 タイポグラフィテーブルを作る</text>
+<text class="node-s" x="282" y="207" text-anchor="start">全表現で共通</text>
+<line class="flow" x1="390" y1="214" x2="390" y2="224"/><polygon class="ah-flow" points="390,226 386.4,218 393.6,218"/>
+<rect class="node" x="270" y="228" width="240" height="44" rx="5"/>
+<text class="node-t" x="282" y="248" text-anchor="start">4 表現をベイクする</text>
+<text class="key" x="282" y="265" text-anchor="start">representation</text>
+<line class="flow" x1="390" y1="272" x2="390" y2="282"/><polygon class="ah-flow" points="390,284 386.4,276 393.6,276"/>
+<rect class="node" x="270" y="286" width="240" height="44" rx="5"/>
+<text class="node-t" x="282" y="306" text-anchor="start">5 アセットを組む</text>
+<text class="node-s" x="282" y="323" text-anchor="start">sourceHash も入れる</text>
+<line class="flow" x1="522" y1="195" x2="558" y2="195"/><polygon class="ah-flow" points="560,195 552,191.4 552,198.6"/>
+<text class="asm" x="562" y="28" text-anchor="start">Library（生成物）</text>
+<rect class="region" x="554" y="38" width="198" height="308" rx="6"/>
+<rect class="node out" x="562" y="96" width="182" height="198" rx="6"/>
+<text class="node-t" x="574" y="120" text-anchor="start">T2FontAsset</text>
+<text class="node-s" x="574" y="138" text-anchor="start">メインアセット</text>
+<rect class="node sub" x="574" y="150" width="158" height="40" rx="4"/>
+<text class="lbl-s" x="584" y="167" text-anchor="start">タイポグラフィテーブル</text>
+<text class="node-s" x="584" y="183" text-anchor="start">字・送り幅・インク境界</text>
+<rect class="node sub" x="574" y="196" width="158" height="40" rx="4"/>
+<text class="lbl-s" x="584" y="213" text-anchor="start">表現（サブアセット）</text>
+<text class="node-s" x="584" y="229" text-anchor="start">名前 (sdf)</text>
+<rect class="node sub" x="574" y="242" width="158" height="40" rx="4"/>
+<text class="lbl-s" x="584" y="259" text-anchor="start">ページ（サブアセット）</text>
+<text class="node-s" x="584" y="275" text-anchor="start">名前 page 0 …</text>
+</svg></div>
+<figcaption><span class="fn">図 1</span>ベイク仕様のキーがインポートのどの段で使われるか。どの段で誤っても、アセットは作られない（README §7.3）。「名前」はベイク仕様のファイル名から拡張子を除いたもの。</figcaption>
+</figure>
+
+<h2 id="steps"><span class="num">2</span>フォントアセットを作る</h2>
+<p>新しいフォントを T2Font で使えるようにするまでの手順。どれも Unity のエディタの中で済み、コードは書かない。</p>
+
+<h3 id="place-font"><span class="num">2.1</span>元フォントを置く</h3>
+<ol class="steps">
+<li>元フォントのファイルを、プロジェクトの <code>Assets/</code> の下に置く（本プロジェクトは <code>Assets/Authoring/Fonts/</code>）。パッケージの中のフォントは <code>Packages/&lt;パッケージ名&gt;/…</code> のままでよい。</li>
+<li>フォントは <b>TrueType 輪郭（<code>glyf</code>）の単体のフォント</b>であること。拡張子が <code>.ttf</code> のものはたいていこれに当たる。フォントコレクション（<code>.ttc</code>）と、CFF 輪郭のフォント（<code>.otf</code> の多く）は読めない。読めないときはインポートが失敗し、文面がそう名指す（<a href="#err-font">§8.6</a>）。</li>
+<li>フォントのライセンスが、ゲームへの組み込みと、ベイクした派生物（アトラスのテクスチャ）の配布を許すことを確かめる。</li>
+</ol>
+<p>Unity は <code>.ttf</code> を自分の Font アセットとしてもインポートするが、T2Font はそれを使わない。インポーターはファイルのバイト列を直接読む。</p>
+
+<h3 id="write-spec"><span class="num">2.2</span>ベイク仕様を書く</h3>
+<ol class="steps">
+<li>拡張子が <code>.t2font</code> のテキストファイルを <code>Assets/</code> の下に作る（本プロジェクトは <code>Assets/Content/Fonts/</code>）。Unity の Create メニューには項目が無いので、エクスプローラーやテキストエディタで作る。見本の <code>mplus-1c-sdf.t2font</code> を複製して書き換えるのが早い。Windows のエクスプローラーで拡張子を隠していると <code>…t2font.txt</code> になりやすいので、拡張子を表示にしておく。</li>
+<li>文字コードは UTF-8 で保存する。</li>
+<li>ファイル名（拡張子を除く）がアセットの名前になる。サブアセットの名前の頭にも付く（<code>名前 (sdf)</code>・<code>名前 page 0</code>）。</li>
+<li>下の形から書き始め、元フォントのパスと字を直す。省いた SDF の設定は既定値になる（<a href="#representation">§4.5</a>）。</li>
+</ol>
+<pre><code>{
+    "source": "Assets/Authoring/Fonts/<var>使うフォント</var>.ttf",
+    "coverage": "fixed",
+    "charsets": ["Ascii"],
+    "representation": { "kind": "sdf" }
+}</code></pre>
+<p>見本のベイク仕様は次のとおり。先頭の <code>//</code> の行はコメント。</p>
+<pre><code><!-- gen:SAMPLE_SPEC -->// 検証用の M+ 1c を SDF でベイクするベイク仕様（パッケージの README §7）。インポートの EditMode テスト・適合検査・比較の場面が読む。
+// 適合検査の描画は「■」を基準の字にする（インク部が中央の列を上下の水平な縁で横切る塗りつぶしの字）。
+{
+    "source": "Assets/Authoring/Fonts/mplus-1c-regular.ttf",
+    "coverage": "fixed",
+    "charsets": ["Ascii"],
+    "characters": "いろはにほへとちりぬるをわかよたれそつねならむうゐのおくやまけふこえてあさきゆめみしゑひもせすんアイウエオカキクケコサシスセソタチツテトナニヌネノ永東京都一二三色香散我誰常有為奥山今日越浅夢見酔字形表現縁取■□、。「」・ー",
+    "representation": { "kind": "sdf", "emPx": 48, "format": "R8" }
+}<!-- /gen --></code></pre>
+
+<h3 id="check-import"><span class="num">2.3</span>インポートを確かめる</h3>
+<ol class="steps">
+<li>ファイルを保存して Unity のエディタに戻ると、変更が見つかってインポートが始まる（Preferences の Asset Pipeline &gt; Auto Refresh が有効のとき。無効なら Assets &gt; Refresh）。</li>
+<li>成功すると Console に報告が 1 行出る。見本では次のとおり（最後はベイクにかかった秒）。<pre><code><!-- gen:SAMPLE_LOG -->[T2Font] Assets/Content/Fonts/mplus-1c-sdf.t2font: 206 字・グリフ 207・sdf・1 ページ（1020×1008・R8）・セル 68×72（インク境界 (-0.01, -0.23, 0.982, 0.842)）・<!-- /gen --><var>n.n</var> 秒</code></pre>「字」はタイポグラフィテーブルに入った字の数、「グリフ」はそれに .notdef などの cmap を持たないグリフを足した数。固定の文字セットに元フォントの無い字があれば、末尾に「固定の文字セットのうち元フォントに無い字 <var>N</var> 字」が付く（<a href="#codepoints">§5</a>）。</li>
+<li>失敗すると Console に赤い誤りが出て、アセットは作られない。文面の頭にベイク仕様のパス、ベイク仕様の誤りなら行番号が付く。直し方は <a href="#errors">§8</a>。</li>
+<li>Project ウィンドウでベイク仕様を開く（▶）と、メインアセットの <code>T2FontAsset</code> の下に、表現（<code>名前 (sdf)</code>）とページのテクスチャ（<code>名前 page 0</code> …）が並ぶ。Inspector で中身を見られるが、生成物なので書き換えられない。</li>
+</ol>
+<p class="note">和文の本文フォント（数千字）は、インポートに数十秒かかる。インポートは Unity の Library に残るので、ベイク仕様と元フォントを変えない限り、エディタを開き直してもやり直さない。</p>
+
+<h3 id="use"><span class="num">2.4</span>使う</h3>
+<ul>
+<li><b>検証ビューで見る</b>: Canvas の下の GameObject に <code>T2FontText</code>（パッケージの Viewer）を足し、Font の欄へ <code>T2FontAsset</code>（ベイク仕様の ▶ の中のメインアセット。ベイク仕様そのものをドラッグしてもよい）を入れる。文字列・表示サイズ・エッジスタイルを Inspector で替えられる。</li>
+<li><b>コードから使う</b>: <code>[SerializeField] T2FontAsset</code> の欄に入れて参照する。シーンやプレハブから参照されたアセットはビルドに入る。エディタのコードからは <code>AssetDatabase.LoadAssetAtPath&lt;T2FontAsset&gt;("…/名前.t2font")</code> で読め、インポートが失敗していれば null が返る。</li>
+<li>字を置く API（<code>Resolve</code>・<code>Metrics</code>・<code>RepresentationOf</code>）は README §3.1、描き方は <a href="03-atlas-to-screen.html">03 章</a>。</li>
+</ul>
+
+<h3 id="edit"><span class="num">2.5</span>直す</h3>
+<p>ベイク仕様を書き換えて保存すれば、再インポートされる。元フォントを差し替えたときも再インポートされる（いつ再インポートされるかは <a href="#reimport">§9</a>）。サブアセットはインポーターが決まった識別子で足すので、再インポートしてもシーンやプレハブからの参照は外れない。</p>
+
+<h3 id="commit"><span class="num">2.6</span>リポジトリに入れる物</h3>
+<div class="tbl"><table>
+<thead><tr><th>ファイル</th><th>入れるか</th><th>理由</th></tr></thead>
+<tbody>
+<tr><td class="mono">名前.t2font</td><td>入れる</td><td>アセットの元</td></tr>
+<tr><td class="mono">名前.t2font.meta</td><td>入れる</td><td>GUID を持つ。シーンやプレハブはこの GUID でアセットを参照するので、失うと参照が外れる</td></tr>
+<tr><td class="mono">元フォント.ttf と .meta</td><td>入れる</td><td>インポートが読む</td></tr>
+<tr><td class="mono">Library/</td><td>入れない</td><td>アセット・テクスチャは生成物（README §2.4）。別の PC ではそこでインポートし直す</td></tr>
+</tbody></table></div>
+<p>ベイク仕様の移動や改名は、<code>.meta</code> が一緒に動くように Unity の Project ウィンドウの中で行う。</p>
+
+<h2 id="syntax"><span class="num">3</span>書式の決まり</h2>
+<ul>
+<li><b>JSON</b>。最上位は <code>{ … }</code> のオブジェクト 1 つで、その後ろにはコメントしか置けない。</li>
+<li><b><code>//</code> から行末まではコメント</b>。ファイルの読み方の説明をここに書く。</li>
+<li><b>未知のキー・重複したキー・型の違う値は、インポートの失敗</b>（README §2.1）。綴りの誤りを既定値で読み替えて、意図と違うフォントが黙ってできることはない。</li>
+<li>キーの名前・文字セットの名前・<code>kind</code>・<code>format</code> などの値は、<b>大文字と小文字を区別する</b>。</li>
+<li>キーの順番は自由。</li>
+<li>数は数で書く（<code>48</code> や <code>0.5</code>）。<code>"48"</code> のように引用符で囲むと文字列になり、失敗する。</li>
+<li>文字列の中の <code>"</code> と <code>\</code> は <code>\"</code>・<code>\\</code> と書く。どの字も <code>\uXXXX</code> で書ける（BMP の外の字はサロゲートペアの 2 つ、例: <code>\uD842\uDFB7</code>＝𠮷）。字をそのまま書いてもよい。</li>
+</ul>
+
+<h2 id="keys"><span class="num">4</span>キー</h2>
+<p>最上位のキーは次の 5 つだけ。</p>
+<div class="tbl"><table>
+<thead><tr><th>キー</th><th>必須</th><th>型</th><th>値</th></tr></thead>
+<tbody>
+<tr><td class="mono"><a href="#source">source</a></td><td>必須</td><td>文字列</td><td>元フォントのプロジェクトパス</td></tr>
+<tr><td class="mono"><a href="#coverage">coverage</a></td><td>必須</td><td>文字列</td><td><code>"corpus"</code> か <code>"fixed"</code></td></tr>
+<tr><td class="mono"><a href="#charsets-key">charsets</a></td><td>どちらか</td><td>文字列の配列</td><td>固定の文字セットの名前</td></tr>
+<tr><td class="mono"><a href="#characters">characters</a></td><td>どちらか</td><td>文字列</td><td>足す字（指定文字）</td></tr>
+<tr><td class="mono"><a href="#representation">representation</a></td><td>必須</td><td>オブジェクト</td><td><code>{ "kind": "<var>種類</var>", … }</code></td></tr>
+</tbody></table></div>
+<p>「どちらか」は、<code>charsets</code> と <code>characters</code> の少なくとも一方で字を 1 つ以上指定すること。両方を書けば和になる（<a href="#codepoints">§5</a>）。</p>
+
+<h3 id="source"><span class="num">4.1</span>source</h3>
+<p>元フォントの<b>プロジェクトパス</b>。プロジェクトのルートからの相対で、<code>Assets/</code> か <code>Packages/</code> で始め、区切りは <code>/</code>（<code>\</code> は失敗）。ファイル名だけや、<code>C:/…</code> のようなディスクの上のパスは書けない。</p>
+<pre><code>"source": "Assets/Authoring/Fonts/mplus-1c-regular.ttf"</code></pre>
+<ul>
+<li>ファイルが無ければインポートの失敗。</li>
+<li>インポーターは元フォントに依存を張るので、元フォントを差し替えると再インポートされる。</li>
+<li>同じ元フォントを、字や設定を変えて何通りにもベイクできる——ベイク仕様を別のファイルにして、同じ <code>source</code> を指す。</li>
+</ul>
+
+<h3 id="coverage"><span class="num">4.2</span>coverage</h3>
+<p>このフォントが本文をどこまで覆うべきか。</p>
+<div class="tbl"><table>
+<thead><tr><th>値</th><th>意味</th></tr></thead>
+<tbody>
+<tr><td class="mono">"corpus"</td><td>本文フォント。本文（シナリオなど）に出る全字を覆うべきフォント</td></tr>
+<tr><td class="mono">"fixed"</td><td>固定の文字セットだけを持つ装飾書体（タイトル・数字など）。欠けた字は実行時の代替グリフで見せる</td></tr>
+</tbody></table></div>
+<p><b>インポーターはこの値で振る舞いを変えない</b>。値はアセットにも入らない。検査の厳しさを決めるのは利用側で、たとえば「本文の全字が <code>corpus</code> のフォントにあるか」を確かめる利用側の検査が、ベイク仕様を読んで（<code>FontBakeSpec.Parse</code> の <code>Coverage</code>）フォントを分ける。</p>
+
+<h3 id="charsets-key"><span class="num">4.3</span>charsets</h3>
+<p>固定の文字セットの名前の配列。名前の一覧と中身は <a href="#charsets">§6</a>。</p>
+<pre><code>"charsets": ["Ascii", "JisX0208"]</code></pre>
+<ul>
+<li>複数を書くと和になる。同じ名前を 2 度書いても、重なった字を書いても 1 字になる。</li>
+<li>名前は列挙子の綴りそのもの（大文字小文字も区別する）。知らない名前は失敗で、文面に使える名前が並ぶ。</li>
+<li>文字列 1 つ（<code>"Ascii"</code>）は配列ではないので失敗。1 つでも <code>["Ascii"]</code> と書く。</li>
+<li><b>固定の文字セットは上限集合</b>で、元フォントに無い字は失敗にせず、件数だけを報告して飛ばす（<a href="#codepoints">§5</a>）。</li>
+</ul>
+
+<h3 id="characters"><span class="num">4.4</span>characters</h3>
+<p>足す字（指定文字）を 1 本の文字列で書く。字の順番と重なりは問わない。</p>
+<pre><code>"characters": "■□、。「」・ー𠮷"</code></pre>
+<ul>
+<li>字はコードポイントの単位で数える。サロゲートペアは 1 字。結合文字や異体字セレクタも、それぞれ 1 つのコードポイントとして足される（T2Font は字を組み合わせない）。</li>
+<li>制御文字（U+0000〜U+001F・U+007F）と BOM（U+FEFF）は足さずに読み飛ばす。片割れのサロゲート（<code>\uD842</code> だけ）は失敗。</li>
+<li><b>元フォントに無い字は、インポートの失敗</b>（README §2.1）。作者が名指した字を黙って捨てない。文面に無い字が最大 40 字並ぶ。</li>
+<li>空白も字。<code>characters</code> だけで作るフォントで空白を描くなら、<code>" "</code>（U+0020）や全角の空白（U+3000）を書き入れる。収録していない字は実行時に代替グリフになり、誤りが記録される（README §3.1）。</li>
+</ul>
+<p>本文の字だけを収める出荷のフォントは、本文から字を集めて <code>characters</code> に書いたベイク仕様にする。そのような道具は利用側が作り、パッケージは書き出しの API を持つ: <code>FontBakeSpec.WithCharacters</code>（字を指定文字だけに替え、固定の文字セットを外す）と <code>ToJson</code>（全キーを省略せずに書く）。書き出した例は <a href="#ex-export">§7.2</a>。</p>
+
+<h3 id="representation"><span class="num">4.5</span>representation</h3>
+<p>グリフの表現の種類と、その種類の設定。<code>kind</code> は必須で、既定の表現は無い。<code>kind</code> 以外のキーは、その種類の記述子が検査する（README §7.4）。パッケージが持つ種類は <code>"sdf"</code> だけで、ほかの種類は別のパッケージが足す。知らない種類は失敗で、文面に使える種類が並ぶ。</p>
+<h4><code>"kind": "sdf"</code> の設定</h4>
+<div class="tbl"><table>
+<thead><tr><th>キー</th><th>型</th><th>範囲</th><th>既定</th><th>意味</th></tr></thead>
+<tbody>
+<tr><td class="mono">emPx</td><td class="nw">数</td><td class="nw">8〜256</td><td class="mono nw">48</td><td>アトラスの上の 1em の px。小数も書ける</td></tr>
+<tr><td class="mono">format</td><td class="nw">文字列</td><td class="nw"><code>"R8"</code>・<code>"BC4"</code></td><td class="mono nw">"R8"</td><td>ページのテクスチャの形式。R8 は非圧縮でどのターゲットでも使える。BC4 は R8 の半分の大きさで、ビルドのターゲットがデスクトップ（Windows・macOS・Linux）のときだけ使える（ほかのターゲットではインポートの失敗）</td></tr>
+<tr><td class="mono">maxPageSize</td><td class="nw">整数</td><td class="nw">64〜16384</td><td class="mono nw">8192</td><td>1 ページの幅と高さの上限（px）。字がページに収まらないときだけ、ページを分ける</td></tr>
+<tr><td class="mono">cellBox</td><td class="nw">数 4 つの配列</td><td class="nw">幅と高さが正</td><td class="nw">インク境界の和</td><td>全字に共通のセルの箱 <code>[左, 下, 右, 上]</code>（em・ペン原点が 0・y は上向き）。はみ出す字があれば失敗</td></tr>
+</tbody></table></div>
+<p><b>emPx</b> を上げると、大きく表示したときの角や細い線が正確になる代わりに、テクスチャが emPx の 2 乗で大きくなる。表示サイズは emPx と別で、1 枚のアトラスから小さい字も大きい字も 1 表示 px の AA で描ける（同梱の SDF は 14px 以上・README §4.3・<a href="02-truetype-to-atlas.html#use">02 章 §8</a>）。下の表は、見本の元フォントに <code>DevelopmentDefault</code>（<a href="#cs-dev">§6.7</a>）を当てた <!-- gen:SIZE_INKED -->6,433<!-- /gen --> 個のインクのあるグリフでの見積もり。</p>
+<div class="tbl"><table>
+<thead><tr><th class="num">emPx</th><th class="num">セル（px）</th><th class="num">ページ</th><th>ページの寸法（px）</th><th class="num">R8</th><th class="num">BC4</th></tr></thead>
+<tbody>
+<!-- gen:SIZE_ROWS -->
+<tr><td class="num">24</td><td class="num">44×48</td><td class="num">1</td><td class="mono">3696×3696</td><td class="num">13.0 MiB</td><td class="num">6.5 MiB</td></tr>
+<tr><td class="num">32</td><td class="num">60×60</td><td class="num">1</td><td class="mono">4860×4800</td><td class="num">22.2 MiB</td><td class="num">11.1 MiB</td></tr>
+<tr><td class="num">48</td><td class="num">84×88</td><td class="num">1</td><td class="mono">6972×6864</td><td class="num">45.6 MiB</td><td class="num">22.8 MiB</td></tr>
+<tr><td class="num">64</td><td class="num">112×116</td><td class="num">2</td><td class="mono">8176×8120・4256×4060</td><td class="num">79.8 MiB</td><td class="num">39.9 MiB</td></tr>
+<tr><td class="num">96</td><td class="num">168×168</td><td class="num">3</td><td class="mono">8064×8064・8064×8064・7224×7224</td><td class="num">173.8 MiB</td><td class="num">86.9 MiB</td></tr>
+<!-- /gen -->
+</tbody></table></div>
+<ul>
+<li><b>セル</b>は全字で同じ大きさで、箱（<code>cellBox</code>、省けば字のインク境界の和）に、距離レンジ（0.1875em・全フォント共通で書き換えられない）を切り上げた幅＋1 texel の余白を四方に足し、4 の倍数に揃えたもの（<a href="02-truetype-to-atlas.html#cell">02 章 §6.2</a>）。字が 1 つでも大きく張り出すと、全セルが大きくなる。</li>
+<li><b>cellBox</b> を書くと、字を足し引きしてもセルの寸法が変わらない（省くと字の集まりで和が変わる）。はみ出す字があれば、その字を文面で名指して失敗する——切って収めると縁が欠けるため。</li>
+<li><b>ページが分かれる</b>ときは、漢字以外 → かな → JIS 第 1 水準 → 第 2 水準 → その他の漢字の順に、前のページから詰める（優先クラス・<a href="02-truetype-to-atlas.html#layout">02 章 §6.3</a>）。ページが変わると uGUI のバッチが割れるので、本文の大半を 0 ページだけで描けるようにする並びである。</li>
+</ul>
+
+<h2 id="codepoints"><span class="num">5</span>字が決まるまで</h2>
+<p>インポーターがベイクする字は、<b><code>charsets</code> の文字セットの和 ∪ <code>characters</code> の字</b>のうち、元フォントの cmap にある字。それに元フォントの glyph 0 を <b>.notdef</b>（代替グリフ）として必ず足す。収録していない字は、実行時に .notdef で描かれる（README §3.1）。</p>
+<p>元フォントに無い字の扱いが、2 つのキーで違う。</p>
+<div class="tbl"><table>
+<thead><tr><th></th><th><code>charsets</code>（固定の文字セット）</th><th><code>characters</code>（指定文字）</th></tr></thead>
+<tbody>
+<tr><td>何を足すか</td><td>名前の付いた字の集まり</td><td>書いた字そのもの</td></tr>
+<tr><td>元フォントに無い字</td><td>飛ばして続ける。報告の末尾に件数だけを出す（警告にしない）</td><td>インポートの失敗。無い字を文面で名指す</td></tr>
+<tr><td>考え方</td><td>上限集合——「あれば入れる」</td><td>要求——「必ず要る」</td></tr>
+<tr><td>使いどころ</td><td>開発中に広く収める</td><td>必ず要る字・出荷する字</td></tr>
+</tbody></table></div>
+<p>たとえば見本の元フォント（M+ 1c）に <code>DevelopmentDefault</code> を当てると、<!-- gen:DEV_CHARS -->6,442<!-- /gen --> 字（グリフ <!-- gen:DEV_GLYPHS -->6,443<!-- /gen -->）が入り、元フォントに無い <!-- gen:DEV_MISSING -->3,288<!-- /gen --> 字は件数だけが報告される。同じ字を <code>characters</code> に書けば失敗する。</p>
+<p>タイポグラフィテーブルの字はコードポイントの昇順に並び、字はそこから二分探索でグリフインデックスになる（README §3.2・<a href="02-truetype-to-atlas.html#face">02 章 §5</a>）。</p>
+
+<h2 id="charsets"><span class="num">6</span>文字セット</h2>
+<p><code>charsets</code> に書ける名前は次のとおり。字数は 1 つの文字セットだけでの数。</p>
+<div class="tbl"><table>
+<thead><tr><th>名前</th><th class="num">字数</th><th>中身</th></tr></thead>
+<tbody>
+<tr><td class="mono"><a href="#cs-ascii">Ascii</a></td><td class="num"><!-- gen:N_ASCII -->95<!-- /gen --></td><td>ASCII の印字可能文字（U+0020〜U+007E）。空白を含む</td></tr>
+<tr><td class="mono"><a href="#cs-jis">JisX0208</a></td><td class="num"><!-- gen:N_JISX0208 -->6,879<!-- /gen --></td><td>JIS X 0208 の全字。非漢字・第 1 水準・第 2 水準</td></tr>
+<tr><td class="mono"><a href="#cs-windows">WindowsVariants</a></td><td class="num"><!-- gen:N_WINDOWSVARIANTS -->6<!-- /gen --></td><td>Windows（CP932）が JIS の標準と別の Unicode へ写す字</td></tr>
+<tr><td class="mono"><a href="#cs-nec">NecRow13</a></td><td class="num"><!-- gen:N_NECROW13 -->83<!-- /gen --></td><td>NEC 特殊文字（CP932 の 13 区）。丸数字・ローマ数字・単位記号など</td></tr>
+<tr><td class="mono"><a href="#cs-ibm">IbmExtensions</a></td><td class="num"><!-- gen:N_IBMEXTENSIONS -->388<!-- /gen --></td><td>IBM 拡張（CP932 の 0xFA40〜0xFC4B）。小文字のローマ数字・人名に多い漢字など</td></tr>
+<tr><td class="mono"><a href="#cs-symbols">CommonSymbols</a></td><td class="num"><!-- gen:N_COMMONSYMBOLS -->2,628<!-- /gen --></td><td>記号の Unicode のブロックを丸ごと（書式文字を除く）</td></tr>
+<tr><td class="mono"><a href="#cs-dev">DevelopmentDefault</a></td><td class="num"><!-- gen:N_DEVELOPMENTDEFAULT -->9,730<!-- /gen --></td><td>上の 6 つの和。開発中の本文フォント向け</td></tr>
+</tbody></table></div>
+<p>文字セットどうしは字が重なる。下の表は 2 つの文字セットに共通する字の数（対角は字数）。6 つの字数を足すと <!-- gen:N_SUM -->10,079<!-- /gen --> 字だが、重なった字は 1 字に数えるので、和の <code>DevelopmentDefault</code> は <!-- gen:N_DEVELOPMENTDEFAULT -->9,730<!-- /gen --> 字になる。</p>
+<div class="tbl"><table>
+<!-- gen:OVERLAP_TABLE -->
+<thead><tr><th></th><th class="num">Ascii</th><th class="num">JisX0208</th><th class="num">WindowsVariants</th><th class="num">NecRow13</th><th class="num">IbmExtensions</th><th class="num">CommonSymbols</th></tr></thead>
+<tbody>
+<tr><th class="rowh">Ascii</th><td class="num diag">95</td><td class="num zero">—</td><td class="num zero">—</td><td class="num zero">—</td><td class="num zero">—</td><td class="num zero">—</td></tr>
+<tr><th class="rowh">JisX0208</th><td class="num zero">—</td><td class="num diag">6,879</td><td class="num zero">—</td><td class="num">9</td><td class="num">1</td><td class="num">232</td></tr>
+<tr><th class="rowh">WindowsVariants</th><td class="num zero">—</td><td class="num zero">—</td><td class="num diag">6</td><td class="num zero">—</td><td class="num">1</td><td class="num">6</td></tr>
+<tr><th class="rowh">NecRow13</th><td class="num zero">—</td><td class="num">9</td><td class="num zero">—</td><td class="num diag">83</td><td class="num">14</td><td class="num">83</td></tr>
+<tr><th class="rowh">IbmExtensions</th><td class="num zero">—</td><td class="num">1</td><td class="num">1</td><td class="num">14</td><td class="num diag">388</td><td class="num">28</td></tr>
+<tr><th class="rowh">CommonSymbols</th><td class="num zero">—</td><td class="num">232</td><td class="num">6</td><td class="num">83</td><td class="num">28</td><td class="num diag">2,628</td></tr>
+</tbody>
+<!-- /gen -->
+</table></div>
+
+<h3 id="cs-ascii"><span class="num">6.1</span>Ascii</h3>
+<p>ASCII の印字可能文字。空白（U+0020）から <code>~</code>（U+007E）まで。制御文字と DEL（U+007F）は含まない。半角の英数字と記号で、全角の英数字（U+FF01〜）は <code>JisX0208</code> と <code>CommonSymbols</code> にある。英数字だけの UI のフォントはこれ 1 つでよい。文字リストは <a href="#a-ascii">付録 A.1</a>。</p>
+
+<h3 id="cs-jis"><span class="num">6.2</span>JisX0208</h3>
+<p>JIS X 0208 の全字。日本語の文章のほとんどはこの範囲で書ける。</p>
+<div class="tbl"><table>
+<thead><tr><th>部分</th><th>区</th><th class="num">字数</th><th>中身</th></tr></thead>
+<tbody>
+<tr><td>非漢字</td><td class="nw">1〜8 区</td><td class="num"><!-- gen:N_JIS_NONKANJI -->524<!-- /gen --></td><td>記号・全角の英数字・ひらがな・カタカナ・ギリシャ文字・キリル文字・罫線</td></tr>
+<tr><td>第 1 水準漢字</td><td class="nw"><!-- gen:JIS_LEVEL1_ROWS -->16〜47<!-- /gen --> 区</td><td class="num"><!-- gen:N_JIS_LEVEL1 -->2,965<!-- /gen --></td><td>よく使う漢字。読みの順</td></tr>
+<tr><td>第 2 水準漢字</td><td class="nw"><!-- gen:JIS_LEVEL2_ROWS -->48〜84<!-- /gen --> 区</td><td class="num"><!-- gen:N_JIS_LEVEL2 -->3,390<!-- /gen --></td><td>それに次ぐ漢字。部首の順</td></tr>
+</tbody></table></div>
+<ul>
+<li>Unicode へは <b>JIS の標準の対応表</b>で写す。たとえば 1 区 33 点の「〜」は U+301C（WAVE DASH）で、Windows の IME で打つと入る U+FF5E（～）ではない。Windows の側の字は <code>WindowsVariants</code> が持つ。</li>
+<li>半角カタカナ（U+FF61〜U+FF9F）は JIS X 0208 に無く、<code>CommonSymbols</code> の「半角／全角形」にある。</li>
+<li>JIS X 0208 に無い漢字（JIS X 0213 の第 3・第 4 水準の字、人名の異体字など）は入らない。<code>IbmExtensions</code> がその一部を持つ。ほかに要る字は <code>characters</code> に書く。</li>
+</ul>
+<p>文字リストは <a href="#a-jis">付録 A.2</a>（区ごと）。</p>
+
+<h3 id="cs-windows"><span class="num">6.3</span>WindowsVariants</h3>
+<p>Windows（CP932）が、JIS X 0208 の同じ字を、JIS の標準と別の Unicode の字へ写すもの。Windows で書いた文章（IME で打った字・Shift_JIS のファイルから直した字）にはこちらが入るので、<code>JisX0208</code> の側と両方を収める。字の対応は <a href="#a-windows">付録 A.3</a>。</p>
+
+<h3 id="cs-nec"><span class="num">6.4</span>NecRow13</h3>
+<p>NEC 特殊文字（CP932 の 13 区）。丸数字 ①〜⑳・ローマ数字 Ⅰ〜Ⅹ・単位の組み文字（㍉ ㌔ ㎝ など）・㈱ № ℡・〝〟・数学の記号の一部。Windows の IME で打て、文章に混じりやすい。<code>CommonSymbols</code> と大きく重なる（上の重なりの表）。文字リストは <a href="#a-nec">付録 A.4</a>。</p>
+
+<h3 id="cs-ibm"><span class="num">6.5</span>IbmExtensions</h3>
+<p>IBM 拡張（CP932 の 0xFA40〜0xFC4B）。小文字のローマ数字 ⅰ〜ⅹ・記号（￤ ＇ ＂ など）と、JIS X 0208 に無い漢字——人名に多い異体字（髙・﨑・德 など）を含む。Windows の IME で打てるので、開発中に字の欠けを意識しないために収める。ローマ数字 Ⅰ〜Ⅹ・㈱・№・℡ などは <code>NecRow13</code> と重なる。文字リストは <a href="#a-ibm">付録 A.5</a>。</p>
+
+<h3 id="cs-symbols"><span class="num">6.6</span>CommonSymbols</h3>
+<p>IME で打てる記号（— © ® ™ é ♥ ♡ ‼ ▶ ◀ など）を広く覆うために、記号の Unicode のブロック <!-- gen:N_SYM_BLOCKS -->17<!-- /gen --> 個を丸ごと収める。</p>
+<div class="tbl"><table>
+<thead><tr><th>ブロック</th><th>Unicode の名前</th><th>範囲</th><th class="num">字数</th><th class="num">うち未割り当て</th></tr></thead>
+<tbody>
+<!-- gen:SYM_BLOCK_ROWS -->
+<tr><td><a href="#sym-00a0">Latin-1 補助</a></td><td class="mono">Latin-1 Supplement</td><td class="mono nw">U+00A0〜U+00FF</td><td class="num">96</td><td class="num">—</td></tr>
+<tr><td><a href="#sym-2000">一般句読点</a></td><td class="mono">General Punctuation</td><td class="mono nw">U+2000〜U+206F</td><td class="num">84</td><td class="num">—</td></tr>
+<tr><td><a href="#sym-2100">文字様記号</a></td><td class="mono">Letterlike Symbols</td><td class="mono nw">U+2100〜U+214F</td><td class="num">80</td><td class="num">—</td></tr>
+<tr><td><a href="#sym-2150">数字の形</a></td><td class="mono">Number Forms</td><td class="mono nw">U+2150〜U+218F</td><td class="num">64</td><td class="num">4</td></tr>
+<tr><td><a href="#sym-2190">矢印</a></td><td class="mono">Arrows</td><td class="mono nw">U+2190〜U+21FF</td><td class="num">112</td><td class="num">—</td></tr>
+<tr><td><a href="#sym-2200">数学記号</a></td><td class="mono">Mathematical Operators</td><td class="mono nw">U+2200〜U+22FF</td><td class="num">256</td><td class="num">—</td></tr>
+<tr><td><a href="#sym-2300">その他の技術記号</a></td><td class="mono">Miscellaneous Technical</td><td class="mono nw">U+2300〜U+23FF</td><td class="num">256</td><td class="num">—</td></tr>
+<tr><td><a href="#sym-2460">囲み英数字</a></td><td class="mono">Enclosed Alphanumerics</td><td class="mono nw">U+2460〜U+24FF</td><td class="num">160</td><td class="num">—</td></tr>
+<tr><td><a href="#sym-2500">罫線</a></td><td class="mono">Box Drawing</td><td class="mono nw">U+2500〜U+257F</td><td class="num">128</td><td class="num">—</td></tr>
+<tr><td><a href="#sym-2580">ブロック要素</a></td><td class="mono">Block Elements</td><td class="mono nw">U+2580〜U+259F</td><td class="num">32</td><td class="num">—</td></tr>
+<tr><td><a href="#sym-25a0">幾何学模様</a></td><td class="mono">Geometric Shapes</td><td class="mono nw">U+25A0〜U+25FF</td><td class="num">96</td><td class="num">—</td></tr>
+<tr><td><a href="#sym-2600">その他の記号</a></td><td class="mono">Miscellaneous Symbols</td><td class="mono nw">U+2600〜U+26FF</td><td class="num">256</td><td class="num">—</td></tr>
+<tr><td><a href="#sym-2700">装飾記号</a></td><td class="mono">Dingbats</td><td class="mono nw">U+2700〜U+27BF</td><td class="num">192</td><td class="num">—</td></tr>
+<tr><td><a href="#sym-3000">CJK の記号と句読点</a></td><td class="mono">CJK Symbols and Punctuation</td><td class="mono nw">U+3000〜U+303F</td><td class="num">64</td><td class="num">—</td></tr>
+<tr><td><a href="#sym-3200">囲み CJK 文字・月</a></td><td class="mono">Enclosed CJK Letters and Months</td><td class="mono nw">U+3200〜U+32FF</td><td class="num">256</td><td class="num">1</td></tr>
+<tr><td><a href="#sym-3300">CJK 互換</a></td><td class="mono">CJK Compatibility</td><td class="mono nw">U+3300〜U+33FF</td><td class="num">256</td><td class="num">—</td></tr>
+<tr><td><a href="#sym-ff00">半角／全角形</a></td><td class="mono">Halfwidth and Fullwidth Forms</td><td class="mono nw">U+FF00〜U+FFEF</td><td class="num">240</td><td class="num">15</td></tr>
+<!-- /gen -->
+</tbody></table></div>
+<ul>
+<li><b>描くグリフの無い書式文字</b>（ゼロ幅の空白・方向の印・行と段落の区切り・双方向の制御・単語結合子など。<!-- gen:SYM_EXCLUSIONS -->U+200B〜U+200F・U+2028〜U+202E・U+2060〜U+206F<!-- /gen -->）の <!-- gen:N_SYM_EXCLUDED -->28<!-- /gen --> 個は除く。</li>
+<li>ブロックを範囲で丸ごと入れるので、<b>Unicode の未割り当てのコードポイント</b>（<!-- gen:N_SYM_UNASSIGNED -->20<!-- /gen --> 個）も含む。どのフォントにも無いので、いつも「元フォントに無い字」の件数に数えられる。</li>
+<li>各種の空白（U+00A0・U+2000〜U+200A・U+3000 など）・ソフトハイフン（U+00AD）・全角の英数字・半角カタカナも含む。</li>
+<li>絵文字のブロック（U+1F300〜 など）は含まない。♥ ☀ ✂ のように記号のブロックにある字は、元フォントにあればその字形でベイクされる（SDF は単色）。</li>
+</ul>
+<p>文字リストは <a href="#a-symbols">付録 A.6</a>（ブロックごと）。</p>
+
+<h3 id="cs-dev"><span class="num">6.7</span>DevelopmentDefault</h3>
+<p>上の 6 つの和。開発中は字の欠けを意識しないために、IME で打てる字を広く収める。名前の付いた和なので、<code>["DevelopmentDefault"]</code> と書けば、6 つを並べたのと同じになる。</p>
+<p>元フォントが持たない字は件数だけが報告される（<a href="#codepoints">§5</a>）。和文の本文フォントでも、未割り当てのコードポイントと記号の一部はたいてい欠ける。件数はフォントによるので、数を減らすことを目標にしない。</p>
+
+<h3 id="cs-choose"><span class="num">6.8</span>選び方</h3>
+<div class="tbl"><table>
+<thead><tr><th>フォント</th><th>coverage</th><th>字の指定</th></tr></thead>
+<tbody>
+<tr><td>開発中の本文フォント</td><td class="mono">corpus</td><td><code>"charsets": ["DevelopmentDefault"]</code></td></tr>
+<tr><td>出荷の本文フォント（本文の字だけ）</td><td class="mono">corpus</td><td>本文から書き出した <code>characters</code>（<a href="#ex-export">§7.2</a>）</td></tr>
+<tr><td>英数字だけの UI</td><td class="mono">fixed</td><td><code>"charsets": ["Ascii"]</code></td></tr>
+<tr><td>タイトル・ロゴ・数字だけの表示</td><td class="mono">fixed</td><td>要る字だけの <code>characters</code>（空白も）</td></tr>
+<tr><td>英数字＋決まった語句</td><td class="mono">fixed</td><td><code>charsets</code> と <code>characters</code> の和（見本がこれ）</td></tr>
+</tbody></table></div>
+
+<h2 id="examples"><span class="num">7</span>書き方の例</h2>
+
+<h3 id="ex-develop"><span class="num">7.1</span>開発中の本文フォント</h3>
+<pre><code><span class="cm">// 開発中の本文フォント。IME で打てる字を広く収める（欠けは件数だけ報告される）。</span>
+{
+    "source": "Assets/Authoring/Fonts/mplus-1c-regular.ttf",
+    "coverage": "corpus",
+    "charsets": ["DevelopmentDefault"],
+    "representation": { "kind": "sdf", "emPx": 48 }
+}</code></pre>
+
+<h3 id="ex-export"><span class="num">7.2</span>本文から書き出した出荷のフォント</h3>
+<p>7.1 のベイク仕様を読み、本文の字で <code>WithCharacters</code> してから <code>ToJson</code> で書き出すと、次の形になる。全キーを省略せずに書くので、パッケージの既定値が変わっても意味が変わらない。<code>cellBox</code> を書いておくと、本文が変わって字が増減してもセルの寸法が揺れない。</p>
+<pre><code><!-- gen:EXPORTED_SPEC -->// シナリオの本文から書き出したベイク仕様（手で直さない）。
+{
+    "source": "Assets/Authoring/Fonts/mplus-1c-regular.ttf",
+    "coverage": "corpus",
+    "characters": "。あいだではまる前名吾無猫輩",
+    "representation": { "kind": "sdf", "emPx": 48, "format": "R8", "maxPageSize": 8192, "cellBox": [-0.05, -0.25, 1.05, 0.9] }
+}<!-- /gen --></code></pre>
+
+<h3 id="ex-title"><span class="num">7.3</span>タイトル用の装飾書体</h3>
+<pre><code><span class="cm">// タイトル画面のロゴだけに使う。空白も字として入れる。</span>
+{
+    "source": "Assets/Authoring/Fonts/<var>装飾書体</var>.ttf",
+    "coverage": "fixed",
+    "characters": "はじめからつづきせってい ",
+    "representation": { "kind": "sdf", "emPx": 96 }
+}</code></pre>
+
+<h3 id="ex-bc4"><span class="num">7.4</span>デスクトップだけのゲームでテクスチャを半分にする</h3>
+<pre><code>{
+    "source": "Assets/Authoring/Fonts/mplus-1c-regular.ttf",
+    "coverage": "corpus",
+    "charsets": ["DevelopmentDefault"],
+    "representation": { "kind": "sdf", "emPx": 48, "format": "BC4" }
+}</code></pre>
+<p>ビルドのターゲットを Android などへ切り替えると、BC4 のベイク仕様はインポートが失敗する。複数のプラットフォームへ出すなら R8 にする。</p>
+
+<h2 id="errors"><span class="num">8</span>インポートの失敗と直し方</h2>
+<p>下の例は、次の基本の形を 1〜2 行だけ書き換え、インポーターと同じ手順（ベイク仕様の読み取り → タイポグラフィテーブル → SDF のベイク）に通して出た文面。文面の頭のパスは例のファイル名 <code><!-- gen:EXAMPLE_PATH -->Assets/Content/Fonts/example.t2font<!-- /gen --></code>、行番号は基本の形を書き換えた後のもの。</p>
+<pre><code><!-- gen:BASE_SPEC -->{
+    "source": "Assets/Authoring/Fonts/mplus-1c-regular.ttf",
+    "coverage": "fixed",
+    "charsets": ["Ascii"],
+    "representation": { "kind": "sdf", "emPx": 48, "format": "R8" }
+}<!-- /gen --></code></pre>
+
+<h3 id="err-json"><span class="num">8.1</span>JSON の構文</h3>
+<p>JSON として読めないときの文面の後半は、JSON のリーダー（Newtonsoft.Json）の英語の文面になる。<code>line</code> と <code>position</code> が場所。</p>
+<div class="case">
+<p class="what"><b>カンマが無い</b>（行末の <code>,</code> を落とした）</p>
+<pre><code><!-- gen:ERR_SYNTAX_IN -->"coverage": "fixed"<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_SYNTAX_MSG -->Assets/Content/Fonts/example.t2font: JSON として読めません: After parsing a value an unexpected character was encountered: ". Path 'coverage', line 4, position 4.<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: 示された行の前の行の末尾に <code>,</code> を足す。最後のキーの後ろには付けない。</p>
+</div>
+<div class="case">
+<p class="what"><b>オブジェクトの後ろに余計な内容</b>（<code>}</code> が 1 つ多い）</p>
+<pre><code><!-- gen:ERR_TRAILING_IN -->}
+}<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_TRAILING_MSG -->Assets/Content/Fonts/example.t2font: JSON として読めません: Additional text encountered after finished reading JSON content: }. Path '', line 7, position 0.<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: 括弧の対応を直す。最上位のオブジェクトの後ろには、コメントしか置けない。</p>
+</div>
+<div class="case">
+<p class="what"><b>重複したキー</b></p>
+<pre><code><!-- gen:ERR_DUPLICATE_IN -->"coverage": "fixed",
+"coverage": "corpus",<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_DUPLICATE_MSG -->Assets/Content/Fonts/example.t2font: JSON として読めません: Property with the name 'coverage' already exists in the current JSON object. Path 'coverage', line 4, position 15.<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: どちらかを消す。後に書いた方が勝つ、という読み方はしない。</p>
+</div>
+
+<h3 id="err-common"><span class="num">8.2</span>共通のキー</h3>
+<div class="case">
+<p class="what"><b>キーの綴りの誤り</b>（<code>charsets</code> を <code>charset</code> と書いた）</p>
+<pre><code><!-- gen:ERR_UNKNOWN_KEY_IN -->"charset": ["Ascii"],<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_UNKNOWN_KEY_MSG -->Assets/Content/Fonts/example.t2font: 4 行目: 未知のキー "charset" です（キーは source・coverage・charsets・characters・representation）。<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: 文面に並ぶキーの綴りに直す。</p>
+</div>
+<div class="case">
+<p class="what"><b>必須のキーが無い</b></p>
+<pre><code><!-- gen:ERR_NO_SOURCE_IN -->（source の行を消す）<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_NO_SOURCE_MSG -->Assets/Content/Fonts/example.t2font: キー "source" がありません。<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: キーを書く。<code>coverage</code> と <code>representation</code> も必須。</p>
+</div>
+<div class="case">
+<p class="what"><b>source がプロジェクトパスでない</b></p>
+<pre><code><!-- gen:ERR_SOURCE_PATH_IN -->"source": "mplus-1c-regular.ttf",<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_SOURCE_PATH_MSG -->Assets/Content/Fonts/example.t2font: 2 行目: source はプロジェクトパス（Assets/ か Packages/ で始まり、区切りは /）で書いてください: "mplus-1c-regular.ttf"<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: <code>Assets/</code> か <code>Packages/</code> から書く。Project ウィンドウでフォントを右クリック → Copy Path で得られる。</p>
+</div>
+<div class="case">
+<p class="what"><b>coverage の値の誤り</b>（大文字で始めた）</p>
+<pre><code><!-- gen:ERR_COVERAGE_IN -->"coverage": "Fixed",<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_COVERAGE_MSG -->Assets/Content/Fonts/example.t2font: 3 行目: coverage は "corpus" か "fixed" です: "Fixed"<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: 小文字の <code>"corpus"</code> か <code>"fixed"</code> にする。</p>
+</div>
+
+<h3 id="err-chars"><span class="num">8.3</span>字</h3>
+<div class="case">
+<p class="what"><b>知らない文字セットの名前</b></p>
+<pre><code><!-- gen:ERR_CHARSET_NAME_IN -->"charsets": ["JIS"],<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_CHARSET_NAME_MSG -->Assets/Content/Fonts/example.t2font: 4 行目: 未知の文字セット "JIS" です（名前は Ascii・JisX0208・WindowsVariants・NecRow13・IbmExtensions・CommonSymbols・DevelopmentDefault）。<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: 文面に並ぶ名前に直す（<a href="#charsets">§6</a>）。</p>
+</div>
+<div class="case">
+<p class="what"><b>charsets が配列でない</b></p>
+<pre><code><!-- gen:ERR_CHARSET_STRING_IN -->"charsets": "Ascii",<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_CHARSET_STRING_MSG -->Assets/Content/Fonts/example.t2font: 4 行目: charsets は文字セットの名前の配列にしてください。<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: 1 つでも <code>["Ascii"]</code> と角括弧で囲む。</p>
+</div>
+<div class="case">
+<p class="what"><b>字が 1 つも無い</b></p>
+<pre><code><!-- gen:ERR_NO_CHARS_IN -->"charsets": [],<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_NO_CHARS_MSG -->Assets/Content/Fonts/example.t2font: charsets か characters のどちらかで字を指定してください（字の無いフォントは作れません）。<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: 文字セットの名前を入れるか、<code>characters</code> を書く。</p>
+</div>
+<div class="case">
+<p class="what"><b>指定文字が元フォントに無い</b></p>
+<pre><code><!-- gen:ERR_CHAR_MISSING_IN -->"characters": "😀",<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_CHAR_MISSING_MSG -->Assets/Content/Fonts/example.t2font: characters の字が元フォント Assets/Authoring/Fonts/mplus-1c-regular.ttf にありません（1 字）: 😀(U+1F600)<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: その字を持つフォントにするか、<code>characters</code> から外す。「あれば入れる」でよい字なら、<code>characters</code> ではなく文字セットの側で収める（<a href="#codepoints">§5</a>）。</p>
+</div>
+
+<h3 id="err-rep"><span class="num">8.4</span>表現の設定</h3>
+<p>表現の節の誤りは、文面に <code>representation:</code> が付く。</p>
+<div class="case">
+<p class="what"><b>representation が無い</b></p>
+<pre><code><!-- gen:ERR_NO_REPRESENTATION_IN -->（representation の行を消す）<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_NO_REPRESENTATION_MSG -->Assets/Content/Fonts/example.t2font: キー "representation" がありません（表現の種類を { "kind": … } で選んでください。種類は sdf）。<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: <code>"representation": { "kind": "sdf" }</code> を書く。既定の表現は無い。</p>
+</div>
+<div class="case">
+<p class="what"><b>知らない表現の種類</b></p>
+<pre><code><!-- gen:ERR_KIND_IN -->"representation": { "kind": "msdf" }<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_KIND_MSG -->Assets/Content/Fonts/example.t2font: 5 行目: representation: 未知の表現の種類 "msdf" です（種類は sdf）。<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: 文面に並ぶ種類にする。ほかの種類は、それを足すパッケージを入れると使えるようになる。</p>
+</div>
+<div class="case">
+<p class="what"><b>SDF の設定のキーの綴りの誤り</b></p>
+<pre><code><!-- gen:ERR_SDF_KEY_IN -->"representation": { "kind": "sdf", "emSize": 48 }<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_SDF_KEY_MSG -->Assets/Content/Fonts/example.t2font: 5 行目: representation: 未知のキー "emSize" です（キーは emPx・format・maxPageSize・cellBox）。<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: 文面に並ぶキーの綴りに直す。</p>
+</div>
+<div class="case">
+<p class="what"><b>emPx が範囲の外</b></p>
+<pre><code><!-- gen:ERR_EMPX_RANGE_IN -->"representation": { "kind": "sdf", "emPx": 512 }<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_EMPX_RANGE_MSG -->Assets/Content/Fonts/example.t2font: 5 行目: representation: emPx は 8〜256 にしてください: 512<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: 8〜256 にする。</p>
+</div>
+<div class="case">
+<p class="what"><b>数を文字列で書いた</b></p>
+<pre><code><!-- gen:ERR_EMPX_TYPE_IN -->"representation": { "kind": "sdf", "emPx": "48" }<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_EMPX_TYPE_MSG -->Assets/Content/Fonts/example.t2font: 5 行目: representation: emPx は数にしてください。<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: 引用符を外す。</p>
+</div>
+<div class="case">
+<p class="what"><b>format の値の誤り</b></p>
+<pre><code><!-- gen:ERR_FORMAT_IN -->"representation": { "kind": "sdf", "format": "R16" }<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_FORMAT_MSG -->Assets/Content/Fonts/example.t2font: 5 行目: representation: format は "R8" か "BC4" です: "R16"<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: <code>"R8"</code> か <code>"BC4"</code> にする。BC4 はデスクトップのターゲットだけ（Android などへ切り替えると、インポートが失敗して R8 にするよう文面が言う）。</p>
+</div>
+<div class="case">
+<p class="what"><b>maxPageSize が整数でない</b></p>
+<pre><code><!-- gen:ERR_MAX_PAGE_IN -->"representation": { "kind": "sdf", "maxPageSize": 1000.5 }<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_MAX_PAGE_MSG -->Assets/Content/Fonts/example.t2font: 5 行目: representation: maxPageSize は 64〜16384 の整数にしてください: 1000.5<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: 64〜16384 の整数にする。</p>
+</div>
+<div class="case">
+<p class="what"><b>cellBox の数が 4 つでない</b></p>
+<pre><code><!-- gen:ERR_CELLBOX_SHAPE_IN -->"representation": { "kind": "sdf", "cellBox": [0, -0.2, 1] }<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_CELLBOX_SHAPE_MSG -->Assets/Content/Fonts/example.t2font: 5 行目: representation: cellBox は [左, 下, 右, 上]（em）の 4 つの数にしてください。<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: <code>[左, 下, 右, 上]</code> の 4 つの数にする。</p>
+</div>
+<div class="case">
+<p class="what"><b>cellBox の幅か高さが 0 以下</b></p>
+<pre><code><!-- gen:ERR_CELLBOX_EMPTY_IN -->"representation": { "kind": "sdf", "cellBox": [0, 0, 0, 1] }<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_CELLBOX_EMPTY_MSG -->Assets/Content/Fonts/example.t2font: 5 行目: representation: 箱の大きさが 0 以下です（0, 0, 0, 1）。<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: 右 &gt; 左・上 &gt; 下 にする。</p>
+</div>
+
+<h3 id="err-bake"><span class="num">8.5</span>ベイク</h3>
+<div class="case">
+<p class="what"><b>cellBox からはみ出す字がある</b></p>
+<pre><code><!-- gen:ERR_CELLBOX_SPILL_IN -->"representation": { "kind": "sdf", "cellBox": [0, -0.25, 1, 0.8] }<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_CELLBOX_SPILL_MSG -->Assets/Content/Fonts/example.t2font: セルのインク境界 (0, -0.25, 1, 0.8) からはみ出す字が 5 字あります（切って収めると縁が欠けるので止めます）。箱を広げるか、その字を文字セットから外してください: $(U+0024 (0.055, -0.085, 0.51, 0.815)) _(U+005F (-0.002, -0.14, 0.565, -0.08)) `(U+0060 (0.015, 0.557, 0.232, 0.81)) j(U+006A (-0.01, -0.22, 0.24, 0.75)) |(U+007C (0.135, -0.22, 0.208, 0.81))<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: 文面の各字の後ろの 4 つの数がその字のインク境界なので、全部を覆うまで箱を広げるか、その字を文字セットから外す。</p>
+</div>
+<div class="case">
+<p class="what"><b>セルが 1 つもページに入らない</b></p>
+<pre><code><!-- gen:ERR_PAGE_SMALL_IN -->"representation": { "kind": "sdf", "emPx": 256, "maxPageSize": 64 }<!-- /gen --></code></pre>
+<pre class="log"><!-- gen:ERR_PAGE_SMALL_MSG -->Assets/Content/Fonts/example.t2font: セル（316×368 px）がページの最大寸法（64×64 px）に 1 つも入りません。<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: maxPageSize を上げるか、emPx を下げる。</p>
+</div>
+
+<h3 id="err-font"><span class="num">8.6</span>元フォント</h3>
+<p>元フォントの誤りは、ベイク仕様の行番号を持たない。文面は「<var>ベイク仕様のパス</var>: 元フォント <var>source</var> を読めません: 」に続けて理由を言う。</p>
+<div class="tbl"><table>
+<thead><tr><th>原因</th><th>理由の文面</th><th>直し方</th></tr></thead>
+<tbody>
+<tr><td>フォントコレクション（.ttc）</td><td><!-- gen:FONT_ERR_TTC -->フォントコレクション（TTC）は未対応です。単体のフォント（.ttf）を指定してください（ベイク仕様は書体の番号を持ちません）。<!-- /gen --></td><td>コレクションから単体の .ttf を取り出す</td></tr>
+<tr><td>CFF 輪郭のフォント（.otf の多く）</td><td><!-- gen:FONT_ERR_CFF -->CFF 輪郭（OTTO）のフォントは未対応です。TrueType 輪郭（glyf）のフォントを使ってください。<!-- /gen --></td><td>同じ書体の TrueType 輪郭の版を使う</td></tr>
+<tr><td>Unicode の cmap が無い・表が壊れている</td><td>その表を名指す</td><td>別の版のフォントを使う</td></tr>
+</tbody></table></div>
+<p>元フォントのファイルが無いときは「元フォント <var>source</var> がありません。」になる。<code>source</code> の綴りとファイルの置き場を確かめる。</p>
+
+<h2 id="reimport"><span class="num">9</span>再インポート</h2>
+<p>Unity は、次のどれかが変わるとベイク仕様を再インポートする（README §7.5）。</p>
+<ul>
+<li>ベイク仕様の本文。<b>コメントだけを直しても再インポートされる</b>——アセットの <code>sourceHash</code> は、生成のバージョンと表現の種類・ベイク仕様の本文・元フォントのバイト列から作る SHA-256 で、本文をそのまま含むため。</li>
+<li>元フォントのファイル。</li>
+<li>表現のシェーダ（SDF なら <code>T2Font/SDF</code>）。</li>
+<li>パッケージの更新で、タイポグラフィテーブルの生成のバージョンか、表現の種類のバージョンが上がったとき。表現の種類のバージョンは、その種類のフォントだけを再インポートさせる。</li>
+</ul>
+<p>Project ウィンドウでベイク仕様を右クリック → Reimport でも、いつでもやり直せる。</p>
+
+<h2 id="terms"><span class="num">10</span>用語</h2>
+<p>訳語の正典はリポジトリの <code>docs/reference/terminology.md</code>（02 章 §9 も参照）。本書で主に使う用語は次のとおり。</p>
+<dl class="defs">
+<dt>ベイク仕様</dt><dd>bake spec（<code>.t2font</code>）。何をどうベイクするかを書いた JSON</dd>
+<dt>元フォント</dt><dd>ベイクの入力の TrueType フォント（<code>source</code>）</dd>
+<dt>インポートする・インポーター</dt><dd>import・importer。ベイク仕様を Unity のアセットにすること・する <code>T2FontImporter</code></dd>
+<dt>プロジェクトパス</dt><dd>Unity のプロジェクトのルートからの相対パス（<code>Assets/…</code>・<code>Packages/…</code>）</dd>
+<dt>文字セット</dt><dd>character set（<code>charsets</code>）。名前の付いた固定の字の集まり。元フォントに無い字は飛ばす上限集合</dd>
+<dt>指定文字</dt><dd>named characters（<code>characters</code>）。ベイク仕様に書いて足す字。元フォントに無ければ失敗</dd>
+<dt>表現の種類</dt><dd><code>representation.kind</code>。同梱は <code>sdf</code></dd>
+<dt>代替グリフ</dt><dd>.notdef。元フォントの glyph 0。収録していない字の代わりに描く</dd>
+<dt>セル・ページ</dt><dd>アトラスの中の 1 字の区画・アトラスのテクスチャ 1 枚</dd>
+<dt>区・点・水準</dt><dd>JIS X 0208 の 94×94 の表の行・列と、漢字の部分（第 1 水準・第 2 水準）</dd>
+<dt>CP932</dt><dd>Windows の日本語の文字コード（Shift_JIS に NEC と IBM の拡張を足したもの）</dd>
+</dl>
+
+<h2 id="method"><span class="num">11</span>付録の作り方</h2>
+<p>本書の数・誤りの文面・付録の文字リストは、<code>Tools/docs-figures/04-bake-spec/</code> のスクリプトが作り、本書の <code>&lt;!-- gen:名前 --&gt;</code> と <code>&lt;!-- /gen --&gt;</code> の間を書き換える（使い方は同じフォルダの README）。地の文は本書を直接直す。</p>
+<ul>
+<li>パッケージの <code>Core/</code> と <code>Bake/</code> のソースをそのままリンクした .NET 8 のコンソールプログラムが、文字セットを <code>FontCharsets.Build</code> で組み、JIS X 0208 と CP932 の周辺の表を表の並びのまま書き出す。文字セットを変えれば、付録も作り直せば合う。</li>
+<li>誤りの文面は、基本の形を書き換えたベイク仕様を、インポーターと同じ <code>FontBakeSpec.Parse</code> → <code>FontSpecBaker.BuildFace</code> → <code>SdfAtlasBaker.Bake</code> に通して得た。元フォントの読み取りの文面は <code>TrueTypeFont</code> の文面。BC4 とターゲット・元フォントが無いとき・シェーダの文面は Unity の中でしか出ないので、本書は言葉で説明した。</li>
+<li>見本のインポートの報告は、インポーターの報告と同じ値を同じ並びで組んだもの。emPx ごとの寸法の表は、ベイクの前半（セルとページの寸法を決める所まで）と同じ計算で、見本ではベイクの結果と一致することを確かめている。</li>
+<li>JIS X 0208 の区は、表の字を Python の <code>euc_jp</code>（JIS の標準の対応）で符号化して求め、表が区点の順であることも確かめる。<code>WindowsVariants</code> の JIS の側の字は、CP932 のバイト列を <code>shift_jis</code> で読み戻したもの。</li>
+<li>空白・未割り当ての判定は .NET 8 の <code>CharUnicodeInfo</code>（Unicode の一般カテゴリ）。</li>
+</ul>
+<p>パッケージの文字セット・ベイク仕様の読み取り・ベイカーの文面を変えたら、スクリプトを走らせて作り直す。</p>
+
+<h2 id="appendix"><span class="num">A</span>文字セットの文字リスト（付録）</h2>
+<p>文字セットごとの全字。1 つのマスの上が字、下がコードポイント（U+ を略した 16 進）。字の見た目はこのページを表示する環境のフォントによるので、字形の見本ではない。</p>
+<ul class="legend">
+<li><span class="sw ws"></span>空白・書式文字（見えない字）</li>
+<li><span class="sw na"></span>Unicode の未割り当て（文字セットには入る）</li>
+<li><span class="sw ex"></span>範囲の中だが文字セットに入らない</li>
+<li>◌ の付いた字は結合文字</li>
+</ul>
+
+<h3 id="a-ascii"><span class="num">A.1</span>Ascii</h3>
+<p>U+0020〜U+007F の 16 の列。U+0020 の空白は ␠ で示す。</p>
+<!-- gen:APPX_ASCII -->
+<ol class="cells"><li><b class="sp">␠</b><i>0020</i></li><li><b>!</b><i>0021</i></li><li><b>"</b><i>0022</i></li><li><b>#</b><i>0023</i></li><li><b>$</b><i>0024</i></li><li><b>%</b><i>0025</i></li><li><b>&amp;</b><i>0026</i></li><li><b>'</b><i>0027</i></li><li><b>(</b><i>0028</i></li><li><b>)</b><i>0029</i></li><li><b>*</b><i>002A</i></li><li><b>+</b><i>002B</i></li><li><b>,</b><i>002C</i></li><li><b>-</b><i>002D</i></li><li><b>.</b><i>002E</i></li><li><b>/</b><i>002F</i></li><li><b>0</b><i>0030</i></li><li><b>1</b><i>0031</i></li><li><b>2</b><i>0032</i></li><li><b>3</b><i>0033</i></li><li><b>4</b><i>0034</i></li><li><b>5</b><i>0035</i></li><li><b>6</b><i>0036</i></li><li><b>7</b><i>0037</i></li><li><b>8</b><i>0038</i></li><li><b>9</b><i>0039</i></li><li><b>:</b><i>003A</i></li><li><b>;</b><i>003B</i></li><li><b>&lt;</b><i>003C</i></li><li><b>=</b><i>003D</i></li><li><b>&gt;</b><i>003E</i></li><li><b>?</b><i>003F</i></li><li><b>@</b><i>0040</i></li><li><b>A</b><i>0041</i></li><li><b>B</b><i>0042</i></li><li><b>C</b><i>0043</i></li><li><b>D</b><i>0044</i></li><li><b>E</b><i>0045</i></li><li><b>F</b><i>0046</i></li><li><b>G</b><i>0047</i></li><li><b>H</b><i>0048</i></li><li><b>I</b><i>0049</i></li><li><b>J</b><i>004A</i></li><li><b>K</b><i>004B</i></li><li><b>L</b><i>004C</i></li><li><b>M</b><i>004D</i></li><li><b>N</b><i>004E</i></li><li><b>O</b><i>004F</i></li><li><b>P</b><i>0050</i></li><li><b>Q</b><i>0051</i></li><li><b>R</b><i>0052</i></li><li><b>S</b><i>0053</i></li><li><b>T</b><i>0054</i></li><li><b>U</b><i>0055</i></li><li><b>V</b><i>0056</i></li><li><b>W</b><i>0057</i></li><li><b>X</b><i>0058</i></li><li><b>Y</b><i>0059</i></li><li><b>Z</b><i>005A</i></li><li><b>[</b><i>005B</i></li><li><b>\</b><i>005C</i></li><li><b>]</b><i>005D</i></li><li><b>^</b><i>005E</i></li><li><b>_</b><i>005F</i></li><li><b>`</b><i>0060</i></li><li><b>a</b><i>0061</i></li><li><b>b</b><i>0062</i></li><li><b>c</b><i>0063</i></li><li><b>d</b><i>0064</i></li><li><b>e</b><i>0065</i></li><li><b>f</b><i>0066</i></li><li><b>g</b><i>0067</i></li><li><b>h</b><i>0068</i></li><li><b>i</b><i>0069</i></li><li><b>j</b><i>006A</i></li><li><b>k</b><i>006B</i></li><li><b>l</b><i>006C</i></li><li><b>m</b><i>006D</i></li><li><b>n</b><i>006E</i></li><li><b>o</b><i>006F</i></li><li><b>p</b><i>0070</i></li><li><b>q</b><i>0071</i></li><li><b>r</b><i>0072</i></li><li><b>s</b><i>0073</i></li><li><b>t</b><i>0074</i></li><li><b>u</b><i>0075</i></li><li><b>v</b><i>0076</i></li><li><b>w</b><i>0077</i></li><li><b>x</b><i>0078</i></li><li><b>y</b><i>0079</i></li><li><b>z</b><i>007A</i></li><li><b>{</b><i>007B</i></li><li><b>|</b><i>007C</i></li><li><b>}</b><i>007D</i></li><li><b>~</b><i>007E</i></li><li class="ex"><b></b><i>007F</i></li></ol>
+<!-- /gen -->
+
+<h3 id="a-jis"><span class="num">A.2</span>JisX0208</h3>
+<p>区点の順。非漢字は区ごとにマスで、漢字は区ごとに 1 行（1 区 94 字）で載せる。</p>
+<h4>非漢字</h4>
+<!-- gen:APPX_JIS_NONKANJI -->
+<h4>1 区<span class="sub">記号・94 字</span></h4>
+<ol class="cells"><li class="ws"><b></b><i>3000</i></li><li><b>、</b><i>3001</i></li><li><b>。</b><i>3002</i></li><li><b>，</b><i>FF0C</i></li><li><b>．</b><i>FF0E</i></li><li><b>・</b><i>30FB</i></li><li><b>：</b><i>FF1A</i></li><li><b>；</b><i>FF1B</i></li><li><b>？</b><i>FF1F</i></li><li><b>！</b><i>FF01</i></li><li><b>゛</b><i>309B</i></li><li><b>゜</b><i>309C</i></li><li><b>´</b><i>00B4</i></li><li><b>｀</b><i>FF40</i></li><li><b>¨</b><i>00A8</i></li><li><b>＾</b><i>FF3E</i></li><li><b>￣</b><i>FFE3</i></li><li><b>＿</b><i>FF3F</i></li><li><b>ヽ</b><i>30FD</i></li><li><b>ヾ</b><i>30FE</i></li><li><b>ゝ</b><i>309D</i></li><li><b>ゞ</b><i>309E</i></li><li><b>〃</b><i>3003</i></li><li><b>仝</b><i>4EDD</i></li><li><b>々</b><i>3005</i></li><li><b>〆</b><i>3006</i></li><li><b>〇</b><i>3007</i></li><li><b>ー</b><i>30FC</i></li><li><b>―</b><i>2015</i></li><li><b>‐</b><i>2010</i></li><li><b>／</b><i>FF0F</i></li><li><b>＼</b><i>FF3C</i></li><li><b>〜</b><i>301C</i></li><li><b>‖</b><i>2016</i></li><li><b>｜</b><i>FF5C</i></li><li><b>…</b><i>2026</i></li><li><b>‥</b><i>2025</i></li><li><b>‘</b><i>2018</i></li><li><b>’</b><i>2019</i></li><li><b>“</b><i>201C</i></li><li><b>”</b><i>201D</i></li><li><b>（</b><i>FF08</i></li><li><b>）</b><i>FF09</i></li><li><b>〔</b><i>3014</i></li><li><b>〕</b><i>3015</i></li><li><b>［</b><i>FF3B</i></li><li><b>］</b><i>FF3D</i></li><li><b>｛</b><i>FF5B</i></li><li><b>｝</b><i>FF5D</i></li><li><b>〈</b><i>3008</i></li><li><b>〉</b><i>3009</i></li><li><b>《</b><i>300A</i></li><li><b>》</b><i>300B</i></li><li><b>「</b><i>300C</i></li><li><b>」</b><i>300D</i></li><li><b>『</b><i>300E</i></li><li><b>』</b><i>300F</i></li><li><b>【</b><i>3010</i></li><li><b>】</b><i>3011</i></li><li><b>＋</b><i>FF0B</i></li><li><b>−</b><i>2212</i></li><li><b>±</b><i>00B1</i></li><li><b>×</b><i>00D7</i></li><li><b>÷</b><i>00F7</i></li><li><b>＝</b><i>FF1D</i></li><li><b>≠</b><i>2260</i></li><li><b>＜</b><i>FF1C</i></li><li><b>＞</b><i>FF1E</i></li><li><b>≦</b><i>2266</i></li><li><b>≧</b><i>2267</i></li><li><b>∞</b><i>221E</i></li><li><b>∴</b><i>2234</i></li><li><b>♂</b><i>2642</i></li><li><b>♀</b><i>2640</i></li><li><b>°</b><i>00B0</i></li><li><b>′</b><i>2032</i></li><li><b>″</b><i>2033</i></li><li><b>℃</b><i>2103</i></li><li><b>￥</b><i>FFE5</i></li><li><b>＄</b><i>FF04</i></li><li><b>¢</b><i>00A2</i></li><li><b>£</b><i>00A3</i></li><li><b>％</b><i>FF05</i></li><li><b>＃</b><i>FF03</i></li><li><b>＆</b><i>FF06</i></li><li><b>＊</b><i>FF0A</i></li><li><b>＠</b><i>FF20</i></li><li><b>§</b><i>00A7</i></li><li><b>☆</b><i>2606</i></li><li><b>★</b><i>2605</i></li><li><b>○</b><i>25CB</i></li><li><b>●</b><i>25CF</i></li><li><b>◎</b><i>25CE</i></li><li><b>◇</b><i>25C7</i></li></ol>
+<h4>2 区<span class="sub">記号・53 字</span></h4>
+<ol class="cells"><li><b>◆</b><i>25C6</i></li><li><b>□</b><i>25A1</i></li><li><b>■</b><i>25A0</i></li><li><b>△</b><i>25B3</i></li><li><b>▲</b><i>25B2</i></li><li><b>▽</b><i>25BD</i></li><li><b>▼</b><i>25BC</i></li><li><b>※</b><i>203B</i></li><li><b>〒</b><i>3012</i></li><li><b>→</b><i>2192</i></li><li><b>←</b><i>2190</i></li><li><b>↑</b><i>2191</i></li><li><b>↓</b><i>2193</i></li><li><b>〓</b><i>3013</i></li><li><b>∈</b><i>2208</i></li><li><b>∋</b><i>220B</i></li><li><b>⊆</b><i>2286</i></li><li><b>⊇</b><i>2287</i></li><li><b>⊂</b><i>2282</i></li><li><b>⊃</b><i>2283</i></li><li><b>∪</b><i>222A</i></li><li><b>∩</b><i>2229</i></li><li><b>∧</b><i>2227</i></li><li><b>∨</b><i>2228</i></li><li><b>¬</b><i>00AC</i></li><li><b>⇒</b><i>21D2</i></li><li><b>⇔</b><i>21D4</i></li><li><b>∀</b><i>2200</i></li><li><b>∃</b><i>2203</i></li><li><b>∠</b><i>2220</i></li><li><b>⊥</b><i>22A5</i></li><li><b>⌒</b><i>2312</i></li><li><b>∂</b><i>2202</i></li><li><b>∇</b><i>2207</i></li><li><b>≡</b><i>2261</i></li><li><b>≒</b><i>2252</i></li><li><b>≪</b><i>226A</i></li><li><b>≫</b><i>226B</i></li><li><b>√</b><i>221A</i></li><li><b>∽</b><i>223D</i></li><li><b>∝</b><i>221D</i></li><li><b>∵</b><i>2235</i></li><li><b>∫</b><i>222B</i></li><li><b>∬</b><i>222C</i></li><li><b>Å</b><i>212B</i></li><li><b>‰</b><i>2030</i></li><li><b>♯</b><i>266F</i></li><li><b>♭</b><i>266D</i></li><li><b>♪</b><i>266A</i></li><li><b>†</b><i>2020</i></li><li><b>‡</b><i>2021</i></li><li><b>¶</b><i>00B6</i></li><li><b>◯</b><i>25EF</i></li></ol>
+<h4>3 区<span class="sub">数字・ラテン文字・62 字</span></h4>
+<ol class="cells"><li><b>０</b><i>FF10</i></li><li><b>１</b><i>FF11</i></li><li><b>２</b><i>FF12</i></li><li><b>３</b><i>FF13</i></li><li><b>４</b><i>FF14</i></li><li><b>５</b><i>FF15</i></li><li><b>６</b><i>FF16</i></li><li><b>７</b><i>FF17</i></li><li><b>８</b><i>FF18</i></li><li><b>９</b><i>FF19</i></li><li><b>Ａ</b><i>FF21</i></li><li><b>Ｂ</b><i>FF22</i></li><li><b>Ｃ</b><i>FF23</i></li><li><b>Ｄ</b><i>FF24</i></li><li><b>Ｅ</b><i>FF25</i></li><li><b>Ｆ</b><i>FF26</i></li><li><b>Ｇ</b><i>FF27</i></li><li><b>Ｈ</b><i>FF28</i></li><li><b>Ｉ</b><i>FF29</i></li><li><b>Ｊ</b><i>FF2A</i></li><li><b>Ｋ</b><i>FF2B</i></li><li><b>Ｌ</b><i>FF2C</i></li><li><b>Ｍ</b><i>FF2D</i></li><li><b>Ｎ</b><i>FF2E</i></li><li><b>Ｏ</b><i>FF2F</i></li><li><b>Ｐ</b><i>FF30</i></li><li><b>Ｑ</b><i>FF31</i></li><li><b>Ｒ</b><i>FF32</i></li><li><b>Ｓ</b><i>FF33</i></li><li><b>Ｔ</b><i>FF34</i></li><li><b>Ｕ</b><i>FF35</i></li><li><b>Ｖ</b><i>FF36</i></li><li><b>Ｗ</b><i>FF37</i></li><li><b>Ｘ</b><i>FF38</i></li><li><b>Ｙ</b><i>FF39</i></li><li><b>Ｚ</b><i>FF3A</i></li><li><b>ａ</b><i>FF41</i></li><li><b>ｂ</b><i>FF42</i></li><li><b>ｃ</b><i>FF43</i></li><li><b>ｄ</b><i>FF44</i></li><li><b>ｅ</b><i>FF45</i></li><li><b>ｆ</b><i>FF46</i></li><li><b>ｇ</b><i>FF47</i></li><li><b>ｈ</b><i>FF48</i></li><li><b>ｉ</b><i>FF49</i></li><li><b>ｊ</b><i>FF4A</i></li><li><b>ｋ</b><i>FF4B</i></li><li><b>ｌ</b><i>FF4C</i></li><li><b>ｍ</b><i>FF4D</i></li><li><b>ｎ</b><i>FF4E</i></li><li><b>ｏ</b><i>FF4F</i></li><li><b>ｐ</b><i>FF50</i></li><li><b>ｑ</b><i>FF51</i></li><li><b>ｒ</b><i>FF52</i></li><li><b>ｓ</b><i>FF53</i></li><li><b>ｔ</b><i>FF54</i></li><li><b>ｕ</b><i>FF55</i></li><li><b>ｖ</b><i>FF56</i></li><li><b>ｗ</b><i>FF57</i></li><li><b>ｘ</b><i>FF58</i></li><li><b>ｙ</b><i>FF59</i></li><li><b>ｚ</b><i>FF5A</i></li></ol>
+<h4>4 区<span class="sub">ひらがな・83 字</span></h4>
+<ol class="cells"><li><b>ぁ</b><i>3041</i></li><li><b>あ</b><i>3042</i></li><li><b>ぃ</b><i>3043</i></li><li><b>い</b><i>3044</i></li><li><b>ぅ</b><i>3045</i></li><li><b>う</b><i>3046</i></li><li><b>ぇ</b><i>3047</i></li><li><b>え</b><i>3048</i></li><li><b>ぉ</b><i>3049</i></li><li><b>お</b><i>304A</i></li><li><b>か</b><i>304B</i></li><li><b>が</b><i>304C</i></li><li><b>き</b><i>304D</i></li><li><b>ぎ</b><i>304E</i></li><li><b>く</b><i>304F</i></li><li><b>ぐ</b><i>3050</i></li><li><b>け</b><i>3051</i></li><li><b>げ</b><i>3052</i></li><li><b>こ</b><i>3053</i></li><li><b>ご</b><i>3054</i></li><li><b>さ</b><i>3055</i></li><li><b>ざ</b><i>3056</i></li><li><b>し</b><i>3057</i></li><li><b>じ</b><i>3058</i></li><li><b>す</b><i>3059</i></li><li><b>ず</b><i>305A</i></li><li><b>せ</b><i>305B</i></li><li><b>ぜ</b><i>305C</i></li><li><b>そ</b><i>305D</i></li><li><b>ぞ</b><i>305E</i></li><li><b>た</b><i>305F</i></li><li><b>だ</b><i>3060</i></li><li><b>ち</b><i>3061</i></li><li><b>ぢ</b><i>3062</i></li><li><b>っ</b><i>3063</i></li><li><b>つ</b><i>3064</i></li><li><b>づ</b><i>3065</i></li><li><b>て</b><i>3066</i></li><li><b>で</b><i>3067</i></li><li><b>と</b><i>3068</i></li><li><b>ど</b><i>3069</i></li><li><b>な</b><i>306A</i></li><li><b>に</b><i>306B</i></li><li><b>ぬ</b><i>306C</i></li><li><b>ね</b><i>306D</i></li><li><b>の</b><i>306E</i></li><li><b>は</b><i>306F</i></li><li><b>ば</b><i>3070</i></li><li><b>ぱ</b><i>3071</i></li><li><b>ひ</b><i>3072</i></li><li><b>び</b><i>3073</i></li><li><b>ぴ</b><i>3074</i></li><li><b>ふ</b><i>3075</i></li><li><b>ぶ</b><i>3076</i></li><li><b>ぷ</b><i>3077</i></li><li><b>へ</b><i>3078</i></li><li><b>べ</b><i>3079</i></li><li><b>ぺ</b><i>307A</i></li><li><b>ほ</b><i>307B</i></li><li><b>ぼ</b><i>307C</i></li><li><b>ぽ</b><i>307D</i></li><li><b>ま</b><i>307E</i></li><li><b>み</b><i>307F</i></li><li><b>む</b><i>3080</i></li><li><b>め</b><i>3081</i></li><li><b>も</b><i>3082</i></li><li><b>ゃ</b><i>3083</i></li><li><b>や</b><i>3084</i></li><li><b>ゅ</b><i>3085</i></li><li><b>ゆ</b><i>3086</i></li><li><b>ょ</b><i>3087</i></li><li><b>よ</b><i>3088</i></li><li><b>ら</b><i>3089</i></li><li><b>り</b><i>308A</i></li><li><b>る</b><i>308B</i></li><li><b>れ</b><i>308C</i></li><li><b>ろ</b><i>308D</i></li><li><b>ゎ</b><i>308E</i></li><li><b>わ</b><i>308F</i></li><li><b>ゐ</b><i>3090</i></li><li><b>ゑ</b><i>3091</i></li><li><b>を</b><i>3092</i></li><li><b>ん</b><i>3093</i></li></ol>
+<h4>5 区<span class="sub">カタカナ・86 字</span></h4>
+<ol class="cells"><li><b>ァ</b><i>30A1</i></li><li><b>ア</b><i>30A2</i></li><li><b>ィ</b><i>30A3</i></li><li><b>イ</b><i>30A4</i></li><li><b>ゥ</b><i>30A5</i></li><li><b>ウ</b><i>30A6</i></li><li><b>ェ</b><i>30A7</i></li><li><b>エ</b><i>30A8</i></li><li><b>ォ</b><i>30A9</i></li><li><b>オ</b><i>30AA</i></li><li><b>カ</b><i>30AB</i></li><li><b>ガ</b><i>30AC</i></li><li><b>キ</b><i>30AD</i></li><li><b>ギ</b><i>30AE</i></li><li><b>ク</b><i>30AF</i></li><li><b>グ</b><i>30B0</i></li><li><b>ケ</b><i>30B1</i></li><li><b>ゲ</b><i>30B2</i></li><li><b>コ</b><i>30B3</i></li><li><b>ゴ</b><i>30B4</i></li><li><b>サ</b><i>30B5</i></li><li><b>ザ</b><i>30B6</i></li><li><b>シ</b><i>30B7</i></li><li><b>ジ</b><i>30B8</i></li><li><b>ス</b><i>30B9</i></li><li><b>ズ</b><i>30BA</i></li><li><b>セ</b><i>30BB</i></li><li><b>ゼ</b><i>30BC</i></li><li><b>ソ</b><i>30BD</i></li><li><b>ゾ</b><i>30BE</i></li><li><b>タ</b><i>30BF</i></li><li><b>ダ</b><i>30C0</i></li><li><b>チ</b><i>30C1</i></li><li><b>ヂ</b><i>30C2</i></li><li><b>ッ</b><i>30C3</i></li><li><b>ツ</b><i>30C4</i></li><li><b>ヅ</b><i>30C5</i></li><li><b>テ</b><i>30C6</i></li><li><b>デ</b><i>30C7</i></li><li><b>ト</b><i>30C8</i></li><li><b>ド</b><i>30C9</i></li><li><b>ナ</b><i>30CA</i></li><li><b>ニ</b><i>30CB</i></li><li><b>ヌ</b><i>30CC</i></li><li><b>ネ</b><i>30CD</i></li><li><b>ノ</b><i>30CE</i></li><li><b>ハ</b><i>30CF</i></li><li><b>バ</b><i>30D0</i></li><li><b>パ</b><i>30D1</i></li><li><b>ヒ</b><i>30D2</i></li><li><b>ビ</b><i>30D3</i></li><li><b>ピ</b><i>30D4</i></li><li><b>フ</b><i>30D5</i></li><li><b>ブ</b><i>30D6</i></li><li><b>プ</b><i>30D7</i></li><li><b>ヘ</b><i>30D8</i></li><li><b>ベ</b><i>30D9</i></li><li><b>ペ</b><i>30DA</i></li><li><b>ホ</b><i>30DB</i></li><li><b>ボ</b><i>30DC</i></li><li><b>ポ</b><i>30DD</i></li><li><b>マ</b><i>30DE</i></li><li><b>ミ</b><i>30DF</i></li><li><b>ム</b><i>30E0</i></li><li><b>メ</b><i>30E1</i></li><li><b>モ</b><i>30E2</i></li><li><b>ャ</b><i>30E3</i></li><li><b>ヤ</b><i>30E4</i></li><li><b>ュ</b><i>30E5</i></li><li><b>ユ</b><i>30E6</i></li><li><b>ョ</b><i>30E7</i></li><li><b>ヨ</b><i>30E8</i></li><li><b>ラ</b><i>30E9</i></li><li><b>リ</b><i>30EA</i></li><li><b>ル</b><i>30EB</i></li><li><b>レ</b><i>30EC</i></li><li><b>ロ</b><i>30ED</i></li><li><b>ヮ</b><i>30EE</i></li><li><b>ワ</b><i>30EF</i></li><li><b>ヰ</b><i>30F0</i></li><li><b>ヱ</b><i>30F1</i></li><li><b>ヲ</b><i>30F2</i></li><li><b>ン</b><i>30F3</i></li><li><b>ヴ</b><i>30F4</i></li><li><b>ヵ</b><i>30F5</i></li><li><b>ヶ</b><i>30F6</i></li></ol>
+<h4>6 区<span class="sub">ギリシャ文字・48 字</span></h4>
+<ol class="cells"><li><b>Α</b><i>0391</i></li><li><b>Β</b><i>0392</i></li><li><b>Γ</b><i>0393</i></li><li><b>Δ</b><i>0394</i></li><li><b>Ε</b><i>0395</i></li><li><b>Ζ</b><i>0396</i></li><li><b>Η</b><i>0397</i></li><li><b>Θ</b><i>0398</i></li><li><b>Ι</b><i>0399</i></li><li><b>Κ</b><i>039A</i></li><li><b>Λ</b><i>039B</i></li><li><b>Μ</b><i>039C</i></li><li><b>Ν</b><i>039D</i></li><li><b>Ξ</b><i>039E</i></li><li><b>Ο</b><i>039F</i></li><li><b>Π</b><i>03A0</i></li><li><b>Ρ</b><i>03A1</i></li><li><b>Σ</b><i>03A3</i></li><li><b>Τ</b><i>03A4</i></li><li><b>Υ</b><i>03A5</i></li><li><b>Φ</b><i>03A6</i></li><li><b>Χ</b><i>03A7</i></li><li><b>Ψ</b><i>03A8</i></li><li><b>Ω</b><i>03A9</i></li><li><b>α</b><i>03B1</i></li><li><b>β</b><i>03B2</i></li><li><b>γ</b><i>03B3</i></li><li><b>δ</b><i>03B4</i></li><li><b>ε</b><i>03B5</i></li><li><b>ζ</b><i>03B6</i></li><li><b>η</b><i>03B7</i></li><li><b>θ</b><i>03B8</i></li><li><b>ι</b><i>03B9</i></li><li><b>κ</b><i>03BA</i></li><li><b>λ</b><i>03BB</i></li><li><b>μ</b><i>03BC</i></li><li><b>ν</b><i>03BD</i></li><li><b>ξ</b><i>03BE</i></li><li><b>ο</b><i>03BF</i></li><li><b>π</b><i>03C0</i></li><li><b>ρ</b><i>03C1</i></li><li><b>σ</b><i>03C3</i></li><li><b>τ</b><i>03C4</i></li><li><b>υ</b><i>03C5</i></li><li><b>φ</b><i>03C6</i></li><li><b>χ</b><i>03C7</i></li><li><b>ψ</b><i>03C8</i></li><li><b>ω</b><i>03C9</i></li></ol>
+<h4>7 区<span class="sub">キリル文字・66 字</span></h4>
+<ol class="cells"><li><b>А</b><i>0410</i></li><li><b>Б</b><i>0411</i></li><li><b>В</b><i>0412</i></li><li><b>Г</b><i>0413</i></li><li><b>Д</b><i>0414</i></li><li><b>Е</b><i>0415</i></li><li><b>Ё</b><i>0401</i></li><li><b>Ж</b><i>0416</i></li><li><b>З</b><i>0417</i></li><li><b>И</b><i>0418</i></li><li><b>Й</b><i>0419</i></li><li><b>К</b><i>041A</i></li><li><b>Л</b><i>041B</i></li><li><b>М</b><i>041C</i></li><li><b>Н</b><i>041D</i></li><li><b>О</b><i>041E</i></li><li><b>П</b><i>041F</i></li><li><b>Р</b><i>0420</i></li><li><b>С</b><i>0421</i></li><li><b>Т</b><i>0422</i></li><li><b>У</b><i>0423</i></li><li><b>Ф</b><i>0424</i></li><li><b>Х</b><i>0425</i></li><li><b>Ц</b><i>0426</i></li><li><b>Ч</b><i>0427</i></li><li><b>Ш</b><i>0428</i></li><li><b>Щ</b><i>0429</i></li><li><b>Ъ</b><i>042A</i></li><li><b>Ы</b><i>042B</i></li><li><b>Ь</b><i>042C</i></li><li><b>Э</b><i>042D</i></li><li><b>Ю</b><i>042E</i></li><li><b>Я</b><i>042F</i></li><li><b>а</b><i>0430</i></li><li><b>б</b><i>0431</i></li><li><b>в</b><i>0432</i></li><li><b>г</b><i>0433</i></li><li><b>д</b><i>0434</i></li><li><b>е</b><i>0435</i></li><li><b>ё</b><i>0451</i></li><li><b>ж</b><i>0436</i></li><li><b>з</b><i>0437</i></li><li><b>и</b><i>0438</i></li><li><b>й</b><i>0439</i></li><li><b>к</b><i>043A</i></li><li><b>л</b><i>043B</i></li><li><b>м</b><i>043C</i></li><li><b>н</b><i>043D</i></li><li><b>о</b><i>043E</i></li><li><b>п</b><i>043F</i></li><li><b>р</b><i>0440</i></li><li><b>с</b><i>0441</i></li><li><b>т</b><i>0442</i></li><li><b>у</b><i>0443</i></li><li><b>ф</b><i>0444</i></li><li><b>х</b><i>0445</i></li><li><b>ц</b><i>0446</i></li><li><b>ч</b><i>0447</i></li><li><b>ш</b><i>0448</i></li><li><b>щ</b><i>0449</i></li><li><b>ъ</b><i>044A</i></li><li><b>ы</b><i>044B</i></li><li><b>ь</b><i>044C</i></li><li><b>э</b><i>044D</i></li><li><b>ю</b><i>044E</i></li><li><b>я</b><i>044F</i></li></ol>
+<h4>8 区<span class="sub">罫線・32 字</span></h4>
+<ol class="cells"><li><b>─</b><i>2500</i></li><li><b>│</b><i>2502</i></li><li><b>┌</b><i>250C</i></li><li><b>┐</b><i>2510</i></li><li><b>┘</b><i>2518</i></li><li><b>└</b><i>2514</i></li><li><b>├</b><i>251C</i></li><li><b>┬</b><i>252C</i></li><li><b>┤</b><i>2524</i></li><li><b>┴</b><i>2534</i></li><li><b>┼</b><i>253C</i></li><li><b>━</b><i>2501</i></li><li><b>┃</b><i>2503</i></li><li><b>┏</b><i>250F</i></li><li><b>┓</b><i>2513</i></li><li><b>┛</b><i>251B</i></li><li><b>┗</b><i>2517</i></li><li><b>┣</b><i>2523</i></li><li><b>┳</b><i>2533</i></li><li><b>┫</b><i>252B</i></li><li><b>┻</b><i>253B</i></li><li><b>╋</b><i>254B</i></li><li><b>┠</b><i>2520</i></li><li><b>┯</b><i>252F</i></li><li><b>┨</b><i>2528</i></li><li><b>┷</b><i>2537</i></li><li><b>┿</b><i>253F</i></li><li><b>┝</b><i>251D</i></li><li><b>┰</b><i>2530</i></li><li><b>┥</b><i>2525</i></li><li><b>┸</b><i>2538</i></li><li><b>╂</b><i>2542</i></li></ol>
+<!-- /gen -->
+<h4>第 1 水準漢字</h4>
+<!-- gen:APPX_JIS_LEVEL1 -->
+<div class="kanji">
+<div class="kr"><span class="kn">16</span><p lang="ja">亜唖娃阿哀愛挨姶逢葵茜穐悪握渥旭葦芦鯵梓圧斡扱宛姐虻飴絢綾鮎或粟袷安庵按暗案闇鞍杏以伊位依偉囲夷委威尉惟意慰易椅為畏異移維緯胃萎衣謂違遺医井亥域育郁磯一壱溢逸稲茨芋鰯允印咽員因姻引飲淫胤蔭</p></div>
+<div class="kr"><span class="kn">17</span><p lang="ja">院陰隠韻吋右宇烏羽迂雨卯鵜窺丑碓臼渦嘘唄欝蔚鰻姥厩浦瓜閏噂云運雲荏餌叡営嬰影映曳栄永泳洩瑛盈穎頴英衛詠鋭液疫益駅悦謁越閲榎厭円園堰奄宴延怨掩援沿演炎焔煙燕猿縁艶苑薗遠鉛鴛塩於汚甥凹央奥往応</p></div>
+<div class="kr"><span class="kn">18</span><p lang="ja">押旺横欧殴王翁襖鴬鴎黄岡沖荻億屋憶臆桶牡乙俺卸恩温穏音下化仮何伽価佳加可嘉夏嫁家寡科暇果架歌河火珂禍禾稼箇花苛茄荷華菓蝦課嘩貨迦過霞蚊俄峨我牙画臥芽蛾賀雅餓駕介会解回塊壊廻快怪悔恢懐戒拐改</p></div>
+<div class="kr"><span class="kn">19</span><p lang="ja">魁晦械海灰界皆絵芥蟹開階貝凱劾外咳害崖慨概涯碍蓋街該鎧骸浬馨蛙垣柿蛎鈎劃嚇各廓拡撹格核殻獲確穫覚角赫較郭閣隔革学岳楽額顎掛笠樫橿梶鰍潟割喝恰括活渇滑葛褐轄且鰹叶椛樺鞄株兜竃蒲釜鎌噛鴨栢茅萱</p></div>
+<div class="kr"><span class="kn">20</span><p lang="ja">粥刈苅瓦乾侃冠寒刊勘勧巻喚堪姦完官寛干幹患感慣憾換敢柑桓棺款歓汗漢澗潅環甘監看竿管簡緩缶翰肝艦莞観諌貫還鑑間閑関陥韓館舘丸含岸巌玩癌眼岩翫贋雁頑顔願企伎危喜器基奇嬉寄岐希幾忌揮机旗既期棋棄</p></div>
+<div class="kr"><span class="kn">21</span><p lang="ja">機帰毅気汽畿祈季稀紀徽規記貴起軌輝飢騎鬼亀偽儀妓宜戯技擬欺犠疑祇義蟻誼議掬菊鞠吉吃喫桔橘詰砧杵黍却客脚虐逆丘久仇休及吸宮弓急救朽求汲泣灸球究窮笈級糾給旧牛去居巨拒拠挙渠虚許距鋸漁禦魚亨享京</p></div>
+<div class="kr"><span class="kn">22</span><p lang="ja">供侠僑兇競共凶協匡卿叫喬境峡強彊怯恐恭挟教橋況狂狭矯胸脅興蕎郷鏡響饗驚仰凝尭暁業局曲極玉桐粁僅勤均巾錦斤欣欽琴禁禽筋緊芹菌衿襟謹近金吟銀九倶句区狗玖矩苦躯駆駈駒具愚虞喰空偶寓遇隅串櫛釧屑屈</p></div>
+<div class="kr"><span class="kn">23</span><p lang="ja">掘窟沓靴轡窪熊隈粂栗繰桑鍬勲君薫訓群軍郡卦袈祁係傾刑兄啓圭珪型契形径恵慶慧憩掲携敬景桂渓畦稽系経継繋罫茎荊蛍計詣警軽頚鶏芸迎鯨劇戟撃激隙桁傑欠決潔穴結血訣月件倹倦健兼券剣喧圏堅嫌建憲懸拳捲</p></div>
+<div class="kr"><span class="kn">24</span><p lang="ja">検権牽犬献研硯絹県肩見謙賢軒遣鍵険顕験鹸元原厳幻弦減源玄現絃舷言諺限乎個古呼固姑孤己庫弧戸故枯湖狐糊袴股胡菰虎誇跨鈷雇顧鼓五互伍午呉吾娯後御悟梧檎瑚碁語誤護醐乞鯉交佼侯候倖光公功効勾厚口向</p></div>
+<div class="kr"><span class="kn">25</span><p lang="ja">后喉坑垢好孔孝宏工巧巷幸広庚康弘恒慌抗拘控攻昂晃更杭校梗構江洪浩港溝甲皇硬稿糠紅紘絞綱耕考肯肱腔膏航荒行衡講貢購郊酵鉱砿鋼閤降項香高鴻剛劫号合壕拷濠豪轟麹克刻告国穀酷鵠黒獄漉腰甑忽惚骨狛込</p></div>
+<div class="kr"><span class="kn">26</span><p lang="ja">此頃今困坤墾婚恨懇昏昆根梱混痕紺艮魂些佐叉唆嵯左差査沙瑳砂詐鎖裟坐座挫債催再最哉塞妻宰彩才採栽歳済災采犀砕砦祭斎細菜裁載際剤在材罪財冴坂阪堺榊肴咲崎埼碕鷺作削咋搾昨朔柵窄策索錯桜鮭笹匙冊刷</p></div>
+<div class="kr"><span class="kn">27</span><p lang="ja">察拶撮擦札殺薩雑皐鯖捌錆鮫皿晒三傘参山惨撒散桟燦珊産算纂蚕讃賛酸餐斬暫残仕仔伺使刺司史嗣四士始姉姿子屍市師志思指支孜斯施旨枝止死氏獅祉私糸紙紫肢脂至視詞詩試誌諮資賜雌飼歯事似侍児字寺慈持時</p></div>
+<div class="kr"><span class="kn">28</span><p lang="ja">次滋治爾璽痔磁示而耳自蒔辞汐鹿式識鴫竺軸宍雫七叱執失嫉室悉湿漆疾質実蔀篠偲柴芝屡蕊縞舎写射捨赦斜煮社紗者謝車遮蛇邪借勺尺杓灼爵酌釈錫若寂弱惹主取守手朱殊狩珠種腫趣酒首儒受呪寿授樹綬需囚収周</p></div>
+<div class="kr"><span class="kn">29</span><p lang="ja">宗就州修愁拾洲秀秋終繍習臭舟蒐衆襲讐蹴輯週酋酬集醜什住充十従戎柔汁渋獣縦重銃叔夙宿淑祝縮粛塾熟出術述俊峻春瞬竣舜駿准循旬楯殉淳準潤盾純巡遵醇順処初所暑曙渚庶緒署書薯藷諸助叙女序徐恕鋤除傷償</p></div>
+<div class="kr"><span class="kn">30</span><p lang="ja">勝匠升召哨商唱嘗奨妾娼宵将小少尚庄床廠彰承抄招掌捷昇昌昭晶松梢樟樵沼消渉湘焼焦照症省硝礁祥称章笑粧紹肖菖蒋蕉衝裳訟証詔詳象賞醤鉦鍾鐘障鞘上丈丞乗冗剰城場壌嬢常情擾条杖浄状畳穣蒸譲醸錠嘱埴飾</p></div>
+<div class="kr"><span class="kn">31</span><p lang="ja">拭植殖燭織職色触食蝕辱尻伸信侵唇娠寝審心慎振新晋森榛浸深申疹真神秦紳臣芯薪親診身辛進針震人仁刃塵壬尋甚尽腎訊迅陣靭笥諏須酢図厨逗吹垂帥推水炊睡粋翠衰遂酔錐錘随瑞髄崇嵩数枢趨雛据杉椙菅頗雀裾</p></div>
+<div class="kr"><span class="kn">32</span><p lang="ja">澄摺寸世瀬畝是凄制勢姓征性成政整星晴棲栖正清牲生盛精聖声製西誠誓請逝醒青静斉税脆隻席惜戚斥昔析石積籍績脊責赤跡蹟碩切拙接摂折設窃節説雪絶舌蝉仙先千占宣専尖川戦扇撰栓栴泉浅洗染潜煎煽旋穿箭線</p></div>
+<div class="kr"><span class="kn">33</span><p lang="ja">繊羨腺舛船薦詮賎践選遷銭銑閃鮮前善漸然全禅繕膳糎噌塑岨措曾曽楚狙疏疎礎祖租粗素組蘇訴阻遡鼠僧創双叢倉喪壮奏爽宋層匝惣想捜掃挿掻操早曹巣槍槽漕燥争痩相窓糟総綜聡草荘葬蒼藻装走送遭鎗霜騒像増憎</p></div>
+<div class="kr"><span class="kn">34</span><p lang="ja">臓蔵贈造促側則即息捉束測足速俗属賊族続卒袖其揃存孫尊損村遜他多太汰詑唾堕妥惰打柁舵楕陀駄騨体堆対耐岱帯待怠態戴替泰滞胎腿苔袋貸退逮隊黛鯛代台大第醍題鷹滝瀧卓啄宅托択拓沢濯琢託鐸濁諾茸凧蛸只</p></div>
+<div class="kr"><span class="kn">35</span><p lang="ja">叩但達辰奪脱巽竪辿棚谷狸鱈樽誰丹単嘆坦担探旦歎淡湛炭短端箪綻耽胆蛋誕鍛団壇弾断暖檀段男談値知地弛恥智池痴稚置致蜘遅馳築畜竹筑蓄逐秩窒茶嫡着中仲宙忠抽昼柱注虫衷註酎鋳駐樗瀦猪苧著貯丁兆凋喋寵</p></div>
+<div class="kr"><span class="kn">36</span><p lang="ja">帖帳庁弔張彫徴懲挑暢朝潮牒町眺聴脹腸蝶調諜超跳銚長頂鳥勅捗直朕沈珍賃鎮陳津墜椎槌追鎚痛通塚栂掴槻佃漬柘辻蔦綴鍔椿潰坪壷嬬紬爪吊釣鶴亭低停偵剃貞呈堤定帝底庭廷弟悌抵挺提梯汀碇禎程締艇訂諦蹄逓</p></div>
+<div class="kr"><span class="kn">37</span><p lang="ja">邸鄭釘鼎泥摘擢敵滴的笛適鏑溺哲徹撤轍迭鉄典填天展店添纏甜貼転顛点伝殿澱田電兎吐堵塗妬屠徒斗杜渡登菟賭途都鍍砥砺努度土奴怒倒党冬凍刀唐塔塘套宕島嶋悼投搭東桃梼棟盗淘湯涛灯燈当痘祷等答筒糖統到</p></div>
+<div class="kr"><span class="kn">38</span><p lang="ja">董蕩藤討謄豆踏逃透鐙陶頭騰闘働動同堂導憧撞洞瞳童胴萄道銅峠鴇匿得徳涜特督禿篤毒独読栃橡凸突椴届鳶苫寅酉瀞噸屯惇敦沌豚遁頓呑曇鈍奈那内乍凪薙謎灘捺鍋楢馴縄畷南楠軟難汝二尼弐迩匂賑肉虹廿日乳入</p></div>
+<div class="kr"><span class="kn">39</span><p lang="ja">如尿韮任妊忍認濡禰祢寧葱猫熱年念捻撚燃粘乃廼之埜嚢悩濃納能脳膿農覗蚤巴把播覇杷波派琶破婆罵芭馬俳廃拝排敗杯盃牌背肺輩配倍培媒梅楳煤狽買売賠陪這蝿秤矧萩伯剥博拍柏泊白箔粕舶薄迫曝漠爆縛莫駁麦</p></div>
+<div class="kr"><span class="kn">40</span><p lang="ja">函箱硲箸肇筈櫨幡肌畑畠八鉢溌発醗髪伐罰抜筏閥鳩噺塙蛤隼伴判半反叛帆搬斑板氾汎版犯班畔繁般藩販範釆煩頒飯挽晩番盤磐蕃蛮匪卑否妃庇彼悲扉批披斐比泌疲皮碑秘緋罷肥被誹費避非飛樋簸備尾微枇毘琵眉美</p></div>
+<div class="kr"><span class="kn">41</span><p lang="ja">鼻柊稗匹疋髭彦膝菱肘弼必畢筆逼桧姫媛紐百謬俵彪標氷漂瓢票表評豹廟描病秒苗錨鋲蒜蛭鰭品彬斌浜瀕貧賓頻敏瓶不付埠夫婦富冨布府怖扶敷斧普浮父符腐膚芙譜負賦赴阜附侮撫武舞葡蕪部封楓風葺蕗伏副復幅服</p></div>
+<div class="kr"><span class="kn">42</span><p lang="ja">福腹複覆淵弗払沸仏物鮒分吻噴墳憤扮焚奮粉糞紛雰文聞丙併兵塀幣平弊柄並蔽閉陛米頁僻壁癖碧別瞥蔑箆偏変片篇編辺返遍便勉娩弁鞭保舗鋪圃捕歩甫補輔穂募墓慕戊暮母簿菩倣俸包呆報奉宝峰峯崩庖抱捧放方朋</p></div>
+<div class="kr"><span class="kn">43</span><p lang="ja">法泡烹砲縫胞芳萌蓬蜂褒訪豊邦鋒飽鳳鵬乏亡傍剖坊妨帽忘忙房暴望某棒冒紡肪膨謀貌貿鉾防吠頬北僕卜墨撲朴牧睦穆釦勃没殆堀幌奔本翻凡盆摩磨魔麻埋妹昧枚毎哩槙幕膜枕鮪柾鱒桝亦俣又抹末沫迄侭繭麿万慢満</p></div>
+<div class="kr"><span class="kn">44</span><p lang="ja">漫蔓味未魅巳箕岬密蜜湊蓑稔脈妙粍民眠務夢無牟矛霧鵡椋婿娘冥名命明盟迷銘鳴姪牝滅免棉綿緬面麺摸模茂妄孟毛猛盲網耗蒙儲木黙目杢勿餅尤戻籾貰問悶紋門匁也冶夜爺耶野弥矢厄役約薬訳躍靖柳薮鑓愉愈油癒</p></div>
+<div class="kr"><span class="kn">45</span><p lang="ja">諭輸唯佑優勇友宥幽悠憂揖有柚湧涌猶猷由祐裕誘遊邑郵雄融夕予余与誉輿預傭幼妖容庸揚揺擁曜楊様洋溶熔用窯羊耀葉蓉要謡踊遥陽養慾抑欲沃浴翌翼淀羅螺裸来莱頼雷洛絡落酪乱卵嵐欄濫藍蘭覧利吏履李梨理璃</p></div>
+<div class="kr"><span class="kn">46</span><p lang="ja">痢裏裡里離陸律率立葎掠略劉流溜琉留硫粒隆竜龍侶慮旅虜了亮僚両凌寮料梁涼猟療瞭稜糧良諒遼量陵領力緑倫厘林淋燐琳臨輪隣鱗麟瑠塁涙累類令伶例冷励嶺怜玲礼苓鈴隷零霊麗齢暦歴列劣烈裂廉恋憐漣煉簾練聯</p></div>
+<div class="kr"><span class="kn">47</span><p lang="ja">蓮連錬呂魯櫓炉賂路露労婁廊弄朗楼榔浪漏牢狼篭老聾蝋郎六麓禄肋録論倭和話歪賄脇惑枠鷲亙亘鰐詫藁蕨椀湾碗腕</p></div>
+</div>
+<!-- /gen -->
+<h4>第 2 水準漢字</h4>
+<!-- gen:APPX_JIS_LEVEL2 -->
+<div class="kanji">
+<div class="kr"><span class="kn">48</span><p lang="ja">弌丐丕个丱丶丼丿乂乖乘亂亅豫亊舒弍于亞亟亠亢亰亳亶从仍仄仆仂仗仞仭仟价伉佚估佛佝佗佇佶侈侏侘佻佩佰侑佯來侖儘俔俟俎俘俛俑俚俐俤俥倚倨倔倪倥倅伜俶倡倩倬俾俯們倆偃假會偕偐偈做偖偬偸傀傚傅傴傲</p></div>
+<div class="kr"><span class="kn">49</span><p lang="ja">僉僊傳僂僖僞僥僭僣僮價僵儉儁儂儖儕儔儚儡儺儷儼儻儿兀兒兌兔兢竸兩兪兮冀冂囘册冉冏冑冓冕冖冤冦冢冩冪冫决冱冲冰况冽凅凉凛几處凩凭凰凵凾刄刋刔刎刧刪刮刳刹剏剄剋剌剞剔剪剴剩剳剿剽劍劔劒剱劈劑辨</p></div>
+<div class="kr"><span class="kn">50</span><p lang="ja">辧劬劭劼劵勁勍勗勞勣勦飭勠勳勵勸勹匆匈甸匍匐匏匕匚匣匯匱匳匸區卆卅丗卉卍凖卞卩卮夘卻卷厂厖厠厦厥厮厰厶參簒雙叟曼燮叮叨叭叺吁吽呀听吭吼吮吶吩吝呎咏呵咎呟呱呷呰咒呻咀呶咄咐咆哇咢咸咥咬哄哈咨</p></div>
+<div class="kr"><span class="kn">51</span><p lang="ja">咫哂咤咾咼哘哥哦唏唔哽哮哭哺哢唹啀啣啌售啜啅啖啗唸唳啝喙喀咯喊喟啻啾喘喞單啼喃喩喇喨嗚嗅嗟嗄嗜嗤嗔嘔嗷嘖嗾嗽嘛嗹噎噐營嘴嘶嘲嘸噫噤嘯噬噪嚆嚀嚊嚠嚔嚏嚥嚮嚶嚴囂嚼囁囃囀囈囎囑囓囗囮囹圀囿圄圉</p></div>
+<div class="kr"><span class="kn">52</span><p lang="ja">圈國圍圓團圖嗇圜圦圷圸坎圻址坏坩埀垈坡坿垉垓垠垳垤垪垰埃埆埔埒埓堊埖埣堋堙堝塲堡塢塋塰毀塒堽塹墅墹墟墫墺壞墻墸墮壅壓壑壗壙壘壥壜壤壟壯壺壹壻壼壽夂夊夐夛梦夥夬夭夲夸夾竒奕奐奎奚奘奢奠奧奬奩</p></div>
+<div class="kr"><span class="kn">53</span><p lang="ja">奸妁妝佞侫妣妲姆姨姜妍姙姚娥娟娑娜娉娚婀婬婉娵娶婢婪媚媼媾嫋嫂媽嫣嫗嫦嫩嫖嫺嫻嬌嬋嬖嬲嫐嬪嬶嬾孃孅孀孑孕孚孛孥孩孰孳孵學斈孺宀它宦宸寃寇寉寔寐寤實寢寞寥寫寰寶寳尅將專對尓尠尢尨尸尹屁屆屎屓</p></div>
+<div class="kr"><span class="kn">54</span><p lang="ja">屐屏孱屬屮乢屶屹岌岑岔妛岫岻岶岼岷峅岾峇峙峩峽峺峭嶌峪崋崕崗嵜崟崛崑崔崢崚崙崘嵌嵒嵎嵋嵬嵳嵶嶇嶄嶂嶢嶝嶬嶮嶽嶐嶷嶼巉巍巓巒巖巛巫已巵帋帚帙帑帛帶帷幄幃幀幎幗幔幟幢幤幇幵并幺麼广庠廁廂廈廐廏</p></div>
+<div class="kr"><span class="kn">55</span><p lang="ja">廖廣廝廚廛廢廡廨廩廬廱廳廰廴廸廾弃弉彝彜弋弑弖弩弭弸彁彈彌彎弯彑彖彗彙彡彭彳彷徃徂彿徊很徑徇從徙徘徠徨徭徼忖忻忤忸忱忝悳忿怡恠怙怐怩怎怱怛怕怫怦怏怺恚恁恪恷恟恊恆恍恣恃恤恂恬恫恙悁悍惧悃悚</p></div>
+<div class="kr"><span class="kn">56</span><p lang="ja">悄悛悖悗悒悧悋惡悸惠惓悴忰悽惆悵惘慍愕愆惶惷愀惴惺愃愡惻惱愍愎慇愾愨愧慊愿愼愬愴愽慂慄慳慷慘慙慚慫慴慯慥慱慟慝慓慵憙憖憇憬憔憚憊憑憫憮懌懊應懷懈懃懆憺懋罹懍懦懣懶懺懴懿懽懼懾戀戈戉戍戌戔戛</p></div>
+<div class="kr"><span class="kn">57</span><p lang="ja">戞戡截戮戰戲戳扁扎扞扣扛扠扨扼抂抉找抒抓抖拔抃抔拗拑抻拏拿拆擔拈拜拌拊拂拇抛拉挌拮拱挧挂挈拯拵捐挾捍搜捏掖掎掀掫捶掣掏掉掟掵捫捩掾揩揀揆揣揉插揶揄搖搴搆搓搦搶攝搗搨搏摧摯摶摎攪撕撓撥撩撈撼</p></div>
+<div class="kr"><span class="kn">58</span><p lang="ja">據擒擅擇撻擘擂擱擧舉擠擡抬擣擯攬擶擴擲擺攀擽攘攜攅攤攣攫攴攵攷收攸畋效敖敕敍敘敞敝敲數斂斃變斛斟斫斷旃旆旁旄旌旒旛旙无旡旱杲昊昃旻杳昵昶昴昜晏晄晉晁晞晝晤晧晨晟晢晰暃暈暎暉暄暘暝曁暹曉暾暼</p></div>
+<div class="kr"><span class="kn">59</span><p lang="ja">曄暸曖曚曠昿曦曩曰曵曷朏朖朞朦朧霸朮朿朶杁朸朷杆杞杠杙杣杤枉杰枩杼杪枌枋枦枡枅枷柯枴柬枳柩枸柤柞柝柢柮枹柎柆柧檜栞框栩桀桍栲桎梳栫桙档桷桿梟梏梭梔條梛梃檮梹桴梵梠梺椏梍桾椁棊椈棘椢椦棡椌棍</p></div>
+<div class="kr"><span class="kn">60</span><p lang="ja">棔棧棕椶椒椄棗棣椥棹棠棯椨椪椚椣椡棆楹楷楜楸楫楔楾楮椹楴椽楙椰楡楞楝榁楪榲榮槐榿槁槓榾槎寨槊槝榻槃榧樮榑榠榜榕榴槞槨樂樛槿權槹槲槧樅榱樞槭樔槫樊樒櫁樣樓橄樌橲樶橸橇橢橙橦橈樸樢檐檍檠檄檢檣</p></div>
+<div class="kr"><span class="kn">61</span><p lang="ja">檗蘗檻櫃櫂檸檳檬櫞櫑櫟檪櫚櫪櫻欅蘖櫺欒欖鬱欟欸欷盜欹飮歇歃歉歐歙歔歛歟歡歸歹歿殀殄殃殍殘殕殞殤殪殫殯殲殱殳殷殼毆毋毓毟毬毫毳毯麾氈氓气氛氤氣汞汕汢汪沂沍沚沁沛汾汨汳沒沐泄泱泓沽泗泅泝沮沱沾</p></div>
+<div class="kr"><span class="kn">62</span><p lang="ja">沺泛泯泙泪洟衍洶洫洽洸洙洵洳洒洌浣涓浤浚浹浙涎涕濤涅淹渕渊涵淇淦涸淆淬淞淌淨淒淅淺淙淤淕淪淮渭湮渮渙湲湟渾渣湫渫湶湍渟湃渺湎渤滿渝游溂溪溘滉溷滓溽溯滄溲滔滕溏溥滂溟潁漑灌滬滸滾漿滲漱滯漲滌</p></div>
+<div class="kr"><span class="kn">63</span><p lang="ja">漾漓滷澆潺潸澁澀潯潛濳潭澂潼潘澎澑濂潦澳澣澡澤澹濆澪濟濕濬濔濘濱濮濛瀉瀋濺瀑瀁瀏濾瀛瀚潴瀝瀘瀟瀰瀾瀲灑灣炙炒炯烱炬炸炳炮烟烋烝烙焉烽焜焙煥煕熈煦煢煌煖煬熏燻熄熕熨熬燗熹熾燒燉燔燎燠燬燧燵燼</p></div>
+<div class="kr"><span class="kn">64</span><p lang="ja">燹燿爍爐爛爨爭爬爰爲爻爼爿牀牆牋牘牴牾犂犁犇犒犖犢犧犹犲狃狆狄狎狒狢狠狡狹狷倏猗猊猜猖猝猴猯猩猥猾獎獏默獗獪獨獰獸獵獻獺珈玳珎玻珀珥珮珞璢琅瑯琥珸琲琺瑕琿瑟瑙瑁瑜瑩瑰瑣瑪瑶瑾璋璞璧瓊瓏瓔珱</p></div>
+<div class="kr"><span class="kn">65</span><p lang="ja">瓠瓣瓧瓩瓮瓲瓰瓱瓸瓷甄甃甅甌甎甍甕甓甞甦甬甼畄畍畊畉畛畆畚畩畤畧畫畭畸當疆疇畴疊疉疂疔疚疝疥疣痂疳痃疵疽疸疼疱痍痊痒痙痣痞痾痿痼瘁痰痺痲痳瘋瘍瘉瘟瘧瘠瘡瘢瘤瘴瘰瘻癇癈癆癜癘癡癢癨癩癪癧癬癰</p></div>
+<div class="kr"><span class="kn">66</span><p lang="ja">癲癶癸發皀皃皈皋皎皖皓皙皚皰皴皸皹皺盂盍盖盒盞盡盥盧盪蘯盻眈眇眄眩眤眞眥眦眛眷眸睇睚睨睫睛睥睿睾睹瞎瞋瞑瞠瞞瞰瞶瞹瞿瞼瞽瞻矇矍矗矚矜矣矮矼砌砒礦砠礪硅碎硴碆硼碚碌碣碵碪碯磑磆磋磔碾碼磅磊磬</p></div>
+<div class="kr"><span class="kn">67</span><p lang="ja">磧磚磽磴礇礒礑礙礬礫祀祠祗祟祚祕祓祺祿禊禝禧齋禪禮禳禹禺秉秕秧秬秡秣稈稍稘稙稠稟禀稱稻稾稷穃穗穉穡穢穩龝穰穹穽窈窗窕窘窖窩竈窰窶竅竄窿邃竇竊竍竏竕竓站竚竝竡竢竦竭竰笂笏笊笆笳笘笙笞笵笨笶筐</p></div>
+<div class="kr"><span class="kn">68</span><p lang="ja">筺笄筍笋筌筅筵筥筴筧筰筱筬筮箝箘箟箍箜箚箋箒箏筝箙篋篁篌篏箴篆篝篩簑簔篦篥籠簀簇簓篳篷簗簍篶簣簧簪簟簷簫簽籌籃籔籏籀籐籘籟籤籖籥籬籵粃粐粤粭粢粫粡粨粳粲粱粮粹粽糀糅糂糘糒糜糢鬻糯糲糴糶糺紆</p></div>
+<div class="kr"><span class="kn">69</span><p lang="ja">紂紜紕紊絅絋紮紲紿紵絆絳絖絎絲絨絮絏絣經綉絛綏絽綛綺綮綣綵緇綽綫總綢綯緜綸綟綰緘緝緤緞緻緲緡縅縊縣縡縒縱縟縉縋縢繆繦縻縵縹繃縷縲縺繧繝繖繞繙繚繹繪繩繼繻纃緕繽辮繿纈纉續纒纐纓纔纖纎纛纜缸缺</p></div>
+<div class="kr"><span class="kn">70</span><p lang="ja">罅罌罍罎罐网罕罔罘罟罠罨罩罧罸羂羆羃羈羇羌羔羞羝羚羣羯羲羹羮羶羸譱翅翆翊翕翔翡翦翩翳翹飜耆耄耋耒耘耙耜耡耨耿耻聊聆聒聘聚聟聢聨聳聲聰聶聹聽聿肄肆肅肛肓肚肭冐肬胛胥胙胝胄胚胖脉胯胱脛脩脣脯腋</p></div>
+<div class="kr"><span class="kn">71</span><p lang="ja">隋腆脾腓腑胼腱腮腥腦腴膃膈膊膀膂膠膕膤膣腟膓膩膰膵膾膸膽臀臂膺臉臍臑臙臘臈臚臟臠臧臺臻臾舁舂舅與舊舍舐舖舩舫舸舳艀艙艘艝艚艟艤艢艨艪艫舮艱艷艸艾芍芒芫芟芻芬苡苣苟苒苴苳苺莓范苻苹苞茆苜茉苙</p></div>
+<div class="kr"><span class="kn">72</span><p lang="ja">茵茴茖茲茱荀茹荐荅茯茫茗茘莅莚莪莟莢莖茣莎莇莊荼莵荳荵莠莉莨菴萓菫菎菽萃菘萋菁菷萇菠菲萍萢萠莽萸蔆菻葭萪萼蕚蒄葷葫蒭葮蒂葩葆萬葯葹萵蓊葢蒹蒿蒟蓙蓍蒻蓚蓐蓁蓆蓖蒡蔡蓿蓴蔗蔘蔬蔟蔕蔔蓼蕀蕣蕘蕈</p></div>
+<div class="kr"><span class="kn">73</span><p lang="ja">蕁蘂蕋蕕薀薤薈薑薊薨蕭薔薛藪薇薜蕷蕾薐藉薺藏薹藐藕藝藥藜藹蘊蘓蘋藾藺蘆蘢蘚蘰蘿虍乕虔號虧虱蚓蚣蚩蚪蚋蚌蚶蚯蛄蛆蚰蛉蠣蚫蛔蛞蛩蛬蛟蛛蛯蜒蜆蜈蜀蜃蛻蜑蜉蜍蛹蜊蜴蜿蜷蜻蜥蜩蜚蝠蝟蝸蝌蝎蝴蝗蝨蝮蝙</p></div>
+<div class="kr"><span class="kn">74</span><p lang="ja">蝓蝣蝪蠅螢螟螂螯蟋螽蟀蟐雖螫蟄螳蟇蟆螻蟯蟲蟠蠏蠍蟾蟶蟷蠎蟒蠑蠖蠕蠢蠡蠱蠶蠹蠧蠻衄衂衒衙衞衢衫袁衾袞衵衽袵衲袂袗袒袮袙袢袍袤袰袿袱裃裄裔裘裙裝裹褂裼裴裨裲褄褌褊褓襃褞褥褪褫襁襄褻褶褸襌褝襠襞</p></div>
+<div class="kr"><span class="kn">75</span><p lang="ja">襦襤襭襪襯襴襷襾覃覈覊覓覘覡覩覦覬覯覲覺覽覿觀觚觜觝觧觴觸訃訖訐訌訛訝訥訶詁詛詒詆詈詼詭詬詢誅誂誄誨誡誑誥誦誚誣諄諍諂諚諫諳諧諤諱謔諠諢諷諞諛謌謇謚諡謖謐謗謠謳鞫謦謫謾謨譁譌譏譎證譖譛譚譫</p></div>
+<div class="kr"><span class="kn">76</span><p lang="ja">譟譬譯譴譽讀讌讎讒讓讖讙讚谺豁谿豈豌豎豐豕豢豬豸豺貂貉貅貊貍貎貔豼貘戝貭貪貽貲貳貮貶賈賁賤賣賚賽賺賻贄贅贊贇贏贍贐齎贓賍贔贖赧赭赱赳趁趙跂趾趺跏跚跖跌跛跋跪跫跟跣跼踈踉跿踝踞踐踟蹂踵踰踴蹊</p></div>
+<div class="kr"><span class="kn">77</span><p lang="ja">蹇蹉蹌蹐蹈蹙蹤蹠踪蹣蹕蹶蹲蹼躁躇躅躄躋躊躓躑躔躙躪躡躬躰軆躱躾軅軈軋軛軣軼軻軫軾輊輅輕輒輙輓輜輟輛輌輦輳輻輹轅轂輾轌轉轆轎轗轜轢轣轤辜辟辣辭辯辷迚迥迢迪迯邇迴逅迹迺逑逕逡逍逞逖逋逧逶逵逹迸</p></div>
+<div class="kr"><span class="kn">78</span><p lang="ja">遏遐遑遒逎遉逾遖遘遞遨遯遶隨遲邂遽邁邀邊邉邏邨邯邱邵郢郤扈郛鄂鄒鄙鄲鄰酊酖酘酣酥酩酳酲醋醉醂醢醫醯醪醵醴醺釀釁釉釋釐釖釟釡釛釼釵釶鈞釿鈔鈬鈕鈑鉞鉗鉅鉉鉤鉈銕鈿鉋鉐銜銖銓銛鉚鋏銹銷鋩錏鋺鍄錮</p></div>
+<div class="kr"><span class="kn">79</span><p lang="ja">錙錢錚錣錺錵錻鍜鍠鍼鍮鍖鎰鎬鎭鎔鎹鏖鏗鏨鏥鏘鏃鏝鏐鏈鏤鐚鐔鐓鐃鐇鐐鐶鐫鐵鐡鐺鑁鑒鑄鑛鑠鑢鑞鑪鈩鑰鑵鑷鑽鑚鑼鑾钁鑿閂閇閊閔閖閘閙閠閨閧閭閼閻閹閾闊濶闃闍闌闕闔闖關闡闥闢阡阨阮阯陂陌陏陋陷陜陞</p></div>
+<div class="kr"><span class="kn">80</span><p lang="ja">陝陟陦陲陬隍隘隕隗險隧隱隲隰隴隶隸隹雎雋雉雍襍雜霍雕雹霄霆霈霓霎霑霏霖霙霤霪霰霹霽霾靄靆靈靂靉靜靠靤靦靨勒靫靱靹鞅靼鞁靺鞆鞋鞏鞐鞜鞨鞦鞣鞳鞴韃韆韈韋韜韭齏韲竟韶韵頏頌頸頤頡頷頽顆顏顋顫顯顰</p></div>
+<div class="kr"><span class="kn">81</span><p lang="ja">顱顴顳颪颯颱颶飄飃飆飩飫餃餉餒餔餘餡餝餞餤餠餬餮餽餾饂饉饅饐饋饑饒饌饕馗馘馥馭馮馼駟駛駝駘駑駭駮駱駲駻駸騁騏騅駢騙騫騷驅驂驀驃騾驕驍驛驗驟驢驥驤驩驫驪骭骰骼髀髏髑髓體髞髟髢髣髦髯髫髮髴髱髷</p></div>
+<div class="kr"><span class="kn">82</span><p lang="ja">髻鬆鬘鬚鬟鬢鬣鬥鬧鬨鬩鬪鬮鬯鬲魄魃魏魍魎魑魘魴鮓鮃鮑鮖鮗鮟鮠鮨鮴鯀鯊鮹鯆鯏鯑鯒鯣鯢鯤鯔鯡鰺鯲鯱鯰鰕鰔鰉鰓鰌鰆鰈鰒鰊鰄鰮鰛鰥鰤鰡鰰鱇鰲鱆鰾鱚鱠鱧鱶鱸鳧鳬鳰鴉鴈鳫鴃鴆鴪鴦鶯鴣鴟鵄鴕鴒鵁鴿鴾鵆鵈</p></div>
+<div class="kr"><span class="kn">83</span><p lang="ja">鵝鵞鵤鵑鵐鵙鵲鶉鶇鶫鵯鵺鶚鶤鶩鶲鷄鷁鶻鶸鶺鷆鷏鷂鷙鷓鷸鷦鷭鷯鷽鸚鸛鸞鹵鹹鹽麁麈麋麌麒麕麑麝麥麩麸麪麭靡黌黎黏黐黔黜點黝黠黥黨黯黴黶黷黹黻黼黽鼇鼈皷鼕鼡鼬鼾齊齒齔齣齟齠齡齦齧齬齪齷齲齶龕龜龠</p></div>
+<div class="kr"><span class="kn">84</span><p lang="ja">堯槇遙瑤凜熙</p></div>
+</div>
+<!-- /gen -->
+
+<h3 id="a-windows"><span class="num">A.3</span>WindowsVariants</h3>
+<p>左が文字セットに入る Windows の側の字、右が JIS X 0208 の同じ区点の字（<code>JisX0208</code> に入る）。</p>
+<div class="tbl"><table>
+<thead><tr><th>Windows（CP932）</th><th></th><th>JIS の標準</th><th></th></tr></thead>
+<tbody>
+<!-- gen:APPX_WINDOWS -->
+<tr><td class="big">～</td><td class="mono">U+FF5E</td><td class="big">〜</td><td class="mono">U+301C</td></tr>
+<tr><td class="big">∥</td><td class="mono">U+2225</td><td class="big">‖</td><td class="mono">U+2016</td></tr>
+<tr><td class="big">－</td><td class="mono">U+FF0D</td><td class="big">−</td><td class="mono">U+2212</td></tr>
+<tr><td class="big">￠</td><td class="mono">U+FFE0</td><td class="big">¢</td><td class="mono">U+00A2</td></tr>
+<tr><td class="big">￡</td><td class="mono">U+FFE1</td><td class="big">£</td><td class="mono">U+00A3</td></tr>
+<tr><td class="big">￢</td><td class="mono">U+FFE2</td><td class="big">¬</td><td class="mono">U+00AC</td></tr>
+<!-- /gen -->
+</tbody></table></div>
+
+<h3 id="a-nec"><span class="num">A.4</span>NecRow13</h3>
+<p>CP932 のコードの順。</p>
+<!-- gen:APPX_NEC -->
+<ol class="cells"><li><b>①</b><i>2460</i></li><li><b>②</b><i>2461</i></li><li><b>③</b><i>2462</i></li><li><b>④</b><i>2463</i></li><li><b>⑤</b><i>2464</i></li><li><b>⑥</b><i>2465</i></li><li><b>⑦</b><i>2466</i></li><li><b>⑧</b><i>2467</i></li><li><b>⑨</b><i>2468</i></li><li><b>⑩</b><i>2469</i></li><li><b>⑪</b><i>246A</i></li><li><b>⑫</b><i>246B</i></li><li><b>⑬</b><i>246C</i></li><li><b>⑭</b><i>246D</i></li><li><b>⑮</b><i>246E</i></li><li><b>⑯</b><i>246F</i></li><li><b>⑰</b><i>2470</i></li><li><b>⑱</b><i>2471</i></li><li><b>⑲</b><i>2472</i></li><li><b>⑳</b><i>2473</i></li><li><b>Ⅰ</b><i>2160</i></li><li><b>Ⅱ</b><i>2161</i></li><li><b>Ⅲ</b><i>2162</i></li><li><b>Ⅳ</b><i>2163</i></li><li><b>Ⅴ</b><i>2164</i></li><li><b>Ⅵ</b><i>2165</i></li><li><b>Ⅶ</b><i>2166</i></li><li><b>Ⅷ</b><i>2167</i></li><li><b>Ⅸ</b><i>2168</i></li><li><b>Ⅹ</b><i>2169</i></li><li><b>㍉</b><i>3349</i></li><li><b>㌔</b><i>3314</i></li><li><b>㌢</b><i>3322</i></li><li><b>㍍</b><i>334D</i></li><li><b>㌘</b><i>3318</i></li><li><b>㌧</b><i>3327</i></li><li><b>㌃</b><i>3303</i></li><li><b>㌶</b><i>3336</i></li><li><b>㍑</b><i>3351</i></li><li><b>㍗</b><i>3357</i></li><li><b>㌍</b><i>330D</i></li><li><b>㌦</b><i>3326</i></li><li><b>㌣</b><i>3323</i></li><li><b>㌫</b><i>332B</i></li><li><b>㍊</b><i>334A</i></li><li><b>㌻</b><i>333B</i></li><li><b>㎜</b><i>339C</i></li><li><b>㎝</b><i>339D</i></li><li><b>㎞</b><i>339E</i></li><li><b>㎎</b><i>338E</i></li><li><b>㎏</b><i>338F</i></li><li><b>㏄</b><i>33C4</i></li><li><b>㎡</b><i>33A1</i></li><li><b>㍻</b><i>337B</i></li><li><b>〝</b><i>301D</i></li><li><b>〟</b><i>301F</i></li><li><b>№</b><i>2116</i></li><li><b>㏍</b><i>33CD</i></li><li><b>℡</b><i>2121</i></li><li><b>㊤</b><i>32A4</i></li><li><b>㊥</b><i>32A5</i></li><li><b>㊦</b><i>32A6</i></li><li><b>㊧</b><i>32A7</i></li><li><b>㊨</b><i>32A8</i></li><li><b>㈱</b><i>3231</i></li><li><b>㈲</b><i>3232</i></li><li><b>㈹</b><i>3239</i></li><li><b>㍾</b><i>337E</i></li><li><b>㍽</b><i>337D</i></li><li><b>㍼</b><i>337C</i></li><li><b>≒</b><i>2252</i></li><li><b>≡</b><i>2261</i></li><li><b>∫</b><i>222B</i></li><li><b>∮</b><i>222E</i></li><li><b>∑</b><i>2211</i></li><li><b>√</b><i>221A</i></li><li><b>⊥</b><i>22A5</i></li><li><b>∠</b><i>2220</i></li><li><b>∟</b><i>221F</i></li><li><b>⊿</b><i>22BF</i></li><li><b>∵</b><i>2235</i></li><li><b>∩</b><i>2229</i></li><li><b>∪</b><i>222A</i></li></ol>
+<!-- /gen -->
+
+<h3 id="a-ibm"><span class="num">A.5</span>IbmExtensions</h3>
+<p>CP932 のコードの順。</p>
+<!-- gen:APPX_IBM -->
+<ol class="cells"><li><b>ⅰ</b><i>2170</i></li><li><b>ⅱ</b><i>2171</i></li><li><b>ⅲ</b><i>2172</i></li><li><b>ⅳ</b><i>2173</i></li><li><b>ⅴ</b><i>2174</i></li><li><b>ⅵ</b><i>2175</i></li><li><b>ⅶ</b><i>2176</i></li><li><b>ⅷ</b><i>2177</i></li><li><b>ⅸ</b><i>2178</i></li><li><b>ⅹ</b><i>2179</i></li><li><b>Ⅰ</b><i>2160</i></li><li><b>Ⅱ</b><i>2161</i></li><li><b>Ⅲ</b><i>2162</i></li><li><b>Ⅳ</b><i>2163</i></li><li><b>Ⅴ</b><i>2164</i></li><li><b>Ⅵ</b><i>2165</i></li><li><b>Ⅶ</b><i>2166</i></li><li><b>Ⅷ</b><i>2167</i></li><li><b>Ⅸ</b><i>2168</i></li><li><b>Ⅹ</b><i>2169</i></li><li><b>￢</b><i>FFE2</i></li><li><b>￤</b><i>FFE4</i></li><li><b>＇</b><i>FF07</i></li><li><b>＂</b><i>FF02</i></li><li><b>㈱</b><i>3231</i></li><li><b>№</b><i>2116</i></li><li><b>℡</b><i>2121</i></li><li><b>∵</b><i>2235</i></li><li><b>纊</b><i>7E8A</i></li><li><b>褜</b><i>891C</i></li><li><b>鍈</b><i>9348</i></li><li><b>銈</b><i>9288</i></li><li><b>蓜</b><i>84DC</i></li><li><b>俉</b><i>4FC9</i></li><li><b>炻</b><i>70BB</i></li><li><b>昱</b><i>6631</i></li><li><b>棈</b><i>68C8</i></li><li><b>鋹</b><i>92F9</i></li><li><b>曻</b><i>66FB</i></li><li><b>彅</b><i>5F45</i></li><li><b>丨</b><i>4E28</i></li><li><b>仡</b><i>4EE1</i></li><li><b>仼</b><i>4EFC</i></li><li><b>伀</b><i>4F00</i></li><li><b>伃</b><i>4F03</i></li><li><b>伹</b><i>4F39</i></li><li><b>佖</b><i>4F56</i></li><li><b>侒</b><i>4F92</i></li><li><b>侊</b><i>4F8A</i></li><li><b>侚</b><i>4F9A</i></li><li><b>侔</b><i>4F94</i></li><li><b>俍</b><i>4FCD</i></li><li><b>偀</b><i>5040</i></li><li><b>倢</b><i>5022</i></li><li><b>俿</b><i>4FFF</i></li><li><b>倞</b><i>501E</i></li><li><b>偆</b><i>5046</i></li><li><b>偰</b><i>5070</i></li><li><b>偂</b><i>5042</i></li><li><b>傔</b><i>5094</i></li><li><b>僴</b><i>50F4</i></li><li><b>僘</b><i>50D8</i></li><li><b>兊</b><i>514A</i></li><li><b>兤</b><i>5164</i></li><li><b>冝</b><i>519D</i></li><li><b>冾</b><i>51BE</i></li><li><b>凬</b><i>51EC</i></li><li><b>刕</b><i>5215</i></li><li><b>劜</b><i>529C</i></li><li><b>劦</b><i>52A6</i></li><li><b>勀</b><i>52C0</i></li><li><b>勛</b><i>52DB</i></li><li><b>匀</b><i>5300</i></li><li><b>匇</b><i>5307</i></li><li><b>匤</b><i>5324</i></li><li><b>卲</b><i>5372</i></li><li><b>厓</b><i>5393</i></li><li><b>厲</b><i>53B2</i></li><li><b>叝</b><i>53DD</i></li><li><b>﨎</b><i>FA0E</i></li><li><b>咜</b><i>549C</i></li><li><b>咊</b><i>548A</i></li><li><b>咩</b><i>54A9</i></li><li><b>哿</b><i>54FF</i></li><li><b>喆</b><i>5586</i></li><li><b>坙</b><i>5759</i></li><li><b>坥</b><i>5765</i></li><li><b>垬</b><i>57AC</i></li><li><b>埈</b><i>57C8</i></li><li><b>埇</b><i>57C7</i></li><li><b>﨏</b><i>FA0F</i></li><li><b>塚</b><i>FA10</i></li><li><b>增</b><i>589E</i></li><li><b>墲</b><i>58B2</i></li><li><b>夋</b><i>590B</i></li><li><b>奓</b><i>5953</i></li><li><b>奛</b><i>595B</i></li><li><b>奝</b><i>595D</i></li><li><b>奣</b><i>5963</i></li><li><b>妤</b><i>59A4</i></li><li><b>妺</b><i>59BA</i></li><li><b>孖</b><i>5B56</i></li><li><b>寀</b><i>5BC0</i></li><li><b>甯</b><i>752F</i></li><li><b>寘</b><i>5BD8</i></li><li><b>寬</b><i>5BEC</i></li><li><b>尞</b><i>5C1E</i></li><li><b>岦</b><i>5CA6</i></li><li><b>岺</b><i>5CBA</i></li><li><b>峵</b><i>5CF5</i></li><li><b>崧</b><i>5D27</i></li><li><b>嵓</b><i>5D53</i></li><li><b>﨑</b><i>FA11</i></li><li><b>嵂</b><i>5D42</i></li><li><b>嵭</b><i>5D6D</i></li><li><b>嶸</b><i>5DB8</i></li><li><b>嶹</b><i>5DB9</i></li><li><b>巐</b><i>5DD0</i></li><li><b>弡</b><i>5F21</i></li><li><b>弴</b><i>5F34</i></li><li><b>彧</b><i>5F67</i></li><li><b>德</b><i>5FB7</i></li><li><b>忞</b><i>5FDE</i></li><li><b>恝</b><i>605D</i></li><li><b>悅</b><i>6085</i></li><li><b>悊</b><i>608A</i></li><li><b>惞</b><i>60DE</i></li><li><b>惕</b><i>60D5</i></li><li><b>愠</b><i>6120</i></li><li><b>惲</b><i>60F2</i></li><li><b>愑</b><i>6111</i></li><li><b>愷</b><i>6137</i></li><li><b>愰</b><i>6130</i></li><li><b>憘</b><i>6198</i></li><li><b>戓</b><i>6213</i></li><li><b>抦</b><i>62A6</i></li><li><b>揵</b><i>63F5</i></li><li><b>摠</b><i>6460</i></li><li><b>撝</b><i>649D</i></li><li><b>擎</b><i>64CE</i></li><li><b>敎</b><i>654E</i></li><li><b>昀</b><i>6600</i></li><li><b>昕</b><i>6615</i></li><li><b>昻</b><i>663B</i></li><li><b>昉</b><i>6609</i></li><li><b>昮</b><i>662E</i></li><li><b>昞</b><i>661E</i></li><li><b>昤</b><i>6624</i></li><li><b>晥</b><i>6665</i></li><li><b>晗</b><i>6657</i></li><li><b>晙</b><i>6659</i></li><li><b>晴</b><i>FA12</i></li><li><b>晳</b><i>6673</i></li><li><b>暙</b><i>6699</i></li><li><b>暠</b><i>66A0</i></li><li><b>暲</b><i>66B2</i></li><li><b>暿</b><i>66BF</i></li><li><b>曺</b><i>66FA</i></li><li><b>朎</b><i>670E</i></li><li><b>朗</b><i>F929</i></li><li><b>杦</b><i>6766</i></li><li><b>枻</b><i>67BB</i></li><li><b>桒</b><i>6852</i></li><li><b>柀</b><i>67C0</i></li><li><b>栁</b><i>6801</i></li><li><b>桄</b><i>6844</i></li><li><b>棏</b><i>68CF</i></li><li><b>﨓</b><i>FA13</i></li><li><b>楨</b><i>6968</i></li><li><b>﨔</b><i>FA14</i></li><li><b>榘</b><i>6998</i></li><li><b>槢</b><i>69E2</i></li><li><b>樰</b><i>6A30</i></li><li><b>橫</b><i>6A6B</i></li><li><b>橆</b><i>6A46</i></li><li><b>橳</b><i>6A73</i></li><li><b>橾</b><i>6A7E</i></li><li><b>櫢</b><i>6AE2</i></li><li><b>櫤</b><i>6AE4</i></li><li><b>毖</b><i>6BD6</i></li><li><b>氿</b><i>6C3F</i></li><li><b>汜</b><i>6C5C</i></li><li><b>沆</b><i>6C86</i></li><li><b>汯</b><i>6C6F</i></li><li><b>泚</b><i>6CDA</i></li><li><b>洄</b><i>6D04</i></li><li><b>涇</b><i>6D87</i></li><li><b>浯</b><i>6D6F</i></li><li><b>涖</b><i>6D96</i></li><li><b>涬</b><i>6DAC</i></li><li><b>淏</b><i>6DCF</i></li><li><b>淸</b><i>6DF8</i></li><li><b>淲</b><i>6DF2</i></li><li><b>淼</b><i>6DFC</i></li><li><b>渹</b><i>6E39</i></li><li><b>湜</b><i>6E5C</i></li><li><b>渧</b><i>6E27</i></li><li><b>渼</b><i>6E3C</i></li><li><b>溿</b><i>6EBF</i></li><li><b>澈</b><i>6F88</i></li><li><b>澵</b><i>6FB5</i></li><li><b>濵</b><i>6FF5</i></li><li><b>瀅</b><i>7005</i></li><li><b>瀇</b><i>7007</i></li><li><b>瀨</b><i>7028</i></li><li><b>炅</b><i>7085</i></li><li><b>炫</b><i>70AB</i></li><li><b>焏</b><i>710F</i></li><li><b>焄</b><i>7104</i></li><li><b>煜</b><i>715C</i></li><li><b>煆</b><i>7146</i></li><li><b>煇</b><i>7147</i></li><li><b>凞</b><i>FA15</i></li><li><b>燁</b><i>71C1</i></li><li><b>燾</b><i>71FE</i></li><li><b>犱</b><i>72B1</i></li><li><b>犾</b><i>72BE</i></li><li><b>猤</b><i>7324</i></li><li><b>猪</b><i>FA16</i></li><li><b>獷</b><i>7377</i></li><li><b>玽</b><i>73BD</i></li><li><b>珉</b><i>73C9</i></li><li><b>珖</b><i>73D6</i></li><li><b>珣</b><i>73E3</i></li><li><b>珒</b><i>73D2</i></li><li><b>琇</b><i>7407</i></li><li><b>珵</b><i>73F5</i></li><li><b>琦</b><i>7426</i></li><li><b>琪</b><i>742A</i></li><li><b>琩</b><i>7429</i></li><li><b>琮</b><i>742E</i></li><li><b>瑢</b><i>7462</i></li><li><b>璉</b><i>7489</i></li><li><b>璟</b><i>749F</i></li><li><b>甁</b><i>7501</i></li><li><b>畯</b><i>756F</i></li><li><b>皂</b><i>7682</i></li><li><b>皜</b><i>769C</i></li><li><b>皞</b><i>769E</i></li><li><b>皛</b><i>769B</i></li><li><b>皦</b><i>76A6</i></li><li><b>益</b><i>FA17</i></li><li><b>睆</b><i>7746</i></li><li><b>劯</b><i>52AF</i></li><li><b>砡</b><i>7821</i></li><li><b>硎</b><i>784E</i></li><li><b>硤</b><i>7864</i></li><li><b>硺</b><i>787A</i></li><li><b>礰</b><i>7930</i></li><li><b>礼</b><i>FA18</i></li><li><b>神</b><i>FA19</i></li><li><b>祥</b><i>FA1A</i></li><li><b>禔</b><i>7994</i></li><li><b>福</b><i>FA1B</i></li><li><b>禛</b><i>799B</i></li><li><b>竑</b><i>7AD1</i></li><li><b>竧</b><i>7AE7</i></li><li><b>靖</b><i>FA1C</i></li><li><b>竫</b><i>7AEB</i></li><li><b>箞</b><i>7B9E</i></li><li><b>精</b><i>FA1D</i></li><li><b>絈</b><i>7D48</i></li><li><b>絜</b><i>7D5C</i></li><li><b>綷</b><i>7DB7</i></li><li><b>綠</b><i>7DA0</i></li><li><b>緖</b><i>7DD6</i></li><li><b>繒</b><i>7E52</i></li><li><b>罇</b><i>7F47</i></li><li><b>羡</b><i>7FA1</i></li><li><b>羽</b><i>FA1E</i></li><li><b>茁</b><i>8301</i></li><li><b>荢</b><i>8362</i></li><li><b>荿</b><i>837F</i></li><li><b>菇</b><i>83C7</i></li><li><b>菶</b><i>83F6</i></li><li><b>葈</b><i>8448</i></li><li><b>蒴</b><i>84B4</i></li><li><b>蕓</b><i>8553</i></li><li><b>蕙</b><i>8559</i></li><li><b>蕫</b><i>856B</i></li><li><b>﨟</b><i>FA1F</i></li><li><b>薰</b><i>85B0</i></li><li><b>蘒</b><i>FA20</i></li><li><b>﨡</b><i>FA21</i></li><li><b>蠇</b><i>8807</i></li><li><b>裵</b><i>88F5</i></li><li><b>訒</b><i>8A12</i></li><li><b>訷</b><i>8A37</i></li><li><b>詹</b><i>8A79</i></li><li><b>誧</b><i>8AA7</i></li><li><b>誾</b><i>8ABE</i></li><li><b>諟</b><i>8ADF</i></li><li><b>諸</b><i>FA22</i></li><li><b>諶</b><i>8AF6</i></li><li><b>譓</b><i>8B53</i></li><li><b>譿</b><i>8B7F</i></li><li><b>賰</b><i>8CF0</i></li><li><b>賴</b><i>8CF4</i></li><li><b>贒</b><i>8D12</i></li><li><b>赶</b><i>8D76</i></li><li><b>﨣</b><i>FA23</i></li><li><b>軏</b><i>8ECF</i></li><li><b>﨤</b><i>FA24</i></li><li><b>逸</b><i>FA25</i></li><li><b>遧</b><i>9067</i></li><li><b>郞</b><i>90DE</i></li><li><b>都</b><i>FA26</i></li><li><b>鄕</b><i>9115</i></li><li><b>鄧</b><i>9127</i></li><li><b>釚</b><i>91DA</i></li><li><b>釗</b><i>91D7</i></li><li><b>釞</b><i>91DE</i></li><li><b>釭</b><i>91ED</i></li><li><b>釮</b><i>91EE</i></li><li><b>釤</b><i>91E4</i></li><li><b>釥</b><i>91E5</i></li><li><b>鈆</b><i>9206</i></li><li><b>鈐</b><i>9210</i></li><li><b>鈊</b><i>920A</i></li><li><b>鈺</b><i>923A</i></li><li><b>鉀</b><i>9240</i></li><li><b>鈼</b><i>923C</i></li><li><b>鉎</b><i>924E</i></li><li><b>鉙</b><i>9259</i></li><li><b>鉑</b><i>9251</i></li><li><b>鈹</b><i>9239</i></li><li><b>鉧</b><i>9267</i></li><li><b>銧</b><i>92A7</i></li><li><b>鉷</b><i>9277</i></li><li><b>鉸</b><i>9278</i></li><li><b>鋧</b><i>92E7</i></li><li><b>鋗</b><i>92D7</i></li><li><b>鋙</b><i>92D9</i></li><li><b>鋐</b><i>92D0</i></li><li><b>﨧</b><i>FA27</i></li><li><b>鋕</b><i>92D5</i></li><li><b>鋠</b><i>92E0</i></li><li><b>鋓</b><i>92D3</i></li><li><b>錥</b><i>9325</i></li><li><b>錡</b><i>9321</i></li><li><b>鋻</b><i>92FB</i></li><li><b>﨨</b><i>FA28</i></li><li><b>錞</b><i>931E</i></li><li><b>鋿</b><i>92FF</i></li><li><b>錝</b><i>931D</i></li><li><b>錂</b><i>9302</i></li><li><b>鍰</b><i>9370</i></li><li><b>鍗</b><i>9357</i></li><li><b>鎤</b><i>93A4</i></li><li><b>鏆</b><i>93C6</i></li><li><b>鏞</b><i>93DE</i></li><li><b>鏸</b><i>93F8</i></li><li><b>鐱</b><i>9431</i></li><li><b>鑅</b><i>9445</i></li><li><b>鑈</b><i>9448</i></li><li><b>閒</b><i>9592</i></li><li><b>隆</b><i>F9DC</i></li><li><b>﨩</b><i>FA29</i></li><li><b>隝</b><i>969D</i></li><li><b>隯</b><i>96AF</i></li><li><b>霳</b><i>9733</i></li><li><b>霻</b><i>973B</i></li><li><b>靃</b><i>9743</i></li><li><b>靍</b><i>974D</i></li><li><b>靏</b><i>974F</i></li><li><b>靑</b><i>9751</i></li><li><b>靕</b><i>9755</i></li><li><b>顗</b><i>9857</i></li><li><b>顥</b><i>9865</i></li><li><b>飯</b><i>FA2A</i></li><li><b>飼</b><i>FA2B</i></li><li><b>餧</b><i>9927</i></li><li><b>館</b><i>FA2C</i></li><li><b>馞</b><i>999E</i></li><li><b>驎</b><i>9A4E</i></li><li><b>髙</b><i>9AD9</i></li><li><b>髜</b><i>9ADC</i></li><li><b>魵</b><i>9B75</i></li><li><b>魲</b><i>9B72</i></li><li><b>鮏</b><i>9B8F</i></li><li><b>鮱</b><i>9BB1</i></li><li><b>鮻</b><i>9BBB</i></li><li><b>鰀</b><i>9C00</i></li><li><b>鵰</b><i>9D70</i></li><li><b>鵫</b><i>9D6B</i></li><li><b>鶴</b><i>FA2D</i></li><li><b>鸙</b><i>9E19</i></li><li><b>黑</b><i>9ED1</i></li></ol>
+<!-- /gen -->
+
+<h3 id="a-symbols"><span class="num">A.6</span>CommonSymbols</h3>
+<p>ブロックごとに 16 の列（狭い画面では 8 の列）で、列はコードポイントの下 1 桁に揃う。</p>
+<!-- gen:APPX_SYMBOLS -->
+<h4 id="sym-00a0">Latin-1 補助<span class="sub">Latin-1 Supplement・<span class="mono">U+00A0〜U+00FF</span>・96 字</span></h4>
+<ol class="cells"><li class="ws"><b></b><i>00A0</i></li><li><b>¡</b><i>00A1</i></li><li><b>¢</b><i>00A2</i></li><li><b>£</b><i>00A3</i></li><li><b>¤</b><i>00A4</i></li><li><b>¥</b><i>00A5</i></li><li><b>¦</b><i>00A6</i></li><li><b>§</b><i>00A7</i></li><li><b>¨</b><i>00A8</i></li><li><b>©</b><i>00A9</i></li><li><b>ª</b><i>00AA</i></li><li><b>«</b><i>00AB</i></li><li><b>¬</b><i>00AC</i></li><li class="ws"><b></b><i>00AD</i></li><li><b>®</b><i>00AE</i></li><li><b>¯</b><i>00AF</i></li><li><b>°</b><i>00B0</i></li><li><b>±</b><i>00B1</i></li><li><b>²</b><i>00B2</i></li><li><b>³</b><i>00B3</i></li><li><b>´</b><i>00B4</i></li><li><b>µ</b><i>00B5</i></li><li><b>¶</b><i>00B6</i></li><li><b>·</b><i>00B7</i></li><li><b>¸</b><i>00B8</i></li><li><b>¹</b><i>00B9</i></li><li><b>º</b><i>00BA</i></li><li><b>»</b><i>00BB</i></li><li><b>¼</b><i>00BC</i></li><li><b>½</b><i>00BD</i></li><li><b>¾</b><i>00BE</i></li><li><b>¿</b><i>00BF</i></li><li><b>À</b><i>00C0</i></li><li><b>Á</b><i>00C1</i></li><li><b>Â</b><i>00C2</i></li><li><b>Ã</b><i>00C3</i></li><li><b>Ä</b><i>00C4</i></li><li><b>Å</b><i>00C5</i></li><li><b>Æ</b><i>00C6</i></li><li><b>Ç</b><i>00C7</i></li><li><b>È</b><i>00C8</i></li><li><b>É</b><i>00C9</i></li><li><b>Ê</b><i>00CA</i></li><li><b>Ë</b><i>00CB</i></li><li><b>Ì</b><i>00CC</i></li><li><b>Í</b><i>00CD</i></li><li><b>Î</b><i>00CE</i></li><li><b>Ï</b><i>00CF</i></li><li><b>Ð</b><i>00D0</i></li><li><b>Ñ</b><i>00D1</i></li><li><b>Ò</b><i>00D2</i></li><li><b>Ó</b><i>00D3</i></li><li><b>Ô</b><i>00D4</i></li><li><b>Õ</b><i>00D5</i></li><li><b>Ö</b><i>00D6</i></li><li><b>×</b><i>00D7</i></li><li><b>Ø</b><i>00D8</i></li><li><b>Ù</b><i>00D9</i></li><li><b>Ú</b><i>00DA</i></li><li><b>Û</b><i>00DB</i></li><li><b>Ü</b><i>00DC</i></li><li><b>Ý</b><i>00DD</i></li><li><b>Þ</b><i>00DE</i></li><li><b>ß</b><i>00DF</i></li><li><b>à</b><i>00E0</i></li><li><b>á</b><i>00E1</i></li><li><b>â</b><i>00E2</i></li><li><b>ã</b><i>00E3</i></li><li><b>ä</b><i>00E4</i></li><li><b>å</b><i>00E5</i></li><li><b>æ</b><i>00E6</i></li><li><b>ç</b><i>00E7</i></li><li><b>è</b><i>00E8</i></li><li><b>é</b><i>00E9</i></li><li><b>ê</b><i>00EA</i></li><li><b>ë</b><i>00EB</i></li><li><b>ì</b><i>00EC</i></li><li><b>í</b><i>00ED</i></li><li><b>î</b><i>00EE</i></li><li><b>ï</b><i>00EF</i></li><li><b>ð</b><i>00F0</i></li><li><b>ñ</b><i>00F1</i></li><li><b>ò</b><i>00F2</i></li><li><b>ó</b><i>00F3</i></li><li><b>ô</b><i>00F4</i></li><li><b>õ</b><i>00F5</i></li><li><b>ö</b><i>00F6</i></li><li><b>÷</b><i>00F7</i></li><li><b>ø</b><i>00F8</i></li><li><b>ù</b><i>00F9</i></li><li><b>ú</b><i>00FA</i></li><li><b>û</b><i>00FB</i></li><li><b>ü</b><i>00FC</i></li><li><b>ý</b><i>00FD</i></li><li><b>þ</b><i>00FE</i></li><li><b>ÿ</b><i>00FF</i></li></ol>
+<h4 id="sym-2000">一般句読点<span class="sub">General Punctuation・<span class="mono">U+2000〜U+206F</span>・84 字</span></h4>
+<ol class="cells"><li class="ws"><b></b><i>2000</i></li><li class="ws"><b></b><i>2001</i></li><li class="ws"><b></b><i>2002</i></li><li class="ws"><b></b><i>2003</i></li><li class="ws"><b></b><i>2004</i></li><li class="ws"><b></b><i>2005</i></li><li class="ws"><b></b><i>2006</i></li><li class="ws"><b></b><i>2007</i></li><li class="ws"><b></b><i>2008</i></li><li class="ws"><b></b><i>2009</i></li><li class="ws"><b></b><i>200A</i></li><li class="ex"><b></b><i>200B</i></li><li class="ex"><b></b><i>200C</i></li><li class="ex"><b></b><i>200D</i></li><li class="ex"><b></b><i>200E</i></li><li class="ex"><b></b><i>200F</i></li><li><b>‐</b><i>2010</i></li><li><b>‑</b><i>2011</i></li><li><b>‒</b><i>2012</i></li><li><b>–</b><i>2013</i></li><li><b>—</b><i>2014</i></li><li><b>―</b><i>2015</i></li><li><b>‖</b><i>2016</i></li><li><b>‗</b><i>2017</i></li><li><b>‘</b><i>2018</i></li><li><b>’</b><i>2019</i></li><li><b>‚</b><i>201A</i></li><li><b>‛</b><i>201B</i></li><li><b>“</b><i>201C</i></li><li><b>”</b><i>201D</i></li><li><b>„</b><i>201E</i></li><li><b>‟</b><i>201F</i></li><li><b>†</b><i>2020</i></li><li><b>‡</b><i>2021</i></li><li><b>•</b><i>2022</i></li><li><b>‣</b><i>2023</i></li><li><b>․</b><i>2024</i></li><li><b>‥</b><i>2025</i></li><li><b>…</b><i>2026</i></li><li><b>‧</b><i>2027</i></li><li class="ex"><b></b><i>2028</i></li><li class="ex"><b></b><i>2029</i></li><li class="ex"><b></b><i>202A</i></li><li class="ex"><b></b><i>202B</i></li><li class="ex"><b></b><i>202C</i></li><li class="ex"><b></b><i>202D</i></li><li class="ex"><b></b><i>202E</i></li><li class="ws"><b></b><i>202F</i></li><li><b>‰</b><i>2030</i></li><li><b>‱</b><i>2031</i></li><li><b>′</b><i>2032</i></li><li><b>″</b><i>2033</i></li><li><b>‴</b><i>2034</i></li><li><b>‵</b><i>2035</i></li><li><b>‶</b><i>2036</i></li><li><b>‷</b><i>2037</i></li><li><b>‸</b><i>2038</i></li><li><b>‹</b><i>2039</i></li><li><b>›</b><i>203A</i></li><li><b>※</b><i>203B</i></li><li><b>‼</b><i>203C</i></li><li><b>‽</b><i>203D</i></li><li><b>‾</b><i>203E</i></li><li><b>‿</b><i>203F</i></li><li><b>⁀</b><i>2040</i></li><li><b>⁁</b><i>2041</i></li><li><b>⁂</b><i>2042</i></li><li><b>⁃</b><i>2043</i></li><li><b>⁄</b><i>2044</i></li><li><b>⁅</b><i>2045</i></li><li><b>⁆</b><i>2046</i></li><li><b>⁇</b><i>2047</i></li><li><b>⁈</b><i>2048</i></li><li><b>⁉</b><i>2049</i></li><li><b>⁊</b><i>204A</i></li><li><b>⁋</b><i>204B</i></li><li><b>⁌</b><i>204C</i></li><li><b>⁍</b><i>204D</i></li><li><b>⁎</b><i>204E</i></li><li><b>⁏</b><i>204F</i></li><li><b>⁐</b><i>2050</i></li><li><b>⁑</b><i>2051</i></li><li><b>⁒</b><i>2052</i></li><li><b>⁓</b><i>2053</i></li><li><b>⁔</b><i>2054</i></li><li><b>⁕</b><i>2055</i></li><li><b>⁖</b><i>2056</i></li><li><b>⁗</b><i>2057</i></li><li><b>⁘</b><i>2058</i></li><li><b>⁙</b><i>2059</i></li><li><b>⁚</b><i>205A</i></li><li><b>⁛</b><i>205B</i></li><li><b>⁜</b><i>205C</i></li><li><b>⁝</b><i>205D</i></li><li><b>⁞</b><i>205E</i></li><li class="ws"><b></b><i>205F</i></li><li class="ex"><b></b><i>2060</i></li><li class="ex"><b></b><i>2061</i></li><li class="ex"><b></b><i>2062</i></li><li class="ex"><b></b><i>2063</i></li><li class="ex"><b></b><i>2064</i></li><li class="ex"><b></b><i>2065</i></li><li class="ex"><b></b><i>2066</i></li><li class="ex"><b></b><i>2067</i></li><li class="ex"><b></b><i>2068</i></li><li class="ex"><b></b><i>2069</i></li><li class="ex"><b></b><i>206A</i></li><li class="ex"><b></b><i>206B</i></li><li class="ex"><b></b><i>206C</i></li><li class="ex"><b></b><i>206D</i></li><li class="ex"><b></b><i>206E</i></li><li class="ex"><b></b><i>206F</i></li></ol>
+<h4 id="sym-2100">文字様記号<span class="sub">Letterlike Symbols・<span class="mono">U+2100〜U+214F</span>・80 字</span></h4>
+<ol class="cells"><li><b>℀</b><i>2100</i></li><li><b>℁</b><i>2101</i></li><li><b>ℂ</b><i>2102</i></li><li><b>℃</b><i>2103</i></li><li><b>℄</b><i>2104</i></li><li><b>℅</b><i>2105</i></li><li><b>℆</b><i>2106</i></li><li><b>ℇ</b><i>2107</i></li><li><b>℈</b><i>2108</i></li><li><b>℉</b><i>2109</i></li><li><b>ℊ</b><i>210A</i></li><li><b>ℋ</b><i>210B</i></li><li><b>ℌ</b><i>210C</i></li><li><b>ℍ</b><i>210D</i></li><li><b>ℎ</b><i>210E</i></li><li><b>ℏ</b><i>210F</i></li><li><b>ℐ</b><i>2110</i></li><li><b>ℑ</b><i>2111</i></li><li><b>ℒ</b><i>2112</i></li><li><b>ℓ</b><i>2113</i></li><li><b>℔</b><i>2114</i></li><li><b>ℕ</b><i>2115</i></li><li><b>№</b><i>2116</i></li><li><b>℗</b><i>2117</i></li><li><b>℘</b><i>2118</i></li><li><b>ℙ</b><i>2119</i></li><li><b>ℚ</b><i>211A</i></li><li><b>ℛ</b><i>211B</i></li><li><b>ℜ</b><i>211C</i></li><li><b>ℝ</b><i>211D</i></li><li><b>℞</b><i>211E</i></li><li><b>℟</b><i>211F</i></li><li><b>℠</b><i>2120</i></li><li><b>℡</b><i>2121</i></li><li><b>™</b><i>2122</i></li><li><b>℣</b><i>2123</i></li><li><b>ℤ</b><i>2124</i></li><li><b>℥</b><i>2125</i></li><li><b>Ω</b><i>2126</i></li><li><b>℧</b><i>2127</i></li><li><b>ℨ</b><i>2128</i></li><li><b>℩</b><i>2129</i></li><li><b>K</b><i>212A</i></li><li><b>Å</b><i>212B</i></li><li><b>ℬ</b><i>212C</i></li><li><b>ℭ</b><i>212D</i></li><li><b>℮</b><i>212E</i></li><li><b>ℯ</b><i>212F</i></li><li><b>ℰ</b><i>2130</i></li><li><b>ℱ</b><i>2131</i></li><li><b>Ⅎ</b><i>2132</i></li><li><b>ℳ</b><i>2133</i></li><li><b>ℴ</b><i>2134</i></li><li><b>ℵ</b><i>2135</i></li><li><b>ℶ</b><i>2136</i></li><li><b>ℷ</b><i>2137</i></li><li><b>ℸ</b><i>2138</i></li><li><b>ℹ</b><i>2139</i></li><li><b>℺</b><i>213A</i></li><li><b>℻</b><i>213B</i></li><li><b>ℼ</b><i>213C</i></li><li><b>ℽ</b><i>213D</i></li><li><b>ℾ</b><i>213E</i></li><li><b>ℿ</b><i>213F</i></li><li><b>⅀</b><i>2140</i></li><li><b>⅁</b><i>2141</i></li><li><b>⅂</b><i>2142</i></li><li><b>⅃</b><i>2143</i></li><li><b>⅄</b><i>2144</i></li><li><b>ⅅ</b><i>2145</i></li><li><b>ⅆ</b><i>2146</i></li><li><b>ⅇ</b><i>2147</i></li><li><b>ⅈ</b><i>2148</i></li><li><b>ⅉ</b><i>2149</i></li><li><b>⅊</b><i>214A</i></li><li><b>⅋</b><i>214B</i></li><li><b>⅌</b><i>214C</i></li><li><b>⅍</b><i>214D</i></li><li><b>ⅎ</b><i>214E</i></li><li><b>⅏</b><i>214F</i></li></ol>
+<h4 id="sym-2150">数字の形<span class="sub">Number Forms・<span class="mono">U+2150〜U+218F</span>・64 字</span></h4>
+<ol class="cells"><li><b>⅐</b><i>2150</i></li><li><b>⅑</b><i>2151</i></li><li><b>⅒</b><i>2152</i></li><li><b>⅓</b><i>2153</i></li><li><b>⅔</b><i>2154</i></li><li><b>⅕</b><i>2155</i></li><li><b>⅖</b><i>2156</i></li><li><b>⅗</b><i>2157</i></li><li><b>⅘</b><i>2158</i></li><li><b>⅙</b><i>2159</i></li><li><b>⅚</b><i>215A</i></li><li><b>⅛</b><i>215B</i></li><li><b>⅜</b><i>215C</i></li><li><b>⅝</b><i>215D</i></li><li><b>⅞</b><i>215E</i></li><li><b>⅟</b><i>215F</i></li><li><b>Ⅰ</b><i>2160</i></li><li><b>Ⅱ</b><i>2161</i></li><li><b>Ⅲ</b><i>2162</i></li><li><b>Ⅳ</b><i>2163</i></li><li><b>Ⅴ</b><i>2164</i></li><li><b>Ⅵ</b><i>2165</i></li><li><b>Ⅶ</b><i>2166</i></li><li><b>Ⅷ</b><i>2167</i></li><li><b>Ⅸ</b><i>2168</i></li><li><b>Ⅹ</b><i>2169</i></li><li><b>Ⅺ</b><i>216A</i></li><li><b>Ⅻ</b><i>216B</i></li><li><b>Ⅼ</b><i>216C</i></li><li><b>Ⅽ</b><i>216D</i></li><li><b>Ⅾ</b><i>216E</i></li><li><b>Ⅿ</b><i>216F</i></li><li><b>ⅰ</b><i>2170</i></li><li><b>ⅱ</b><i>2171</i></li><li><b>ⅲ</b><i>2172</i></li><li><b>ⅳ</b><i>2173</i></li><li><b>ⅴ</b><i>2174</i></li><li><b>ⅵ</b><i>2175</i></li><li><b>ⅶ</b><i>2176</i></li><li><b>ⅷ</b><i>2177</i></li><li><b>ⅸ</b><i>2178</i></li><li><b>ⅹ</b><i>2179</i></li><li><b>ⅺ</b><i>217A</i></li><li><b>ⅻ</b><i>217B</i></li><li><b>ⅼ</b><i>217C</i></li><li><b>ⅽ</b><i>217D</i></li><li><b>ⅾ</b><i>217E</i></li><li><b>ⅿ</b><i>217F</i></li><li><b>ↀ</b><i>2180</i></li><li><b>ↁ</b><i>2181</i></li><li><b>ↂ</b><i>2182</i></li><li><b>Ↄ</b><i>2183</i></li><li><b>ↄ</b><i>2184</i></li><li><b>ↅ</b><i>2185</i></li><li><b>ↆ</b><i>2186</i></li><li><b>ↇ</b><i>2187</i></li><li><b>ↈ</b><i>2188</i></li><li><b>↉</b><i>2189</i></li><li><b>↊</b><i>218A</i></li><li><b>↋</b><i>218B</i></li><li class="na"><b></b><i>218C</i></li><li class="na"><b></b><i>218D</i></li><li class="na"><b></b><i>218E</i></li><li class="na"><b></b><i>218F</i></li></ol>
+<h4 id="sym-2190">矢印<span class="sub">Arrows・<span class="mono">U+2190〜U+21FF</span>・112 字</span></h4>
+<ol class="cells"><li><b>←</b><i>2190</i></li><li><b>↑</b><i>2191</i></li><li><b>→</b><i>2192</i></li><li><b>↓</b><i>2193</i></li><li><b>↔</b><i>2194</i></li><li><b>↕</b><i>2195</i></li><li><b>↖</b><i>2196</i></li><li><b>↗</b><i>2197</i></li><li><b>↘</b><i>2198</i></li><li><b>↙</b><i>2199</i></li><li><b>↚</b><i>219A</i></li><li><b>↛</b><i>219B</i></li><li><b>↜</b><i>219C</i></li><li><b>↝</b><i>219D</i></li><li><b>↞</b><i>219E</i></li><li><b>↟</b><i>219F</i></li><li><b>↠</b><i>21A0</i></li><li><b>↡</b><i>21A1</i></li><li><b>↢</b><i>21A2</i></li><li><b>↣</b><i>21A3</i></li><li><b>↤</b><i>21A4</i></li><li><b>↥</b><i>21A5</i></li><li><b>↦</b><i>21A6</i></li><li><b>↧</b><i>21A7</i></li><li><b>↨</b><i>21A8</i></li><li><b>↩</b><i>21A9</i></li><li><b>↪</b><i>21AA</i></li><li><b>↫</b><i>21AB</i></li><li><b>↬</b><i>21AC</i></li><li><b>↭</b><i>21AD</i></li><li><b>↮</b><i>21AE</i></li><li><b>↯</b><i>21AF</i></li><li><b>↰</b><i>21B0</i></li><li><b>↱</b><i>21B1</i></li><li><b>↲</b><i>21B2</i></li><li><b>↳</b><i>21B3</i></li><li><b>↴</b><i>21B4</i></li><li><b>↵</b><i>21B5</i></li><li><b>↶</b><i>21B6</i></li><li><b>↷</b><i>21B7</i></li><li><b>↸</b><i>21B8</i></li><li><b>↹</b><i>21B9</i></li><li><b>↺</b><i>21BA</i></li><li><b>↻</b><i>21BB</i></li><li><b>↼</b><i>21BC</i></li><li><b>↽</b><i>21BD</i></li><li><b>↾</b><i>21BE</i></li><li><b>↿</b><i>21BF</i></li><li><b>⇀</b><i>21C0</i></li><li><b>⇁</b><i>21C1</i></li><li><b>⇂</b><i>21C2</i></li><li><b>⇃</b><i>21C3</i></li><li><b>⇄</b><i>21C4</i></li><li><b>⇅</b><i>21C5</i></li><li><b>⇆</b><i>21C6</i></li><li><b>⇇</b><i>21C7</i></li><li><b>⇈</b><i>21C8</i></li><li><b>⇉</b><i>21C9</i></li><li><b>⇊</b><i>21CA</i></li><li><b>⇋</b><i>21CB</i></li><li><b>⇌</b><i>21CC</i></li><li><b>⇍</b><i>21CD</i></li><li><b>⇎</b><i>21CE</i></li><li><b>⇏</b><i>21CF</i></li><li><b>⇐</b><i>21D0</i></li><li><b>⇑</b><i>21D1</i></li><li><b>⇒</b><i>21D2</i></li><li><b>⇓</b><i>21D3</i></li><li><b>⇔</b><i>21D4</i></li><li><b>⇕</b><i>21D5</i></li><li><b>⇖</b><i>21D6</i></li><li><b>⇗</b><i>21D7</i></li><li><b>⇘</b><i>21D8</i></li><li><b>⇙</b><i>21D9</i></li><li><b>⇚</b><i>21DA</i></li><li><b>⇛</b><i>21DB</i></li><li><b>⇜</b><i>21DC</i></li><li><b>⇝</b><i>21DD</i></li><li><b>⇞</b><i>21DE</i></li><li><b>⇟</b><i>21DF</i></li><li><b>⇠</b><i>21E0</i></li><li><b>⇡</b><i>21E1</i></li><li><b>⇢</b><i>21E2</i></li><li><b>⇣</b><i>21E3</i></li><li><b>⇤</b><i>21E4</i></li><li><b>⇥</b><i>21E5</i></li><li><b>⇦</b><i>21E6</i></li><li><b>⇧</b><i>21E7</i></li><li><b>⇨</b><i>21E8</i></li><li><b>⇩</b><i>21E9</i></li><li><b>⇪</b><i>21EA</i></li><li><b>⇫</b><i>21EB</i></li><li><b>⇬</b><i>21EC</i></li><li><b>⇭</b><i>21ED</i></li><li><b>⇮</b><i>21EE</i></li><li><b>⇯</b><i>21EF</i></li><li><b>⇰</b><i>21F0</i></li><li><b>⇱</b><i>21F1</i></li><li><b>⇲</b><i>21F2</i></li><li><b>⇳</b><i>21F3</i></li><li><b>⇴</b><i>21F4</i></li><li><b>⇵</b><i>21F5</i></li><li><b>⇶</b><i>21F6</i></li><li><b>⇷</b><i>21F7</i></li><li><b>⇸</b><i>21F8</i></li><li><b>⇹</b><i>21F9</i></li><li><b>⇺</b><i>21FA</i></li><li><b>⇻</b><i>21FB</i></li><li><b>⇼</b><i>21FC</i></li><li><b>⇽</b><i>21FD</i></li><li><b>⇾</b><i>21FE</i></li><li><b>⇿</b><i>21FF</i></li></ol>
+<h4 id="sym-2200">数学記号<span class="sub">Mathematical Operators・<span class="mono">U+2200〜U+22FF</span>・256 字</span></h4>
+<ol class="cells"><li><b>∀</b><i>2200</i></li><li><b>∁</b><i>2201</i></li><li><b>∂</b><i>2202</i></li><li><b>∃</b><i>2203</i></li><li><b>∄</b><i>2204</i></li><li><b>∅</b><i>2205</i></li><li><b>∆</b><i>2206</i></li><li><b>∇</b><i>2207</i></li><li><b>∈</b><i>2208</i></li><li><b>∉</b><i>2209</i></li><li><b>∊</b><i>220A</i></li><li><b>∋</b><i>220B</i></li><li><b>∌</b><i>220C</i></li><li><b>∍</b><i>220D</i></li><li><b>∎</b><i>220E</i></li><li><b>∏</b><i>220F</i></li><li><b>∐</b><i>2210</i></li><li><b>∑</b><i>2211</i></li><li><b>−</b><i>2212</i></li><li><b>∓</b><i>2213</i></li><li><b>∔</b><i>2214</i></li><li><b>∕</b><i>2215</i></li><li><b>∖</b><i>2216</i></li><li><b>∗</b><i>2217</i></li><li><b>∘</b><i>2218</i></li><li><b>∙</b><i>2219</i></li><li><b>√</b><i>221A</i></li><li><b>∛</b><i>221B</i></li><li><b>∜</b><i>221C</i></li><li><b>∝</b><i>221D</i></li><li><b>∞</b><i>221E</i></li><li><b>∟</b><i>221F</i></li><li><b>∠</b><i>2220</i></li><li><b>∡</b><i>2221</i></li><li><b>∢</b><i>2222</i></li><li><b>∣</b><i>2223</i></li><li><b>∤</b><i>2224</i></li><li><b>∥</b><i>2225</i></li><li><b>∦</b><i>2226</i></li><li><b>∧</b><i>2227</i></li><li><b>∨</b><i>2228</i></li><li><b>∩</b><i>2229</i></li><li><b>∪</b><i>222A</i></li><li><b>∫</b><i>222B</i></li><li><b>∬</b><i>222C</i></li><li><b>∭</b><i>222D</i></li><li><b>∮</b><i>222E</i></li><li><b>∯</b><i>222F</i></li><li><b>∰</b><i>2230</i></li><li><b>∱</b><i>2231</i></li><li><b>∲</b><i>2232</i></li><li><b>∳</b><i>2233</i></li><li><b>∴</b><i>2234</i></li><li><b>∵</b><i>2235</i></li><li><b>∶</b><i>2236</i></li><li><b>∷</b><i>2237</i></li><li><b>∸</b><i>2238</i></li><li><b>∹</b><i>2239</i></li><li><b>∺</b><i>223A</i></li><li><b>∻</b><i>223B</i></li><li><b>∼</b><i>223C</i></li><li><b>∽</b><i>223D</i></li><li><b>∾</b><i>223E</i></li><li><b>∿</b><i>223F</i></li><li><b>≀</b><i>2240</i></li><li><b>≁</b><i>2241</i></li><li><b>≂</b><i>2242</i></li><li><b>≃</b><i>2243</i></li><li><b>≄</b><i>2244</i></li><li><b>≅</b><i>2245</i></li><li><b>≆</b><i>2246</i></li><li><b>≇</b><i>2247</i></li><li><b>≈</b><i>2248</i></li><li><b>≉</b><i>2249</i></li><li><b>≊</b><i>224A</i></li><li><b>≋</b><i>224B</i></li><li><b>≌</b><i>224C</i></li><li><b>≍</b><i>224D</i></li><li><b>≎</b><i>224E</i></li><li><b>≏</b><i>224F</i></li><li><b>≐</b><i>2250</i></li><li><b>≑</b><i>2251</i></li><li><b>≒</b><i>2252</i></li><li><b>≓</b><i>2253</i></li><li><b>≔</b><i>2254</i></li><li><b>≕</b><i>2255</i></li><li><b>≖</b><i>2256</i></li><li><b>≗</b><i>2257</i></li><li><b>≘</b><i>2258</i></li><li><b>≙</b><i>2259</i></li><li><b>≚</b><i>225A</i></li><li><b>≛</b><i>225B</i></li><li><b>≜</b><i>225C</i></li><li><b>≝</b><i>225D</i></li><li><b>≞</b><i>225E</i></li><li><b>≟</b><i>225F</i></li><li><b>≠</b><i>2260</i></li><li><b>≡</b><i>2261</i></li><li><b>≢</b><i>2262</i></li><li><b>≣</b><i>2263</i></li><li><b>≤</b><i>2264</i></li><li><b>≥</b><i>2265</i></li><li><b>≦</b><i>2266</i></li><li><b>≧</b><i>2267</i></li><li><b>≨</b><i>2268</i></li><li><b>≩</b><i>2269</i></li><li><b>≪</b><i>226A</i></li><li><b>≫</b><i>226B</i></li><li><b>≬</b><i>226C</i></li><li><b>≭</b><i>226D</i></li><li><b>≮</b><i>226E</i></li><li><b>≯</b><i>226F</i></li><li><b>≰</b><i>2270</i></li><li><b>≱</b><i>2271</i></li><li><b>≲</b><i>2272</i></li><li><b>≳</b><i>2273</i></li><li><b>≴</b><i>2274</i></li><li><b>≵</b><i>2275</i></li><li><b>≶</b><i>2276</i></li><li><b>≷</b><i>2277</i></li><li><b>≸</b><i>2278</i></li><li><b>≹</b><i>2279</i></li><li><b>≺</b><i>227A</i></li><li><b>≻</b><i>227B</i></li><li><b>≼</b><i>227C</i></li><li><b>≽</b><i>227D</i></li><li><b>≾</b><i>227E</i></li><li><b>≿</b><i>227F</i></li><li><b>⊀</b><i>2280</i></li><li><b>⊁</b><i>2281</i></li><li><b>⊂</b><i>2282</i></li><li><b>⊃</b><i>2283</i></li><li><b>⊄</b><i>2284</i></li><li><b>⊅</b><i>2285</i></li><li><b>⊆</b><i>2286</i></li><li><b>⊇</b><i>2287</i></li><li><b>⊈</b><i>2288</i></li><li><b>⊉</b><i>2289</i></li><li><b>⊊</b><i>228A</i></li><li><b>⊋</b><i>228B</i></li><li><b>⊌</b><i>228C</i></li><li><b>⊍</b><i>228D</i></li><li><b>⊎</b><i>228E</i></li><li><b>⊏</b><i>228F</i></li><li><b>⊐</b><i>2290</i></li><li><b>⊑</b><i>2291</i></li><li><b>⊒</b><i>2292</i></li><li><b>⊓</b><i>2293</i></li><li><b>⊔</b><i>2294</i></li><li><b>⊕</b><i>2295</i></li><li><b>⊖</b><i>2296</i></li><li><b>⊗</b><i>2297</i></li><li><b>⊘</b><i>2298</i></li><li><b>⊙</b><i>2299</i></li><li><b>⊚</b><i>229A</i></li><li><b>⊛</b><i>229B</i></li><li><b>⊜</b><i>229C</i></li><li><b>⊝</b><i>229D</i></li><li><b>⊞</b><i>229E</i></li><li><b>⊟</b><i>229F</i></li><li><b>⊠</b><i>22A0</i></li><li><b>⊡</b><i>22A1</i></li><li><b>⊢</b><i>22A2</i></li><li><b>⊣</b><i>22A3</i></li><li><b>⊤</b><i>22A4</i></li><li><b>⊥</b><i>22A5</i></li><li><b>⊦</b><i>22A6</i></li><li><b>⊧</b><i>22A7</i></li><li><b>⊨</b><i>22A8</i></li><li><b>⊩</b><i>22A9</i></li><li><b>⊪</b><i>22AA</i></li><li><b>⊫</b><i>22AB</i></li><li><b>⊬</b><i>22AC</i></li><li><b>⊭</b><i>22AD</i></li><li><b>⊮</b><i>22AE</i></li><li><b>⊯</b><i>22AF</i></li><li><b>⊰</b><i>22B0</i></li><li><b>⊱</b><i>22B1</i></li><li><b>⊲</b><i>22B2</i></li><li><b>⊳</b><i>22B3</i></li><li><b>⊴</b><i>22B4</i></li><li><b>⊵</b><i>22B5</i></li><li><b>⊶</b><i>22B6</i></li><li><b>⊷</b><i>22B7</i></li><li><b>⊸</b><i>22B8</i></li><li><b>⊹</b><i>22B9</i></li><li><b>⊺</b><i>22BA</i></li><li><b>⊻</b><i>22BB</i></li><li><b>⊼</b><i>22BC</i></li><li><b>⊽</b><i>22BD</i></li><li><b>⊾</b><i>22BE</i></li><li><b>⊿</b><i>22BF</i></li><li><b>⋀</b><i>22C0</i></li><li><b>⋁</b><i>22C1</i></li><li><b>⋂</b><i>22C2</i></li><li><b>⋃</b><i>22C3</i></li><li><b>⋄</b><i>22C4</i></li><li><b>⋅</b><i>22C5</i></li><li><b>⋆</b><i>22C6</i></li><li><b>⋇</b><i>22C7</i></li><li><b>⋈</b><i>22C8</i></li><li><b>⋉</b><i>22C9</i></li><li><b>⋊</b><i>22CA</i></li><li><b>⋋</b><i>22CB</i></li><li><b>⋌</b><i>22CC</i></li><li><b>⋍</b><i>22CD</i></li><li><b>⋎</b><i>22CE</i></li><li><b>⋏</b><i>22CF</i></li><li><b>⋐</b><i>22D0</i></li><li><b>⋑</b><i>22D1</i></li><li><b>⋒</b><i>22D2</i></li><li><b>⋓</b><i>22D3</i></li><li><b>⋔</b><i>22D4</i></li><li><b>⋕</b><i>22D5</i></li><li><b>⋖</b><i>22D6</i></li><li><b>⋗</b><i>22D7</i></li><li><b>⋘</b><i>22D8</i></li><li><b>⋙</b><i>22D9</i></li><li><b>⋚</b><i>22DA</i></li><li><b>⋛</b><i>22DB</i></li><li><b>⋜</b><i>22DC</i></li><li><b>⋝</b><i>22DD</i></li><li><b>⋞</b><i>22DE</i></li><li><b>⋟</b><i>22DF</i></li><li><b>⋠</b><i>22E0</i></li><li><b>⋡</b><i>22E1</i></li><li><b>⋢</b><i>22E2</i></li><li><b>⋣</b><i>22E3</i></li><li><b>⋤</b><i>22E4</i></li><li><b>⋥</b><i>22E5</i></li><li><b>⋦</b><i>22E6</i></li><li><b>⋧</b><i>22E7</i></li><li><b>⋨</b><i>22E8</i></li><li><b>⋩</b><i>22E9</i></li><li><b>⋪</b><i>22EA</i></li><li><b>⋫</b><i>22EB</i></li><li><b>⋬</b><i>22EC</i></li><li><b>⋭</b><i>22ED</i></li><li><b>⋮</b><i>22EE</i></li><li><b>⋯</b><i>22EF</i></li><li><b>⋰</b><i>22F0</i></li><li><b>⋱</b><i>22F1</i></li><li><b>⋲</b><i>22F2</i></li><li><b>⋳</b><i>22F3</i></li><li><b>⋴</b><i>22F4</i></li><li><b>⋵</b><i>22F5</i></li><li><b>⋶</b><i>22F6</i></li><li><b>⋷</b><i>22F7</i></li><li><b>⋸</b><i>22F8</i></li><li><b>⋹</b><i>22F9</i></li><li><b>⋺</b><i>22FA</i></li><li><b>⋻</b><i>22FB</i></li><li><b>⋼</b><i>22FC</i></li><li><b>⋽</b><i>22FD</i></li><li><b>⋾</b><i>22FE</i></li><li><b>⋿</b><i>22FF</i></li></ol>
+<h4 id="sym-2300">その他の技術記号<span class="sub">Miscellaneous Technical・<span class="mono">U+2300〜U+23FF</span>・256 字</span></h4>
+<ol class="cells"><li><b>⌀</b><i>2300</i></li><li><b>⌁</b><i>2301</i></li><li><b>⌂</b><i>2302</i></li><li><b>⌃</b><i>2303</i></li><li><b>⌄</b><i>2304</i></li><li><b>⌅</b><i>2305</i></li><li><b>⌆</b><i>2306</i></li><li><b>⌇</b><i>2307</i></li><li><b>⌈</b><i>2308</i></li><li><b>⌉</b><i>2309</i></li><li><b>⌊</b><i>230A</i></li><li><b>⌋</b><i>230B</i></li><li><b>⌌</b><i>230C</i></li><li><b>⌍</b><i>230D</i></li><li><b>⌎</b><i>230E</i></li><li><b>⌏</b><i>230F</i></li><li><b>⌐</b><i>2310</i></li><li><b>⌑</b><i>2311</i></li><li><b>⌒</b><i>2312</i></li><li><b>⌓</b><i>2313</i></li><li><b>⌔</b><i>2314</i></li><li><b>⌕</b><i>2315</i></li><li><b>⌖</b><i>2316</i></li><li><b>⌗</b><i>2317</i></li><li><b>⌘</b><i>2318</i></li><li><b>⌙</b><i>2319</i></li><li><b>⌚</b><i>231A</i></li><li><b>⌛</b><i>231B</i></li><li><b>⌜</b><i>231C</i></li><li><b>⌝</b><i>231D</i></li><li><b>⌞</b><i>231E</i></li><li><b>⌟</b><i>231F</i></li><li><b>⌠</b><i>2320</i></li><li><b>⌡</b><i>2321</i></li><li><b>⌢</b><i>2322</i></li><li><b>⌣</b><i>2323</i></li><li><b>⌤</b><i>2324</i></li><li><b>⌥</b><i>2325</i></li><li><b>⌦</b><i>2326</i></li><li><b>⌧</b><i>2327</i></li><li><b>⌨</b><i>2328</i></li><li><b>〈</b><i>2329</i></li><li><b>〉</b><i>232A</i></li><li><b>⌫</b><i>232B</i></li><li><b>⌬</b><i>232C</i></li><li><b>⌭</b><i>232D</i></li><li><b>⌮</b><i>232E</i></li><li><b>⌯</b><i>232F</i></li><li><b>⌰</b><i>2330</i></li><li><b>⌱</b><i>2331</i></li><li><b>⌲</b><i>2332</i></li><li><b>⌳</b><i>2333</i></li><li><b>⌴</b><i>2334</i></li><li><b>⌵</b><i>2335</i></li><li><b>⌶</b><i>2336</i></li><li><b>⌷</b><i>2337</i></li><li><b>⌸</b><i>2338</i></li><li><b>⌹</b><i>2339</i></li><li><b>⌺</b><i>233A</i></li><li><b>⌻</b><i>233B</i></li><li><b>⌼</b><i>233C</i></li><li><b>⌽</b><i>233D</i></li><li><b>⌾</b><i>233E</i></li><li><b>⌿</b><i>233F</i></li><li><b>⍀</b><i>2340</i></li><li><b>⍁</b><i>2341</i></li><li><b>⍂</b><i>2342</i></li><li><b>⍃</b><i>2343</i></li><li><b>⍄</b><i>2344</i></li><li><b>⍅</b><i>2345</i></li><li><b>⍆</b><i>2346</i></li><li><b>⍇</b><i>2347</i></li><li><b>⍈</b><i>2348</i></li><li><b>⍉</b><i>2349</i></li><li><b>⍊</b><i>234A</i></li><li><b>⍋</b><i>234B</i></li><li><b>⍌</b><i>234C</i></li><li><b>⍍</b><i>234D</i></li><li><b>⍎</b><i>234E</i></li><li><b>⍏</b><i>234F</i></li><li><b>⍐</b><i>2350</i></li><li><b>⍑</b><i>2351</i></li><li><b>⍒</b><i>2352</i></li><li><b>⍓</b><i>2353</i></li><li><b>⍔</b><i>2354</i></li><li><b>⍕</b><i>2355</i></li><li><b>⍖</b><i>2356</i></li><li><b>⍗</b><i>2357</i></li><li><b>⍘</b><i>2358</i></li><li><b>⍙</b><i>2359</i></li><li><b>⍚</b><i>235A</i></li><li><b>⍛</b><i>235B</i></li><li><b>⍜</b><i>235C</i></li><li><b>⍝</b><i>235D</i></li><li><b>⍞</b><i>235E</i></li><li><b>⍟</b><i>235F</i></li><li><b>⍠</b><i>2360</i></li><li><b>⍡</b><i>2361</i></li><li><b>⍢</b><i>2362</i></li><li><b>⍣</b><i>2363</i></li><li><b>⍤</b><i>2364</i></li><li><b>⍥</b><i>2365</i></li><li><b>⍦</b><i>2366</i></li><li><b>⍧</b><i>2367</i></li><li><b>⍨</b><i>2368</i></li><li><b>⍩</b><i>2369</i></li><li><b>⍪</b><i>236A</i></li><li><b>⍫</b><i>236B</i></li><li><b>⍬</b><i>236C</i></li><li><b>⍭</b><i>236D</i></li><li><b>⍮</b><i>236E</i></li><li><b>⍯</b><i>236F</i></li><li><b>⍰</b><i>2370</i></li><li><b>⍱</b><i>2371</i></li><li><b>⍲</b><i>2372</i></li><li><b>⍳</b><i>2373</i></li><li><b>⍴</b><i>2374</i></li><li><b>⍵</b><i>2375</i></li><li><b>⍶</b><i>2376</i></li><li><b>⍷</b><i>2377</i></li><li><b>⍸</b><i>2378</i></li><li><b>⍹</b><i>2379</i></li><li><b>⍺</b><i>237A</i></li><li><b>⍻</b><i>237B</i></li><li><b>⍼</b><i>237C</i></li><li><b>⍽</b><i>237D</i></li><li><b>⍾</b><i>237E</i></li><li><b>⍿</b><i>237F</i></li><li><b>⎀</b><i>2380</i></li><li><b>⎁</b><i>2381</i></li><li><b>⎂</b><i>2382</i></li><li><b>⎃</b><i>2383</i></li><li><b>⎄</b><i>2384</i></li><li><b>⎅</b><i>2385</i></li><li><b>⎆</b><i>2386</i></li><li><b>⎇</b><i>2387</i></li><li><b>⎈</b><i>2388</i></li><li><b>⎉</b><i>2389</i></li><li><b>⎊</b><i>238A</i></li><li><b>⎋</b><i>238B</i></li><li><b>⎌</b><i>238C</i></li><li><b>⎍</b><i>238D</i></li><li><b>⎎</b><i>238E</i></li><li><b>⎏</b><i>238F</i></li><li><b>⎐</b><i>2390</i></li><li><b>⎑</b><i>2391</i></li><li><b>⎒</b><i>2392</i></li><li><b>⎓</b><i>2393</i></li><li><b>⎔</b><i>2394</i></li><li><b>⎕</b><i>2395</i></li><li><b>⎖</b><i>2396</i></li><li><b>⎗</b><i>2397</i></li><li><b>⎘</b><i>2398</i></li><li><b>⎙</b><i>2399</i></li><li><b>⎚</b><i>239A</i></li><li><b>⎛</b><i>239B</i></li><li><b>⎜</b><i>239C</i></li><li><b>⎝</b><i>239D</i></li><li><b>⎞</b><i>239E</i></li><li><b>⎟</b><i>239F</i></li><li><b>⎠</b><i>23A0</i></li><li><b>⎡</b><i>23A1</i></li><li><b>⎢</b><i>23A2</i></li><li><b>⎣</b><i>23A3</i></li><li><b>⎤</b><i>23A4</i></li><li><b>⎥</b><i>23A5</i></li><li><b>⎦</b><i>23A6</i></li><li><b>⎧</b><i>23A7</i></li><li><b>⎨</b><i>23A8</i></li><li><b>⎩</b><i>23A9</i></li><li><b>⎪</b><i>23AA</i></li><li><b>⎫</b><i>23AB</i></li><li><b>⎬</b><i>23AC</i></li><li><b>⎭</b><i>23AD</i></li><li><b>⎮</b><i>23AE</i></li><li><b>⎯</b><i>23AF</i></li><li><b>⎰</b><i>23B0</i></li><li><b>⎱</b><i>23B1</i></li><li><b>⎲</b><i>23B2</i></li><li><b>⎳</b><i>23B3</i></li><li><b>⎴</b><i>23B4</i></li><li><b>⎵</b><i>23B5</i></li><li><b>⎶</b><i>23B6</i></li><li><b>⎷</b><i>23B7</i></li><li><b>⎸</b><i>23B8</i></li><li><b>⎹</b><i>23B9</i></li><li><b>⎺</b><i>23BA</i></li><li><b>⎻</b><i>23BB</i></li><li><b>⎼</b><i>23BC</i></li><li><b>⎽</b><i>23BD</i></li><li><b>⎾</b><i>23BE</i></li><li><b>⎿</b><i>23BF</i></li><li><b>⏀</b><i>23C0</i></li><li><b>⏁</b><i>23C1</i></li><li><b>⏂</b><i>23C2</i></li><li><b>⏃</b><i>23C3</i></li><li><b>⏄</b><i>23C4</i></li><li><b>⏅</b><i>23C5</i></li><li><b>⏆</b><i>23C6</i></li><li><b>⏇</b><i>23C7</i></li><li><b>⏈</b><i>23C8</i></li><li><b>⏉</b><i>23C9</i></li><li><b>⏊</b><i>23CA</i></li><li><b>⏋</b><i>23CB</i></li><li><b>⏌</b><i>23CC</i></li><li><b>⏍</b><i>23CD</i></li><li><b>⏎</b><i>23CE</i></li><li><b>⏏</b><i>23CF</i></li><li><b>⏐</b><i>23D0</i></li><li><b>⏑</b><i>23D1</i></li><li><b>⏒</b><i>23D2</i></li><li><b>⏓</b><i>23D3</i></li><li><b>⏔</b><i>23D4</i></li><li><b>⏕</b><i>23D5</i></li><li><b>⏖</b><i>23D6</i></li><li><b>⏗</b><i>23D7</i></li><li><b>⏘</b><i>23D8</i></li><li><b>⏙</b><i>23D9</i></li><li><b>⏚</b><i>23DA</i></li><li><b>⏛</b><i>23DB</i></li><li><b>⏜</b><i>23DC</i></li><li><b>⏝</b><i>23DD</i></li><li><b>⏞</b><i>23DE</i></li><li><b>⏟</b><i>23DF</i></li><li><b>⏠</b><i>23E0</i></li><li><b>⏡</b><i>23E1</i></li><li><b>⏢</b><i>23E2</i></li><li><b>⏣</b><i>23E3</i></li><li><b>⏤</b><i>23E4</i></li><li><b>⏥</b><i>23E5</i></li><li><b>⏦</b><i>23E6</i></li><li><b>⏧</b><i>23E7</i></li><li><b>⏨</b><i>23E8</i></li><li><b>⏩</b><i>23E9</i></li><li><b>⏪</b><i>23EA</i></li><li><b>⏫</b><i>23EB</i></li><li><b>⏬</b><i>23EC</i></li><li><b>⏭</b><i>23ED</i></li><li><b>⏮</b><i>23EE</i></li><li><b>⏯</b><i>23EF</i></li><li><b>⏰</b><i>23F0</i></li><li><b>⏱</b><i>23F1</i></li><li><b>⏲</b><i>23F2</i></li><li><b>⏳</b><i>23F3</i></li><li><b>⏴</b><i>23F4</i></li><li><b>⏵</b><i>23F5</i></li><li><b>⏶</b><i>23F6</i></li><li><b>⏷</b><i>23F7</i></li><li><b>⏸</b><i>23F8</i></li><li><b>⏹</b><i>23F9</i></li><li><b>⏺</b><i>23FA</i></li><li><b>⏻</b><i>23FB</i></li><li><b>⏼</b><i>23FC</i></li><li><b>⏽</b><i>23FD</i></li><li><b>⏾</b><i>23FE</i></li><li><b>⏿</b><i>23FF</i></li></ol>
+<h4 id="sym-2460">囲み英数字<span class="sub">Enclosed Alphanumerics・<span class="mono">U+2460〜U+24FF</span>・160 字</span></h4>
+<ol class="cells"><li><b>①</b><i>2460</i></li><li><b>②</b><i>2461</i></li><li><b>③</b><i>2462</i></li><li><b>④</b><i>2463</i></li><li><b>⑤</b><i>2464</i></li><li><b>⑥</b><i>2465</i></li><li><b>⑦</b><i>2466</i></li><li><b>⑧</b><i>2467</i></li><li><b>⑨</b><i>2468</i></li><li><b>⑩</b><i>2469</i></li><li><b>⑪</b><i>246A</i></li><li><b>⑫</b><i>246B</i></li><li><b>⑬</b><i>246C</i></li><li><b>⑭</b><i>246D</i></li><li><b>⑮</b><i>246E</i></li><li><b>⑯</b><i>246F</i></li><li><b>⑰</b><i>2470</i></li><li><b>⑱</b><i>2471</i></li><li><b>⑲</b><i>2472</i></li><li><b>⑳</b><i>2473</i></li><li><b>⑴</b><i>2474</i></li><li><b>⑵</b><i>2475</i></li><li><b>⑶</b><i>2476</i></li><li><b>⑷</b><i>2477</i></li><li><b>⑸</b><i>2478</i></li><li><b>⑹</b><i>2479</i></li><li><b>⑺</b><i>247A</i></li><li><b>⑻</b><i>247B</i></li><li><b>⑼</b><i>247C</i></li><li><b>⑽</b><i>247D</i></li><li><b>⑾</b><i>247E</i></li><li><b>⑿</b><i>247F</i></li><li><b>⒀</b><i>2480</i></li><li><b>⒁</b><i>2481</i></li><li><b>⒂</b><i>2482</i></li><li><b>⒃</b><i>2483</i></li><li><b>⒄</b><i>2484</i></li><li><b>⒅</b><i>2485</i></li><li><b>⒆</b><i>2486</i></li><li><b>⒇</b><i>2487</i></li><li><b>⒈</b><i>2488</i></li><li><b>⒉</b><i>2489</i></li><li><b>⒊</b><i>248A</i></li><li><b>⒋</b><i>248B</i></li><li><b>⒌</b><i>248C</i></li><li><b>⒍</b><i>248D</i></li><li><b>⒎</b><i>248E</i></li><li><b>⒏</b><i>248F</i></li><li><b>⒐</b><i>2490</i></li><li><b>⒑</b><i>2491</i></li><li><b>⒒</b><i>2492</i></li><li><b>⒓</b><i>2493</i></li><li><b>⒔</b><i>2494</i></li><li><b>⒕</b><i>2495</i></li><li><b>⒖</b><i>2496</i></li><li><b>⒗</b><i>2497</i></li><li><b>⒘</b><i>2498</i></li><li><b>⒙</b><i>2499</i></li><li><b>⒚</b><i>249A</i></li><li><b>⒛</b><i>249B</i></li><li><b>⒜</b><i>249C</i></li><li><b>⒝</b><i>249D</i></li><li><b>⒞</b><i>249E</i></li><li><b>⒟</b><i>249F</i></li><li><b>⒠</b><i>24A0</i></li><li><b>⒡</b><i>24A1</i></li><li><b>⒢</b><i>24A2</i></li><li><b>⒣</b><i>24A3</i></li><li><b>⒤</b><i>24A4</i></li><li><b>⒥</b><i>24A5</i></li><li><b>⒦</b><i>24A6</i></li><li><b>⒧</b><i>24A7</i></li><li><b>⒨</b><i>24A8</i></li><li><b>⒩</b><i>24A9</i></li><li><b>⒪</b><i>24AA</i></li><li><b>⒫</b><i>24AB</i></li><li><b>⒬</b><i>24AC</i></li><li><b>⒭</b><i>24AD</i></li><li><b>⒮</b><i>24AE</i></li><li><b>⒯</b><i>24AF</i></li><li><b>⒰</b><i>24B0</i></li><li><b>⒱</b><i>24B1</i></li><li><b>⒲</b><i>24B2</i></li><li><b>⒳</b><i>24B3</i></li><li><b>⒴</b><i>24B4</i></li><li><b>⒵</b><i>24B5</i></li><li><b>Ⓐ</b><i>24B6</i></li><li><b>Ⓑ</b><i>24B7</i></li><li><b>Ⓒ</b><i>24B8</i></li><li><b>Ⓓ</b><i>24B9</i></li><li><b>Ⓔ</b><i>24BA</i></li><li><b>Ⓕ</b><i>24BB</i></li><li><b>Ⓖ</b><i>24BC</i></li><li><b>Ⓗ</b><i>24BD</i></li><li><b>Ⓘ</b><i>24BE</i></li><li><b>Ⓙ</b><i>24BF</i></li><li><b>Ⓚ</b><i>24C0</i></li><li><b>Ⓛ</b><i>24C1</i></li><li><b>Ⓜ</b><i>24C2</i></li><li><b>Ⓝ</b><i>24C3</i></li><li><b>Ⓞ</b><i>24C4</i></li><li><b>Ⓟ</b><i>24C5</i></li><li><b>Ⓠ</b><i>24C6</i></li><li><b>Ⓡ</b><i>24C7</i></li><li><b>Ⓢ</b><i>24C8</i></li><li><b>Ⓣ</b><i>24C9</i></li><li><b>Ⓤ</b><i>24CA</i></li><li><b>Ⓥ</b><i>24CB</i></li><li><b>Ⓦ</b><i>24CC</i></li><li><b>Ⓧ</b><i>24CD</i></li><li><b>Ⓨ</b><i>24CE</i></li><li><b>Ⓩ</b><i>24CF</i></li><li><b>ⓐ</b><i>24D0</i></li><li><b>ⓑ</b><i>24D1</i></li><li><b>ⓒ</b><i>24D2</i></li><li><b>ⓓ</b><i>24D3</i></li><li><b>ⓔ</b><i>24D4</i></li><li><b>ⓕ</b><i>24D5</i></li><li><b>ⓖ</b><i>24D6</i></li><li><b>ⓗ</b><i>24D7</i></li><li><b>ⓘ</b><i>24D8</i></li><li><b>ⓙ</b><i>24D9</i></li><li><b>ⓚ</b><i>24DA</i></li><li><b>ⓛ</b><i>24DB</i></li><li><b>ⓜ</b><i>24DC</i></li><li><b>ⓝ</b><i>24DD</i></li><li><b>ⓞ</b><i>24DE</i></li><li><b>ⓟ</b><i>24DF</i></li><li><b>ⓠ</b><i>24E0</i></li><li><b>ⓡ</b><i>24E1</i></li><li><b>ⓢ</b><i>24E2</i></li><li><b>ⓣ</b><i>24E3</i></li><li><b>ⓤ</b><i>24E4</i></li><li><b>ⓥ</b><i>24E5</i></li><li><b>ⓦ</b><i>24E6</i></li><li><b>ⓧ</b><i>24E7</i></li><li><b>ⓨ</b><i>24E8</i></li><li><b>ⓩ</b><i>24E9</i></li><li><b>⓪</b><i>24EA</i></li><li><b>⓫</b><i>24EB</i></li><li><b>⓬</b><i>24EC</i></li><li><b>⓭</b><i>24ED</i></li><li><b>⓮</b><i>24EE</i></li><li><b>⓯</b><i>24EF</i></li><li><b>⓰</b><i>24F0</i></li><li><b>⓱</b><i>24F1</i></li><li><b>⓲</b><i>24F2</i></li><li><b>⓳</b><i>24F3</i></li><li><b>⓴</b><i>24F4</i></li><li><b>⓵</b><i>24F5</i></li><li><b>⓶</b><i>24F6</i></li><li><b>⓷</b><i>24F7</i></li><li><b>⓸</b><i>24F8</i></li><li><b>⓹</b><i>24F9</i></li><li><b>⓺</b><i>24FA</i></li><li><b>⓻</b><i>24FB</i></li><li><b>⓼</b><i>24FC</i></li><li><b>⓽</b><i>24FD</i></li><li><b>⓾</b><i>24FE</i></li><li><b>⓿</b><i>24FF</i></li></ol>
+<h4 id="sym-2500">罫線<span class="sub">Box Drawing・<span class="mono">U+2500〜U+257F</span>・128 字</span></h4>
+<ol class="cells"><li><b>─</b><i>2500</i></li><li><b>━</b><i>2501</i></li><li><b>│</b><i>2502</i></li><li><b>┃</b><i>2503</i></li><li><b>┄</b><i>2504</i></li><li><b>┅</b><i>2505</i></li><li><b>┆</b><i>2506</i></li><li><b>┇</b><i>2507</i></li><li><b>┈</b><i>2508</i></li><li><b>┉</b><i>2509</i></li><li><b>┊</b><i>250A</i></li><li><b>┋</b><i>250B</i></li><li><b>┌</b><i>250C</i></li><li><b>┍</b><i>250D</i></li><li><b>┎</b><i>250E</i></li><li><b>┏</b><i>250F</i></li><li><b>┐</b><i>2510</i></li><li><b>┑</b><i>2511</i></li><li><b>┒</b><i>2512</i></li><li><b>┓</b><i>2513</i></li><li><b>└</b><i>2514</i></li><li><b>┕</b><i>2515</i></li><li><b>┖</b><i>2516</i></li><li><b>┗</b><i>2517</i></li><li><b>┘</b><i>2518</i></li><li><b>┙</b><i>2519</i></li><li><b>┚</b><i>251A</i></li><li><b>┛</b><i>251B</i></li><li><b>├</b><i>251C</i></li><li><b>┝</b><i>251D</i></li><li><b>┞</b><i>251E</i></li><li><b>┟</b><i>251F</i></li><li><b>┠</b><i>2520</i></li><li><b>┡</b><i>2521</i></li><li><b>┢</b><i>2522</i></li><li><b>┣</b><i>2523</i></li><li><b>┤</b><i>2524</i></li><li><b>┥</b><i>2525</i></li><li><b>┦</b><i>2526</i></li><li><b>┧</b><i>2527</i></li><li><b>┨</b><i>2528</i></li><li><b>┩</b><i>2529</i></li><li><b>┪</b><i>252A</i></li><li><b>┫</b><i>252B</i></li><li><b>┬</b><i>252C</i></li><li><b>┭</b><i>252D</i></li><li><b>┮</b><i>252E</i></li><li><b>┯</b><i>252F</i></li><li><b>┰</b><i>2530</i></li><li><b>┱</b><i>2531</i></li><li><b>┲</b><i>2532</i></li><li><b>┳</b><i>2533</i></li><li><b>┴</b><i>2534</i></li><li><b>┵</b><i>2535</i></li><li><b>┶</b><i>2536</i></li><li><b>┷</b><i>2537</i></li><li><b>┸</b><i>2538</i></li><li><b>┹</b><i>2539</i></li><li><b>┺</b><i>253A</i></li><li><b>┻</b><i>253B</i></li><li><b>┼</b><i>253C</i></li><li><b>┽</b><i>253D</i></li><li><b>┾</b><i>253E</i></li><li><b>┿</b><i>253F</i></li><li><b>╀</b><i>2540</i></li><li><b>╁</b><i>2541</i></li><li><b>╂</b><i>2542</i></li><li><b>╃</b><i>2543</i></li><li><b>╄</b><i>2544</i></li><li><b>╅</b><i>2545</i></li><li><b>╆</b><i>2546</i></li><li><b>╇</b><i>2547</i></li><li><b>╈</b><i>2548</i></li><li><b>╉</b><i>2549</i></li><li><b>╊</b><i>254A</i></li><li><b>╋</b><i>254B</i></li><li><b>╌</b><i>254C</i></li><li><b>╍</b><i>254D</i></li><li><b>╎</b><i>254E</i></li><li><b>╏</b><i>254F</i></li><li><b>═</b><i>2550</i></li><li><b>║</b><i>2551</i></li><li><b>╒</b><i>2552</i></li><li><b>╓</b><i>2553</i></li><li><b>╔</b><i>2554</i></li><li><b>╕</b><i>2555</i></li><li><b>╖</b><i>2556</i></li><li><b>╗</b><i>2557</i></li><li><b>╘</b><i>2558</i></li><li><b>╙</b><i>2559</i></li><li><b>╚</b><i>255A</i></li><li><b>╛</b><i>255B</i></li><li><b>╜</b><i>255C</i></li><li><b>╝</b><i>255D</i></li><li><b>╞</b><i>255E</i></li><li><b>╟</b><i>255F</i></li><li><b>╠</b><i>2560</i></li><li><b>╡</b><i>2561</i></li><li><b>╢</b><i>2562</i></li><li><b>╣</b><i>2563</i></li><li><b>╤</b><i>2564</i></li><li><b>╥</b><i>2565</i></li><li><b>╦</b><i>2566</i></li><li><b>╧</b><i>2567</i></li><li><b>╨</b><i>2568</i></li><li><b>╩</b><i>2569</i></li><li><b>╪</b><i>256A</i></li><li><b>╫</b><i>256B</i></li><li><b>╬</b><i>256C</i></li><li><b>╭</b><i>256D</i></li><li><b>╮</b><i>256E</i></li><li><b>╯</b><i>256F</i></li><li><b>╰</b><i>2570</i></li><li><b>╱</b><i>2571</i></li><li><b>╲</b><i>2572</i></li><li><b>╳</b><i>2573</i></li><li><b>╴</b><i>2574</i></li><li><b>╵</b><i>2575</i></li><li><b>╶</b><i>2576</i></li><li><b>╷</b><i>2577</i></li><li><b>╸</b><i>2578</i></li><li><b>╹</b><i>2579</i></li><li><b>╺</b><i>257A</i></li><li><b>╻</b><i>257B</i></li><li><b>╼</b><i>257C</i></li><li><b>╽</b><i>257D</i></li><li><b>╾</b><i>257E</i></li><li><b>╿</b><i>257F</i></li></ol>
+<h4 id="sym-2580">ブロック要素<span class="sub">Block Elements・<span class="mono">U+2580〜U+259F</span>・32 字</span></h4>
+<ol class="cells"><li><b>▀</b><i>2580</i></li><li><b>▁</b><i>2581</i></li><li><b>▂</b><i>2582</i></li><li><b>▃</b><i>2583</i></li><li><b>▄</b><i>2584</i></li><li><b>▅</b><i>2585</i></li><li><b>▆</b><i>2586</i></li><li><b>▇</b><i>2587</i></li><li><b>█</b><i>2588</i></li><li><b>▉</b><i>2589</i></li><li><b>▊</b><i>258A</i></li><li><b>▋</b><i>258B</i></li><li><b>▌</b><i>258C</i></li><li><b>▍</b><i>258D</i></li><li><b>▎</b><i>258E</i></li><li><b>▏</b><i>258F</i></li><li><b>▐</b><i>2590</i></li><li><b>░</b><i>2591</i></li><li><b>▒</b><i>2592</i></li><li><b>▓</b><i>2593</i></li><li><b>▔</b><i>2594</i></li><li><b>▕</b><i>2595</i></li><li><b>▖</b><i>2596</i></li><li><b>▗</b><i>2597</i></li><li><b>▘</b><i>2598</i></li><li><b>▙</b><i>2599</i></li><li><b>▚</b><i>259A</i></li><li><b>▛</b><i>259B</i></li><li><b>▜</b><i>259C</i></li><li><b>▝</b><i>259D</i></li><li><b>▞</b><i>259E</i></li><li><b>▟</b><i>259F</i></li></ol>
+<h4 id="sym-25a0">幾何学模様<span class="sub">Geometric Shapes・<span class="mono">U+25A0〜U+25FF</span>・96 字</span></h4>
+<ol class="cells"><li><b>■</b><i>25A0</i></li><li><b>□</b><i>25A1</i></li><li><b>▢</b><i>25A2</i></li><li><b>▣</b><i>25A3</i></li><li><b>▤</b><i>25A4</i></li><li><b>▥</b><i>25A5</i></li><li><b>▦</b><i>25A6</i></li><li><b>▧</b><i>25A7</i></li><li><b>▨</b><i>25A8</i></li><li><b>▩</b><i>25A9</i></li><li><b>▪</b><i>25AA</i></li><li><b>▫</b><i>25AB</i></li><li><b>▬</b><i>25AC</i></li><li><b>▭</b><i>25AD</i></li><li><b>▮</b><i>25AE</i></li><li><b>▯</b><i>25AF</i></li><li><b>▰</b><i>25B0</i></li><li><b>▱</b><i>25B1</i></li><li><b>▲</b><i>25B2</i></li><li><b>△</b><i>25B3</i></li><li><b>▴</b><i>25B4</i></li><li><b>▵</b><i>25B5</i></li><li><b>▶</b><i>25B6</i></li><li><b>▷</b><i>25B7</i></li><li><b>▸</b><i>25B8</i></li><li><b>▹</b><i>25B9</i></li><li><b>►</b><i>25BA</i></li><li><b>▻</b><i>25BB</i></li><li><b>▼</b><i>25BC</i></li><li><b>▽</b><i>25BD</i></li><li><b>▾</b><i>25BE</i></li><li><b>▿</b><i>25BF</i></li><li><b>◀</b><i>25C0</i></li><li><b>◁</b><i>25C1</i></li><li><b>◂</b><i>25C2</i></li><li><b>◃</b><i>25C3</i></li><li><b>◄</b><i>25C4</i></li><li><b>◅</b><i>25C5</i></li><li><b>◆</b><i>25C6</i></li><li><b>◇</b><i>25C7</i></li><li><b>◈</b><i>25C8</i></li><li><b>◉</b><i>25C9</i></li><li><b>◊</b><i>25CA</i></li><li><b>○</b><i>25CB</i></li><li><b>◌</b><i>25CC</i></li><li><b>◍</b><i>25CD</i></li><li><b>◎</b><i>25CE</i></li><li><b>●</b><i>25CF</i></li><li><b>◐</b><i>25D0</i></li><li><b>◑</b><i>25D1</i></li><li><b>◒</b><i>25D2</i></li><li><b>◓</b><i>25D3</i></li><li><b>◔</b><i>25D4</i></li><li><b>◕</b><i>25D5</i></li><li><b>◖</b><i>25D6</i></li><li><b>◗</b><i>25D7</i></li><li><b>◘</b><i>25D8</i></li><li><b>◙</b><i>25D9</i></li><li><b>◚</b><i>25DA</i></li><li><b>◛</b><i>25DB</i></li><li><b>◜</b><i>25DC</i></li><li><b>◝</b><i>25DD</i></li><li><b>◞</b><i>25DE</i></li><li><b>◟</b><i>25DF</i></li><li><b>◠</b><i>25E0</i></li><li><b>◡</b><i>25E1</i></li><li><b>◢</b><i>25E2</i></li><li><b>◣</b><i>25E3</i></li><li><b>◤</b><i>25E4</i></li><li><b>◥</b><i>25E5</i></li><li><b>◦</b><i>25E6</i></li><li><b>◧</b><i>25E7</i></li><li><b>◨</b><i>25E8</i></li><li><b>◩</b><i>25E9</i></li><li><b>◪</b><i>25EA</i></li><li><b>◫</b><i>25EB</i></li><li><b>◬</b><i>25EC</i></li><li><b>◭</b><i>25ED</i></li><li><b>◮</b><i>25EE</i></li><li><b>◯</b><i>25EF</i></li><li><b>◰</b><i>25F0</i></li><li><b>◱</b><i>25F1</i></li><li><b>◲</b><i>25F2</i></li><li><b>◳</b><i>25F3</i></li><li><b>◴</b><i>25F4</i></li><li><b>◵</b><i>25F5</i></li><li><b>◶</b><i>25F6</i></li><li><b>◷</b><i>25F7</i></li><li><b>◸</b><i>25F8</i></li><li><b>◹</b><i>25F9</i></li><li><b>◺</b><i>25FA</i></li><li><b>◻</b><i>25FB</i></li><li><b>◼</b><i>25FC</i></li><li><b>◽</b><i>25FD</i></li><li><b>◾</b><i>25FE</i></li><li><b>◿</b><i>25FF</i></li></ol>
+<h4 id="sym-2600">その他の記号<span class="sub">Miscellaneous Symbols・<span class="mono">U+2600〜U+26FF</span>・256 字</span></h4>
+<ol class="cells"><li><b>☀</b><i>2600</i></li><li><b>☁</b><i>2601</i></li><li><b>☂</b><i>2602</i></li><li><b>☃</b><i>2603</i></li><li><b>☄</b><i>2604</i></li><li><b>★</b><i>2605</i></li><li><b>☆</b><i>2606</i></li><li><b>☇</b><i>2607</i></li><li><b>☈</b><i>2608</i></li><li><b>☉</b><i>2609</i></li><li><b>☊</b><i>260A</i></li><li><b>☋</b><i>260B</i></li><li><b>☌</b><i>260C</i></li><li><b>☍</b><i>260D</i></li><li><b>☎</b><i>260E</i></li><li><b>☏</b><i>260F</i></li><li><b>☐</b><i>2610</i></li><li><b>☑</b><i>2611</i></li><li><b>☒</b><i>2612</i></li><li><b>☓</b><i>2613</i></li><li><b>☔</b><i>2614</i></li><li><b>☕</b><i>2615</i></li><li><b>☖</b><i>2616</i></li><li><b>☗</b><i>2617</i></li><li><b>☘</b><i>2618</i></li><li><b>☙</b><i>2619</i></li><li><b>☚</b><i>261A</i></li><li><b>☛</b><i>261B</i></li><li><b>☜</b><i>261C</i></li><li><b>☝</b><i>261D</i></li><li><b>☞</b><i>261E</i></li><li><b>☟</b><i>261F</i></li><li><b>☠</b><i>2620</i></li><li><b>☡</b><i>2621</i></li><li><b>☢</b><i>2622</i></li><li><b>☣</b><i>2623</i></li><li><b>☤</b><i>2624</i></li><li><b>☥</b><i>2625</i></li><li><b>☦</b><i>2626</i></li><li><b>☧</b><i>2627</i></li><li><b>☨</b><i>2628</i></li><li><b>☩</b><i>2629</i></li><li><b>☪</b><i>262A</i></li><li><b>☫</b><i>262B</i></li><li><b>☬</b><i>262C</i></li><li><b>☭</b><i>262D</i></li><li><b>☮</b><i>262E</i></li><li><b>☯</b><i>262F</i></li><li><b>☰</b><i>2630</i></li><li><b>☱</b><i>2631</i></li><li><b>☲</b><i>2632</i></li><li><b>☳</b><i>2633</i></li><li><b>☴</b><i>2634</i></li><li><b>☵</b><i>2635</i></li><li><b>☶</b><i>2636</i></li><li><b>☷</b><i>2637</i></li><li><b>☸</b><i>2638</i></li><li><b>☹</b><i>2639</i></li><li><b>☺</b><i>263A</i></li><li><b>☻</b><i>263B</i></li><li><b>☼</b><i>263C</i></li><li><b>☽</b><i>263D</i></li><li><b>☾</b><i>263E</i></li><li><b>☿</b><i>263F</i></li><li><b>♀</b><i>2640</i></li><li><b>♁</b><i>2641</i></li><li><b>♂</b><i>2642</i></li><li><b>♃</b><i>2643</i></li><li><b>♄</b><i>2644</i></li><li><b>♅</b><i>2645</i></li><li><b>♆</b><i>2646</i></li><li><b>♇</b><i>2647</i></li><li><b>♈</b><i>2648</i></li><li><b>♉</b><i>2649</i></li><li><b>♊</b><i>264A</i></li><li><b>♋</b><i>264B</i></li><li><b>♌</b><i>264C</i></li><li><b>♍</b><i>264D</i></li><li><b>♎</b><i>264E</i></li><li><b>♏</b><i>264F</i></li><li><b>♐</b><i>2650</i></li><li><b>♑</b><i>2651</i></li><li><b>♒</b><i>2652</i></li><li><b>♓</b><i>2653</i></li><li><b>♔</b><i>2654</i></li><li><b>♕</b><i>2655</i></li><li><b>♖</b><i>2656</i></li><li><b>♗</b><i>2657</i></li><li><b>♘</b><i>2658</i></li><li><b>♙</b><i>2659</i></li><li><b>♚</b><i>265A</i></li><li><b>♛</b><i>265B</i></li><li><b>♜</b><i>265C</i></li><li><b>♝</b><i>265D</i></li><li><b>♞</b><i>265E</i></li><li><b>♟</b><i>265F</i></li><li><b>♠</b><i>2660</i></li><li><b>♡</b><i>2661</i></li><li><b>♢</b><i>2662</i></li><li><b>♣</b><i>2663</i></li><li><b>♤</b><i>2664</i></li><li><b>♥</b><i>2665</i></li><li><b>♦</b><i>2666</i></li><li><b>♧</b><i>2667</i></li><li><b>♨</b><i>2668</i></li><li><b>♩</b><i>2669</i></li><li><b>♪</b><i>266A</i></li><li><b>♫</b><i>266B</i></li><li><b>♬</b><i>266C</i></li><li><b>♭</b><i>266D</i></li><li><b>♮</b><i>266E</i></li><li><b>♯</b><i>266F</i></li><li><b>♰</b><i>2670</i></li><li><b>♱</b><i>2671</i></li><li><b>♲</b><i>2672</i></li><li><b>♳</b><i>2673</i></li><li><b>♴</b><i>2674</i></li><li><b>♵</b><i>2675</i></li><li><b>♶</b><i>2676</i></li><li><b>♷</b><i>2677</i></li><li><b>♸</b><i>2678</i></li><li><b>♹</b><i>2679</i></li><li><b>♺</b><i>267A</i></li><li><b>♻</b><i>267B</i></li><li><b>♼</b><i>267C</i></li><li><b>♽</b><i>267D</i></li><li><b>♾</b><i>267E</i></li><li><b>♿</b><i>267F</i></li><li><b>⚀</b><i>2680</i></li><li><b>⚁</b><i>2681</i></li><li><b>⚂</b><i>2682</i></li><li><b>⚃</b><i>2683</i></li><li><b>⚄</b><i>2684</i></li><li><b>⚅</b><i>2685</i></li><li><b>⚆</b><i>2686</i></li><li><b>⚇</b><i>2687</i></li><li><b>⚈</b><i>2688</i></li><li><b>⚉</b><i>2689</i></li><li><b>⚊</b><i>268A</i></li><li><b>⚋</b><i>268B</i></li><li><b>⚌</b><i>268C</i></li><li><b>⚍</b><i>268D</i></li><li><b>⚎</b><i>268E</i></li><li><b>⚏</b><i>268F</i></li><li><b>⚐</b><i>2690</i></li><li><b>⚑</b><i>2691</i></li><li><b>⚒</b><i>2692</i></li><li><b>⚓</b><i>2693</i></li><li><b>⚔</b><i>2694</i></li><li><b>⚕</b><i>2695</i></li><li><b>⚖</b><i>2696</i></li><li><b>⚗</b><i>2697</i></li><li><b>⚘</b><i>2698</i></li><li><b>⚙</b><i>2699</i></li><li><b>⚚</b><i>269A</i></li><li><b>⚛</b><i>269B</i></li><li><b>⚜</b><i>269C</i></li><li><b>⚝</b><i>269D</i></li><li><b>⚞</b><i>269E</i></li><li><b>⚟</b><i>269F</i></li><li><b>⚠</b><i>26A0</i></li><li><b>⚡</b><i>26A1</i></li><li><b>⚢</b><i>26A2</i></li><li><b>⚣</b><i>26A3</i></li><li><b>⚤</b><i>26A4</i></li><li><b>⚥</b><i>26A5</i></li><li><b>⚦</b><i>26A6</i></li><li><b>⚧</b><i>26A7</i></li><li><b>⚨</b><i>26A8</i></li><li><b>⚩</b><i>26A9</i></li><li><b>⚪</b><i>26AA</i></li><li><b>⚫</b><i>26AB</i></li><li><b>⚬</b><i>26AC</i></li><li><b>⚭</b><i>26AD</i></li><li><b>⚮</b><i>26AE</i></li><li><b>⚯</b><i>26AF</i></li><li><b>⚰</b><i>26B0</i></li><li><b>⚱</b><i>26B1</i></li><li><b>⚲</b><i>26B2</i></li><li><b>⚳</b><i>26B3</i></li><li><b>⚴</b><i>26B4</i></li><li><b>⚵</b><i>26B5</i></li><li><b>⚶</b><i>26B6</i></li><li><b>⚷</b><i>26B7</i></li><li><b>⚸</b><i>26B8</i></li><li><b>⚹</b><i>26B9</i></li><li><b>⚺</b><i>26BA</i></li><li><b>⚻</b><i>26BB</i></li><li><b>⚼</b><i>26BC</i></li><li><b>⚽</b><i>26BD</i></li><li><b>⚾</b><i>26BE</i></li><li><b>⚿</b><i>26BF</i></li><li><b>⛀</b><i>26C0</i></li><li><b>⛁</b><i>26C1</i></li><li><b>⛂</b><i>26C2</i></li><li><b>⛃</b><i>26C3</i></li><li><b>⛄</b><i>26C4</i></li><li><b>⛅</b><i>26C5</i></li><li><b>⛆</b><i>26C6</i></li><li><b>⛇</b><i>26C7</i></li><li><b>⛈</b><i>26C8</i></li><li><b>⛉</b><i>26C9</i></li><li><b>⛊</b><i>26CA</i></li><li><b>⛋</b><i>26CB</i></li><li><b>⛌</b><i>26CC</i></li><li><b>⛍</b><i>26CD</i></li><li><b>⛎</b><i>26CE</i></li><li><b>⛏</b><i>26CF</i></li><li><b>⛐</b><i>26D0</i></li><li><b>⛑</b><i>26D1</i></li><li><b>⛒</b><i>26D2</i></li><li><b>⛓</b><i>26D3</i></li><li><b>⛔</b><i>26D4</i></li><li><b>⛕</b><i>26D5</i></li><li><b>⛖</b><i>26D6</i></li><li><b>⛗</b><i>26D7</i></li><li><b>⛘</b><i>26D8</i></li><li><b>⛙</b><i>26D9</i></li><li><b>⛚</b><i>26DA</i></li><li><b>⛛</b><i>26DB</i></li><li><b>⛜</b><i>26DC</i></li><li><b>⛝</b><i>26DD</i></li><li><b>⛞</b><i>26DE</i></li><li><b>⛟</b><i>26DF</i></li><li><b>⛠</b><i>26E0</i></li><li><b>⛡</b><i>26E1</i></li><li><b>⛢</b><i>26E2</i></li><li><b>⛣</b><i>26E3</i></li><li><b>⛤</b><i>26E4</i></li><li><b>⛥</b><i>26E5</i></li><li><b>⛦</b><i>26E6</i></li><li><b>⛧</b><i>26E7</i></li><li><b>⛨</b><i>26E8</i></li><li><b>⛩</b><i>26E9</i></li><li><b>⛪</b><i>26EA</i></li><li><b>⛫</b><i>26EB</i></li><li><b>⛬</b><i>26EC</i></li><li><b>⛭</b><i>26ED</i></li><li><b>⛮</b><i>26EE</i></li><li><b>⛯</b><i>26EF</i></li><li><b>⛰</b><i>26F0</i></li><li><b>⛱</b><i>26F1</i></li><li><b>⛲</b><i>26F2</i></li><li><b>⛳</b><i>26F3</i></li><li><b>⛴</b><i>26F4</i></li><li><b>⛵</b><i>26F5</i></li><li><b>⛶</b><i>26F6</i></li><li><b>⛷</b><i>26F7</i></li><li><b>⛸</b><i>26F8</i></li><li><b>⛹</b><i>26F9</i></li><li><b>⛺</b><i>26FA</i></li><li><b>⛻</b><i>26FB</i></li><li><b>⛼</b><i>26FC</i></li><li><b>⛽</b><i>26FD</i></li><li><b>⛾</b><i>26FE</i></li><li><b>⛿</b><i>26FF</i></li></ol>
+<h4 id="sym-2700">装飾記号<span class="sub">Dingbats・<span class="mono">U+2700〜U+27BF</span>・192 字</span></h4>
+<ol class="cells"><li><b>✀</b><i>2700</i></li><li><b>✁</b><i>2701</i></li><li><b>✂</b><i>2702</i></li><li><b>✃</b><i>2703</i></li><li><b>✄</b><i>2704</i></li><li><b>✅</b><i>2705</i></li><li><b>✆</b><i>2706</i></li><li><b>✇</b><i>2707</i></li><li><b>✈</b><i>2708</i></li><li><b>✉</b><i>2709</i></li><li><b>✊</b><i>270A</i></li><li><b>✋</b><i>270B</i></li><li><b>✌</b><i>270C</i></li><li><b>✍</b><i>270D</i></li><li><b>✎</b><i>270E</i></li><li><b>✏</b><i>270F</i></li><li><b>✐</b><i>2710</i></li><li><b>✑</b><i>2711</i></li><li><b>✒</b><i>2712</i></li><li><b>✓</b><i>2713</i></li><li><b>✔</b><i>2714</i></li><li><b>✕</b><i>2715</i></li><li><b>✖</b><i>2716</i></li><li><b>✗</b><i>2717</i></li><li><b>✘</b><i>2718</i></li><li><b>✙</b><i>2719</i></li><li><b>✚</b><i>271A</i></li><li><b>✛</b><i>271B</i></li><li><b>✜</b><i>271C</i></li><li><b>✝</b><i>271D</i></li><li><b>✞</b><i>271E</i></li><li><b>✟</b><i>271F</i></li><li><b>✠</b><i>2720</i></li><li><b>✡</b><i>2721</i></li><li><b>✢</b><i>2722</i></li><li><b>✣</b><i>2723</i></li><li><b>✤</b><i>2724</i></li><li><b>✥</b><i>2725</i></li><li><b>✦</b><i>2726</i></li><li><b>✧</b><i>2727</i></li><li><b>✨</b><i>2728</i></li><li><b>✩</b><i>2729</i></li><li><b>✪</b><i>272A</i></li><li><b>✫</b><i>272B</i></li><li><b>✬</b><i>272C</i></li><li><b>✭</b><i>272D</i></li><li><b>✮</b><i>272E</i></li><li><b>✯</b><i>272F</i></li><li><b>✰</b><i>2730</i></li><li><b>✱</b><i>2731</i></li><li><b>✲</b><i>2732</i></li><li><b>✳</b><i>2733</i></li><li><b>✴</b><i>2734</i></li><li><b>✵</b><i>2735</i></li><li><b>✶</b><i>2736</i></li><li><b>✷</b><i>2737</i></li><li><b>✸</b><i>2738</i></li><li><b>✹</b><i>2739</i></li><li><b>✺</b><i>273A</i></li><li><b>✻</b><i>273B</i></li><li><b>✼</b><i>273C</i></li><li><b>✽</b><i>273D</i></li><li><b>✾</b><i>273E</i></li><li><b>✿</b><i>273F</i></li><li><b>❀</b><i>2740</i></li><li><b>❁</b><i>2741</i></li><li><b>❂</b><i>2742</i></li><li><b>❃</b><i>2743</i></li><li><b>❄</b><i>2744</i></li><li><b>❅</b><i>2745</i></li><li><b>❆</b><i>2746</i></li><li><b>❇</b><i>2747</i></li><li><b>❈</b><i>2748</i></li><li><b>❉</b><i>2749</i></li><li><b>❊</b><i>274A</i></li><li><b>❋</b><i>274B</i></li><li><b>❌</b><i>274C</i></li><li><b>❍</b><i>274D</i></li><li><b>❎</b><i>274E</i></li><li><b>❏</b><i>274F</i></li><li><b>❐</b><i>2750</i></li><li><b>❑</b><i>2751</i></li><li><b>❒</b><i>2752</i></li><li><b>❓</b><i>2753</i></li><li><b>❔</b><i>2754</i></li><li><b>❕</b><i>2755</i></li><li><b>❖</b><i>2756</i></li><li><b>❗</b><i>2757</i></li><li><b>❘</b><i>2758</i></li><li><b>❙</b><i>2759</i></li><li><b>❚</b><i>275A</i></li><li><b>❛</b><i>275B</i></li><li><b>❜</b><i>275C</i></li><li><b>❝</b><i>275D</i></li><li><b>❞</b><i>275E</i></li><li><b>❟</b><i>275F</i></li><li><b>❠</b><i>2760</i></li><li><b>❡</b><i>2761</i></li><li><b>❢</b><i>2762</i></li><li><b>❣</b><i>2763</i></li><li><b>❤</b><i>2764</i></li><li><b>❥</b><i>2765</i></li><li><b>❦</b><i>2766</i></li><li><b>❧</b><i>2767</i></li><li><b>❨</b><i>2768</i></li><li><b>❩</b><i>2769</i></li><li><b>❪</b><i>276A</i></li><li><b>❫</b><i>276B</i></li><li><b>❬</b><i>276C</i></li><li><b>❭</b><i>276D</i></li><li><b>❮</b><i>276E</i></li><li><b>❯</b><i>276F</i></li><li><b>❰</b><i>2770</i></li><li><b>❱</b><i>2771</i></li><li><b>❲</b><i>2772</i></li><li><b>❳</b><i>2773</i></li><li><b>❴</b><i>2774</i></li><li><b>❵</b><i>2775</i></li><li><b>❶</b><i>2776</i></li><li><b>❷</b><i>2777</i></li><li><b>❸</b><i>2778</i></li><li><b>❹</b><i>2779</i></li><li><b>❺</b><i>277A</i></li><li><b>❻</b><i>277B</i></li><li><b>❼</b><i>277C</i></li><li><b>❽</b><i>277D</i></li><li><b>❾</b><i>277E</i></li><li><b>❿</b><i>277F</i></li><li><b>➀</b><i>2780</i></li><li><b>➁</b><i>2781</i></li><li><b>➂</b><i>2782</i></li><li><b>➃</b><i>2783</i></li><li><b>➄</b><i>2784</i></li><li><b>➅</b><i>2785</i></li><li><b>➆</b><i>2786</i></li><li><b>➇</b><i>2787</i></li><li><b>➈</b><i>2788</i></li><li><b>➉</b><i>2789</i></li><li><b>➊</b><i>278A</i></li><li><b>➋</b><i>278B</i></li><li><b>➌</b><i>278C</i></li><li><b>➍</b><i>278D</i></li><li><b>➎</b><i>278E</i></li><li><b>➏</b><i>278F</i></li><li><b>➐</b><i>2790</i></li><li><b>➑</b><i>2791</i></li><li><b>➒</b><i>2792</i></li><li><b>➓</b><i>2793</i></li><li><b>➔</b><i>2794</i></li><li><b>➕</b><i>2795</i></li><li><b>➖</b><i>2796</i></li><li><b>➗</b><i>2797</i></li><li><b>➘</b><i>2798</i></li><li><b>➙</b><i>2799</i></li><li><b>➚</b><i>279A</i></li><li><b>➛</b><i>279B</i></li><li><b>➜</b><i>279C</i></li><li><b>➝</b><i>279D</i></li><li><b>➞</b><i>279E</i></li><li><b>➟</b><i>279F</i></li><li><b>➠</b><i>27A0</i></li><li><b>➡</b><i>27A1</i></li><li><b>➢</b><i>27A2</i></li><li><b>➣</b><i>27A3</i></li><li><b>➤</b><i>27A4</i></li><li><b>➥</b><i>27A5</i></li><li><b>➦</b><i>27A6</i></li><li><b>➧</b><i>27A7</i></li><li><b>➨</b><i>27A8</i></li><li><b>➩</b><i>27A9</i></li><li><b>➪</b><i>27AA</i></li><li><b>➫</b><i>27AB</i></li><li><b>➬</b><i>27AC</i></li><li><b>➭</b><i>27AD</i></li><li><b>➮</b><i>27AE</i></li><li><b>➯</b><i>27AF</i></li><li><b>➰</b><i>27B0</i></li><li><b>➱</b><i>27B1</i></li><li><b>➲</b><i>27B2</i></li><li><b>➳</b><i>27B3</i></li><li><b>➴</b><i>27B4</i></li><li><b>➵</b><i>27B5</i></li><li><b>➶</b><i>27B6</i></li><li><b>➷</b><i>27B7</i></li><li><b>➸</b><i>27B8</i></li><li><b>➹</b><i>27B9</i></li><li><b>➺</b><i>27BA</i></li><li><b>➻</b><i>27BB</i></li><li><b>➼</b><i>27BC</i></li><li><b>➽</b><i>27BD</i></li><li><b>➾</b><i>27BE</i></li><li><b>➿</b><i>27BF</i></li></ol>
+<h4 id="sym-3000">CJK の記号と句読点<span class="sub">CJK Symbols and Punctuation・<span class="mono">U+3000〜U+303F</span>・64 字</span></h4>
+<ol class="cells"><li class="ws"><b></b><i>3000</i></li><li><b>、</b><i>3001</i></li><li><b>。</b><i>3002</i></li><li><b>〃</b><i>3003</i></li><li><b>〄</b><i>3004</i></li><li><b>々</b><i>3005</i></li><li><b>〆</b><i>3006</i></li><li><b>〇</b><i>3007</i></li><li><b>〈</b><i>3008</i></li><li><b>〉</b><i>3009</i></li><li><b>《</b><i>300A</i></li><li><b>》</b><i>300B</i></li><li><b>「</b><i>300C</i></li><li><b>」</b><i>300D</i></li><li><b>『</b><i>300E</i></li><li><b>』</b><i>300F</i></li><li><b>【</b><i>3010</i></li><li><b>】</b><i>3011</i></li><li><b>〒</b><i>3012</i></li><li><b>〓</b><i>3013</i></li><li><b>〔</b><i>3014</i></li><li><b>〕</b><i>3015</i></li><li><b>〖</b><i>3016</i></li><li><b>〗</b><i>3017</i></li><li><b>〘</b><i>3018</i></li><li><b>〙</b><i>3019</i></li><li><b>〚</b><i>301A</i></li><li><b>〛</b><i>301B</i></li><li><b>〜</b><i>301C</i></li><li><b>〝</b><i>301D</i></li><li><b>〞</b><i>301E</i></li><li><b>〟</b><i>301F</i></li><li><b>〠</b><i>3020</i></li><li><b>〡</b><i>3021</i></li><li><b>〢</b><i>3022</i></li><li><b>〣</b><i>3023</i></li><li><b>〤</b><i>3024</i></li><li><b>〥</b><i>3025</i></li><li><b>〦</b><i>3026</i></li><li><b>〧</b><i>3027</i></li><li><b>〨</b><i>3028</i></li><li><b>〩</b><i>3029</i></li><li><b>◌〪</b><i>302A</i></li><li><b>◌〫</b><i>302B</i></li><li><b>◌〬</b><i>302C</i></li><li><b>◌〭</b><i>302D</i></li><li><b>◌〮</b><i>302E</i></li><li><b>◌〯</b><i>302F</i></li><li><b>〰</b><i>3030</i></li><li><b>〱</b><i>3031</i></li><li><b>〲</b><i>3032</i></li><li><b>〳</b><i>3033</i></li><li><b>〴</b><i>3034</i></li><li><b>〵</b><i>3035</i></li><li><b>〶</b><i>3036</i></li><li><b>〷</b><i>3037</i></li><li><b>〸</b><i>3038</i></li><li><b>〹</b><i>3039</i></li><li><b>〺</b><i>303A</i></li><li><b>〻</b><i>303B</i></li><li><b>〼</b><i>303C</i></li><li><b>〽</b><i>303D</i></li><li><b>〾</b><i>303E</i></li><li><b>〿</b><i>303F</i></li></ol>
+<h4 id="sym-3200">囲み CJK 文字・月<span class="sub">Enclosed CJK Letters and Months・<span class="mono">U+3200〜U+32FF</span>・256 字</span></h4>
+<ol class="cells"><li><b>㈀</b><i>3200</i></li><li><b>㈁</b><i>3201</i></li><li><b>㈂</b><i>3202</i></li><li><b>㈃</b><i>3203</i></li><li><b>㈄</b><i>3204</i></li><li><b>㈅</b><i>3205</i></li><li><b>㈆</b><i>3206</i></li><li><b>㈇</b><i>3207</i></li><li><b>㈈</b><i>3208</i></li><li><b>㈉</b><i>3209</i></li><li><b>㈊</b><i>320A</i></li><li><b>㈋</b><i>320B</i></li><li><b>㈌</b><i>320C</i></li><li><b>㈍</b><i>320D</i></li><li><b>㈎</b><i>320E</i></li><li><b>㈏</b><i>320F</i></li><li><b>㈐</b><i>3210</i></li><li><b>㈑</b><i>3211</i></li><li><b>㈒</b><i>3212</i></li><li><b>㈓</b><i>3213</i></li><li><b>㈔</b><i>3214</i></li><li><b>㈕</b><i>3215</i></li><li><b>㈖</b><i>3216</i></li><li><b>㈗</b><i>3217</i></li><li><b>㈘</b><i>3218</i></li><li><b>㈙</b><i>3219</i></li><li><b>㈚</b><i>321A</i></li><li><b>㈛</b><i>321B</i></li><li><b>㈜</b><i>321C</i></li><li><b>㈝</b><i>321D</i></li><li><b>㈞</b><i>321E</i></li><li class="na"><b></b><i>321F</i></li><li><b>㈠</b><i>3220</i></li><li><b>㈡</b><i>3221</i></li><li><b>㈢</b><i>3222</i></li><li><b>㈣</b><i>3223</i></li><li><b>㈤</b><i>3224</i></li><li><b>㈥</b><i>3225</i></li><li><b>㈦</b><i>3226</i></li><li><b>㈧</b><i>3227</i></li><li><b>㈨</b><i>3228</i></li><li><b>㈩</b><i>3229</i></li><li><b>㈪</b><i>322A</i></li><li><b>㈫</b><i>322B</i></li><li><b>㈬</b><i>322C</i></li><li><b>㈭</b><i>322D</i></li><li><b>㈮</b><i>322E</i></li><li><b>㈯</b><i>322F</i></li><li><b>㈰</b><i>3230</i></li><li><b>㈱</b><i>3231</i></li><li><b>㈲</b><i>3232</i></li><li><b>㈳</b><i>3233</i></li><li><b>㈴</b><i>3234</i></li><li><b>㈵</b><i>3235</i></li><li><b>㈶</b><i>3236</i></li><li><b>㈷</b><i>3237</i></li><li><b>㈸</b><i>3238</i></li><li><b>㈹</b><i>3239</i></li><li><b>㈺</b><i>323A</i></li><li><b>㈻</b><i>323B</i></li><li><b>㈼</b><i>323C</i></li><li><b>㈽</b><i>323D</i></li><li><b>㈾</b><i>323E</i></li><li><b>㈿</b><i>323F</i></li><li><b>㉀</b><i>3240</i></li><li><b>㉁</b><i>3241</i></li><li><b>㉂</b><i>3242</i></li><li><b>㉃</b><i>3243</i></li><li><b>㉄</b><i>3244</i></li><li><b>㉅</b><i>3245</i></li><li><b>㉆</b><i>3246</i></li><li><b>㉇</b><i>3247</i></li><li><b>㉈</b><i>3248</i></li><li><b>㉉</b><i>3249</i></li><li><b>㉊</b><i>324A</i></li><li><b>㉋</b><i>324B</i></li><li><b>㉌</b><i>324C</i></li><li><b>㉍</b><i>324D</i></li><li><b>㉎</b><i>324E</i></li><li><b>㉏</b><i>324F</i></li><li><b>㉐</b><i>3250</i></li><li><b>㉑</b><i>3251</i></li><li><b>㉒</b><i>3252</i></li><li><b>㉓</b><i>3253</i></li><li><b>㉔</b><i>3254</i></li><li><b>㉕</b><i>3255</i></li><li><b>㉖</b><i>3256</i></li><li><b>㉗</b><i>3257</i></li><li><b>㉘</b><i>3258</i></li><li><b>㉙</b><i>3259</i></li><li><b>㉚</b><i>325A</i></li><li><b>㉛</b><i>325B</i></li><li><b>㉜</b><i>325C</i></li><li><b>㉝</b><i>325D</i></li><li><b>㉞</b><i>325E</i></li><li><b>㉟</b><i>325F</i></li><li><b>㉠</b><i>3260</i></li><li><b>㉡</b><i>3261</i></li><li><b>㉢</b><i>3262</i></li><li><b>㉣</b><i>3263</i></li><li><b>㉤</b><i>3264</i></li><li><b>㉥</b><i>3265</i></li><li><b>㉦</b><i>3266</i></li><li><b>㉧</b><i>3267</i></li><li><b>㉨</b><i>3268</i></li><li><b>㉩</b><i>3269</i></li><li><b>㉪</b><i>326A</i></li><li><b>㉫</b><i>326B</i></li><li><b>㉬</b><i>326C</i></li><li><b>㉭</b><i>326D</i></li><li><b>㉮</b><i>326E</i></li><li><b>㉯</b><i>326F</i></li><li><b>㉰</b><i>3270</i></li><li><b>㉱</b><i>3271</i></li><li><b>㉲</b><i>3272</i></li><li><b>㉳</b><i>3273</i></li><li><b>㉴</b><i>3274</i></li><li><b>㉵</b><i>3275</i></li><li><b>㉶</b><i>3276</i></li><li><b>㉷</b><i>3277</i></li><li><b>㉸</b><i>3278</i></li><li><b>㉹</b><i>3279</i></li><li><b>㉺</b><i>327A</i></li><li><b>㉻</b><i>327B</i></li><li><b>㉼</b><i>327C</i></li><li><b>㉽</b><i>327D</i></li><li><b>㉾</b><i>327E</i></li><li><b>㉿</b><i>327F</i></li><li><b>㊀</b><i>3280</i></li><li><b>㊁</b><i>3281</i></li><li><b>㊂</b><i>3282</i></li><li><b>㊃</b><i>3283</i></li><li><b>㊄</b><i>3284</i></li><li><b>㊅</b><i>3285</i></li><li><b>㊆</b><i>3286</i></li><li><b>㊇</b><i>3287</i></li><li><b>㊈</b><i>3288</i></li><li><b>㊉</b><i>3289</i></li><li><b>㊊</b><i>328A</i></li><li><b>㊋</b><i>328B</i></li><li><b>㊌</b><i>328C</i></li><li><b>㊍</b><i>328D</i></li><li><b>㊎</b><i>328E</i></li><li><b>㊏</b><i>328F</i></li><li><b>㊐</b><i>3290</i></li><li><b>㊑</b><i>3291</i></li><li><b>㊒</b><i>3292</i></li><li><b>㊓</b><i>3293</i></li><li><b>㊔</b><i>3294</i></li><li><b>㊕</b><i>3295</i></li><li><b>㊖</b><i>3296</i></li><li><b>㊗</b><i>3297</i></li><li><b>㊘</b><i>3298</i></li><li><b>㊙</b><i>3299</i></li><li><b>㊚</b><i>329A</i></li><li><b>㊛</b><i>329B</i></li><li><b>㊜</b><i>329C</i></li><li><b>㊝</b><i>329D</i></li><li><b>㊞</b><i>329E</i></li><li><b>㊟</b><i>329F</i></li><li><b>㊠</b><i>32A0</i></li><li><b>㊡</b><i>32A1</i></li><li><b>㊢</b><i>32A2</i></li><li><b>㊣</b><i>32A3</i></li><li><b>㊤</b><i>32A4</i></li><li><b>㊥</b><i>32A5</i></li><li><b>㊦</b><i>32A6</i></li><li><b>㊧</b><i>32A7</i></li><li><b>㊨</b><i>32A8</i></li><li><b>㊩</b><i>32A9</i></li><li><b>㊪</b><i>32AA</i></li><li><b>㊫</b><i>32AB</i></li><li><b>㊬</b><i>32AC</i></li><li><b>㊭</b><i>32AD</i></li><li><b>㊮</b><i>32AE</i></li><li><b>㊯</b><i>32AF</i></li><li><b>㊰</b><i>32B0</i></li><li><b>㊱</b><i>32B1</i></li><li><b>㊲</b><i>32B2</i></li><li><b>㊳</b><i>32B3</i></li><li><b>㊴</b><i>32B4</i></li><li><b>㊵</b><i>32B5</i></li><li><b>㊶</b><i>32B6</i></li><li><b>㊷</b><i>32B7</i></li><li><b>㊸</b><i>32B8</i></li><li><b>㊹</b><i>32B9</i></li><li><b>㊺</b><i>32BA</i></li><li><b>㊻</b><i>32BB</i></li><li><b>㊼</b><i>32BC</i></li><li><b>㊽</b><i>32BD</i></li><li><b>㊾</b><i>32BE</i></li><li><b>㊿</b><i>32BF</i></li><li><b>㋀</b><i>32C0</i></li><li><b>㋁</b><i>32C1</i></li><li><b>㋂</b><i>32C2</i></li><li><b>㋃</b><i>32C3</i></li><li><b>㋄</b><i>32C4</i></li><li><b>㋅</b><i>32C5</i></li><li><b>㋆</b><i>32C6</i></li><li><b>㋇</b><i>32C7</i></li><li><b>㋈</b><i>32C8</i></li><li><b>㋉</b><i>32C9</i></li><li><b>㋊</b><i>32CA</i></li><li><b>㋋</b><i>32CB</i></li><li><b>㋌</b><i>32CC</i></li><li><b>㋍</b><i>32CD</i></li><li><b>㋎</b><i>32CE</i></li><li><b>㋏</b><i>32CF</i></li><li><b>㋐</b><i>32D0</i></li><li><b>㋑</b><i>32D1</i></li><li><b>㋒</b><i>32D2</i></li><li><b>㋓</b><i>32D3</i></li><li><b>㋔</b><i>32D4</i></li><li><b>㋕</b><i>32D5</i></li><li><b>㋖</b><i>32D6</i></li><li><b>㋗</b><i>32D7</i></li><li><b>㋘</b><i>32D8</i></li><li><b>㋙</b><i>32D9</i></li><li><b>㋚</b><i>32DA</i></li><li><b>㋛</b><i>32DB</i></li><li><b>㋜</b><i>32DC</i></li><li><b>㋝</b><i>32DD</i></li><li><b>㋞</b><i>32DE</i></li><li><b>㋟</b><i>32DF</i></li><li><b>㋠</b><i>32E0</i></li><li><b>㋡</b><i>32E1</i></li><li><b>㋢</b><i>32E2</i></li><li><b>㋣</b><i>32E3</i></li><li><b>㋤</b><i>32E4</i></li><li><b>㋥</b><i>32E5</i></li><li><b>㋦</b><i>32E6</i></li><li><b>㋧</b><i>32E7</i></li><li><b>㋨</b><i>32E8</i></li><li><b>㋩</b><i>32E9</i></li><li><b>㋪</b><i>32EA</i></li><li><b>㋫</b><i>32EB</i></li><li><b>㋬</b><i>32EC</i></li><li><b>㋭</b><i>32ED</i></li><li><b>㋮</b><i>32EE</i></li><li><b>㋯</b><i>32EF</i></li><li><b>㋰</b><i>32F0</i></li><li><b>㋱</b><i>32F1</i></li><li><b>㋲</b><i>32F2</i></li><li><b>㋳</b><i>32F3</i></li><li><b>㋴</b><i>32F4</i></li><li><b>㋵</b><i>32F5</i></li><li><b>㋶</b><i>32F6</i></li><li><b>㋷</b><i>32F7</i></li><li><b>㋸</b><i>32F8</i></li><li><b>㋹</b><i>32F9</i></li><li><b>㋺</b><i>32FA</i></li><li><b>㋻</b><i>32FB</i></li><li><b>㋼</b><i>32FC</i></li><li><b>㋽</b><i>32FD</i></li><li><b>㋾</b><i>32FE</i></li><li><b>㋿</b><i>32FF</i></li></ol>
+<h4 id="sym-3300">CJK 互換<span class="sub">CJK Compatibility・<span class="mono">U+3300〜U+33FF</span>・256 字</span></h4>
+<ol class="cells"><li><b>㌀</b><i>3300</i></li><li><b>㌁</b><i>3301</i></li><li><b>㌂</b><i>3302</i></li><li><b>㌃</b><i>3303</i></li><li><b>㌄</b><i>3304</i></li><li><b>㌅</b><i>3305</i></li><li><b>㌆</b><i>3306</i></li><li><b>㌇</b><i>3307</i></li><li><b>㌈</b><i>3308</i></li><li><b>㌉</b><i>3309</i></li><li><b>㌊</b><i>330A</i></li><li><b>㌋</b><i>330B</i></li><li><b>㌌</b><i>330C</i></li><li><b>㌍</b><i>330D</i></li><li><b>㌎</b><i>330E</i></li><li><b>㌏</b><i>330F</i></li><li><b>㌐</b><i>3310</i></li><li><b>㌑</b><i>3311</i></li><li><b>㌒</b><i>3312</i></li><li><b>㌓</b><i>3313</i></li><li><b>㌔</b><i>3314</i></li><li><b>㌕</b><i>3315</i></li><li><b>㌖</b><i>3316</i></li><li><b>㌗</b><i>3317</i></li><li><b>㌘</b><i>3318</i></li><li><b>㌙</b><i>3319</i></li><li><b>㌚</b><i>331A</i></li><li><b>㌛</b><i>331B</i></li><li><b>㌜</b><i>331C</i></li><li><b>㌝</b><i>331D</i></li><li><b>㌞</b><i>331E</i></li><li><b>㌟</b><i>331F</i></li><li><b>㌠</b><i>3320</i></li><li><b>㌡</b><i>3321</i></li><li><b>㌢</b><i>3322</i></li><li><b>㌣</b><i>3323</i></li><li><b>㌤</b><i>3324</i></li><li><b>㌥</b><i>3325</i></li><li><b>㌦</b><i>3326</i></li><li><b>㌧</b><i>3327</i></li><li><b>㌨</b><i>3328</i></li><li><b>㌩</b><i>3329</i></li><li><b>㌪</b><i>332A</i></li><li><b>㌫</b><i>332B</i></li><li><b>㌬</b><i>332C</i></li><li><b>㌭</b><i>332D</i></li><li><b>㌮</b><i>332E</i></li><li><b>㌯</b><i>332F</i></li><li><b>㌰</b><i>3330</i></li><li><b>㌱</b><i>3331</i></li><li><b>㌲</b><i>3332</i></li><li><b>㌳</b><i>3333</i></li><li><b>㌴</b><i>3334</i></li><li><b>㌵</b><i>3335</i></li><li><b>㌶</b><i>3336</i></li><li><b>㌷</b><i>3337</i></li><li><b>㌸</b><i>3338</i></li><li><b>㌹</b><i>3339</i></li><li><b>㌺</b><i>333A</i></li><li><b>㌻</b><i>333B</i></li><li><b>㌼</b><i>333C</i></li><li><b>㌽</b><i>333D</i></li><li><b>㌾</b><i>333E</i></li><li><b>㌿</b><i>333F</i></li><li><b>㍀</b><i>3340</i></li><li><b>㍁</b><i>3341</i></li><li><b>㍂</b><i>3342</i></li><li><b>㍃</b><i>3343</i></li><li><b>㍄</b><i>3344</i></li><li><b>㍅</b><i>3345</i></li><li><b>㍆</b><i>3346</i></li><li><b>㍇</b><i>3347</i></li><li><b>㍈</b><i>3348</i></li><li><b>㍉</b><i>3349</i></li><li><b>㍊</b><i>334A</i></li><li><b>㍋</b><i>334B</i></li><li><b>㍌</b><i>334C</i></li><li><b>㍍</b><i>334D</i></li><li><b>㍎</b><i>334E</i></li><li><b>㍏</b><i>334F</i></li><li><b>㍐</b><i>3350</i></li><li><b>㍑</b><i>3351</i></li><li><b>㍒</b><i>3352</i></li><li><b>㍓</b><i>3353</i></li><li><b>㍔</b><i>3354</i></li><li><b>㍕</b><i>3355</i></li><li><b>㍖</b><i>3356</i></li><li><b>㍗</b><i>3357</i></li><li><b>㍘</b><i>3358</i></li><li><b>㍙</b><i>3359</i></li><li><b>㍚</b><i>335A</i></li><li><b>㍛</b><i>335B</i></li><li><b>㍜</b><i>335C</i></li><li><b>㍝</b><i>335D</i></li><li><b>㍞</b><i>335E</i></li><li><b>㍟</b><i>335F</i></li><li><b>㍠</b><i>3360</i></li><li><b>㍡</b><i>3361</i></li><li><b>㍢</b><i>3362</i></li><li><b>㍣</b><i>3363</i></li><li><b>㍤</b><i>3364</i></li><li><b>㍥</b><i>3365</i></li><li><b>㍦</b><i>3366</i></li><li><b>㍧</b><i>3367</i></li><li><b>㍨</b><i>3368</i></li><li><b>㍩</b><i>3369</i></li><li><b>㍪</b><i>336A</i></li><li><b>㍫</b><i>336B</i></li><li><b>㍬</b><i>336C</i></li><li><b>㍭</b><i>336D</i></li><li><b>㍮</b><i>336E</i></li><li><b>㍯</b><i>336F</i></li><li><b>㍰</b><i>3370</i></li><li><b>㍱</b><i>3371</i></li><li><b>㍲</b><i>3372</i></li><li><b>㍳</b><i>3373</i></li><li><b>㍴</b><i>3374</i></li><li><b>㍵</b><i>3375</i></li><li><b>㍶</b><i>3376</i></li><li><b>㍷</b><i>3377</i></li><li><b>㍸</b><i>3378</i></li><li><b>㍹</b><i>3379</i></li><li><b>㍺</b><i>337A</i></li><li><b>㍻</b><i>337B</i></li><li><b>㍼</b><i>337C</i></li><li><b>㍽</b><i>337D</i></li><li><b>㍾</b><i>337E</i></li><li><b>㍿</b><i>337F</i></li><li><b>㎀</b><i>3380</i></li><li><b>㎁</b><i>3381</i></li><li><b>㎂</b><i>3382</i></li><li><b>㎃</b><i>3383</i></li><li><b>㎄</b><i>3384</i></li><li><b>㎅</b><i>3385</i></li><li><b>㎆</b><i>3386</i></li><li><b>㎇</b><i>3387</i></li><li><b>㎈</b><i>3388</i></li><li><b>㎉</b><i>3389</i></li><li><b>㎊</b><i>338A</i></li><li><b>㎋</b><i>338B</i></li><li><b>㎌</b><i>338C</i></li><li><b>㎍</b><i>338D</i></li><li><b>㎎</b><i>338E</i></li><li><b>㎏</b><i>338F</i></li><li><b>㎐</b><i>3390</i></li><li><b>㎑</b><i>3391</i></li><li><b>㎒</b><i>3392</i></li><li><b>㎓</b><i>3393</i></li><li><b>㎔</b><i>3394</i></li><li><b>㎕</b><i>3395</i></li><li><b>㎖</b><i>3396</i></li><li><b>㎗</b><i>3397</i></li><li><b>㎘</b><i>3398</i></li><li><b>㎙</b><i>3399</i></li><li><b>㎚</b><i>339A</i></li><li><b>㎛</b><i>339B</i></li><li><b>㎜</b><i>339C</i></li><li><b>㎝</b><i>339D</i></li><li><b>㎞</b><i>339E</i></li><li><b>㎟</b><i>339F</i></li><li><b>㎠</b><i>33A0</i></li><li><b>㎡</b><i>33A1</i></li><li><b>㎢</b><i>33A2</i></li><li><b>㎣</b><i>33A3</i></li><li><b>㎤</b><i>33A4</i></li><li><b>㎥</b><i>33A5</i></li><li><b>㎦</b><i>33A6</i></li><li><b>㎧</b><i>33A7</i></li><li><b>㎨</b><i>33A8</i></li><li><b>㎩</b><i>33A9</i></li><li><b>㎪</b><i>33AA</i></li><li><b>㎫</b><i>33AB</i></li><li><b>㎬</b><i>33AC</i></li><li><b>㎭</b><i>33AD</i></li><li><b>㎮</b><i>33AE</i></li><li><b>㎯</b><i>33AF</i></li><li><b>㎰</b><i>33B0</i></li><li><b>㎱</b><i>33B1</i></li><li><b>㎲</b><i>33B2</i></li><li><b>㎳</b><i>33B3</i></li><li><b>㎴</b><i>33B4</i></li><li><b>㎵</b><i>33B5</i></li><li><b>㎶</b><i>33B6</i></li><li><b>㎷</b><i>33B7</i></li><li><b>㎸</b><i>33B8</i></li><li><b>㎹</b><i>33B9</i></li><li><b>㎺</b><i>33BA</i></li><li><b>㎻</b><i>33BB</i></li><li><b>㎼</b><i>33BC</i></li><li><b>㎽</b><i>33BD</i></li><li><b>㎾</b><i>33BE</i></li><li><b>㎿</b><i>33BF</i></li><li><b>㏀</b><i>33C0</i></li><li><b>㏁</b><i>33C1</i></li><li><b>㏂</b><i>33C2</i></li><li><b>㏃</b><i>33C3</i></li><li><b>㏄</b><i>33C4</i></li><li><b>㏅</b><i>33C5</i></li><li><b>㏆</b><i>33C6</i></li><li><b>㏇</b><i>33C7</i></li><li><b>㏈</b><i>33C8</i></li><li><b>㏉</b><i>33C9</i></li><li><b>㏊</b><i>33CA</i></li><li><b>㏋</b><i>33CB</i></li><li><b>㏌</b><i>33CC</i></li><li><b>㏍</b><i>33CD</i></li><li><b>㏎</b><i>33CE</i></li><li><b>㏏</b><i>33CF</i></li><li><b>㏐</b><i>33D0</i></li><li><b>㏑</b><i>33D1</i></li><li><b>㏒</b><i>33D2</i></li><li><b>㏓</b><i>33D3</i></li><li><b>㏔</b><i>33D4</i></li><li><b>㏕</b><i>33D5</i></li><li><b>㏖</b><i>33D6</i></li><li><b>㏗</b><i>33D7</i></li><li><b>㏘</b><i>33D8</i></li><li><b>㏙</b><i>33D9</i></li><li><b>㏚</b><i>33DA</i></li><li><b>㏛</b><i>33DB</i></li><li><b>㏜</b><i>33DC</i></li><li><b>㏝</b><i>33DD</i></li><li><b>㏞</b><i>33DE</i></li><li><b>㏟</b><i>33DF</i></li><li><b>㏠</b><i>33E0</i></li><li><b>㏡</b><i>33E1</i></li><li><b>㏢</b><i>33E2</i></li><li><b>㏣</b><i>33E3</i></li><li><b>㏤</b><i>33E4</i></li><li><b>㏥</b><i>33E5</i></li><li><b>㏦</b><i>33E6</i></li><li><b>㏧</b><i>33E7</i></li><li><b>㏨</b><i>33E8</i></li><li><b>㏩</b><i>33E9</i></li><li><b>㏪</b><i>33EA</i></li><li><b>㏫</b><i>33EB</i></li><li><b>㏬</b><i>33EC</i></li><li><b>㏭</b><i>33ED</i></li><li><b>㏮</b><i>33EE</i></li><li><b>㏯</b><i>33EF</i></li><li><b>㏰</b><i>33F0</i></li><li><b>㏱</b><i>33F1</i></li><li><b>㏲</b><i>33F2</i></li><li><b>㏳</b><i>33F3</i></li><li><b>㏴</b><i>33F4</i></li><li><b>㏵</b><i>33F5</i></li><li><b>㏶</b><i>33F6</i></li><li><b>㏷</b><i>33F7</i></li><li><b>㏸</b><i>33F8</i></li><li><b>㏹</b><i>33F9</i></li><li><b>㏺</b><i>33FA</i></li><li><b>㏻</b><i>33FB</i></li><li><b>㏼</b><i>33FC</i></li><li><b>㏽</b><i>33FD</i></li><li><b>㏾</b><i>33FE</i></li><li><b>㏿</b><i>33FF</i></li></ol>
+<h4 id="sym-ff00">半角／全角形<span class="sub">Halfwidth and Fullwidth Forms・<span class="mono">U+FF00〜U+FFEF</span>・240 字</span></h4>
+<ol class="cells"><li class="na"><b></b><i>FF00</i></li><li><b>！</b><i>FF01</i></li><li><b>＂</b><i>FF02</i></li><li><b>＃</b><i>FF03</i></li><li><b>＄</b><i>FF04</i></li><li><b>％</b><i>FF05</i></li><li><b>＆</b><i>FF06</i></li><li><b>＇</b><i>FF07</i></li><li><b>（</b><i>FF08</i></li><li><b>）</b><i>FF09</i></li><li><b>＊</b><i>FF0A</i></li><li><b>＋</b><i>FF0B</i></li><li><b>，</b><i>FF0C</i></li><li><b>－</b><i>FF0D</i></li><li><b>．</b><i>FF0E</i></li><li><b>／</b><i>FF0F</i></li><li><b>０</b><i>FF10</i></li><li><b>１</b><i>FF11</i></li><li><b>２</b><i>FF12</i></li><li><b>３</b><i>FF13</i></li><li><b>４</b><i>FF14</i></li><li><b>５</b><i>FF15</i></li><li><b>６</b><i>FF16</i></li><li><b>７</b><i>FF17</i></li><li><b>８</b><i>FF18</i></li><li><b>９</b><i>FF19</i></li><li><b>：</b><i>FF1A</i></li><li><b>；</b><i>FF1B</i></li><li><b>＜</b><i>FF1C</i></li><li><b>＝</b><i>FF1D</i></li><li><b>＞</b><i>FF1E</i></li><li><b>？</b><i>FF1F</i></li><li><b>＠</b><i>FF20</i></li><li><b>Ａ</b><i>FF21</i></li><li><b>Ｂ</b><i>FF22</i></li><li><b>Ｃ</b><i>FF23</i></li><li><b>Ｄ</b><i>FF24</i></li><li><b>Ｅ</b><i>FF25</i></li><li><b>Ｆ</b><i>FF26</i></li><li><b>Ｇ</b><i>FF27</i></li><li><b>Ｈ</b><i>FF28</i></li><li><b>Ｉ</b><i>FF29</i></li><li><b>Ｊ</b><i>FF2A</i></li><li><b>Ｋ</b><i>FF2B</i></li><li><b>Ｌ</b><i>FF2C</i></li><li><b>Ｍ</b><i>FF2D</i></li><li><b>Ｎ</b><i>FF2E</i></li><li><b>Ｏ</b><i>FF2F</i></li><li><b>Ｐ</b><i>FF30</i></li><li><b>Ｑ</b><i>FF31</i></li><li><b>Ｒ</b><i>FF32</i></li><li><b>Ｓ</b><i>FF33</i></li><li><b>Ｔ</b><i>FF34</i></li><li><b>Ｕ</b><i>FF35</i></li><li><b>Ｖ</b><i>FF36</i></li><li><b>Ｗ</b><i>FF37</i></li><li><b>Ｘ</b><i>FF38</i></li><li><b>Ｙ</b><i>FF39</i></li><li><b>Ｚ</b><i>FF3A</i></li><li><b>［</b><i>FF3B</i></li><li><b>＼</b><i>FF3C</i></li><li><b>］</b><i>FF3D</i></li><li><b>＾</b><i>FF3E</i></li><li><b>＿</b><i>FF3F</i></li><li><b>｀</b><i>FF40</i></li><li><b>ａ</b><i>FF41</i></li><li><b>ｂ</b><i>FF42</i></li><li><b>ｃ</b><i>FF43</i></li><li><b>ｄ</b><i>FF44</i></li><li><b>ｅ</b><i>FF45</i></li><li><b>ｆ</b><i>FF46</i></li><li><b>ｇ</b><i>FF47</i></li><li><b>ｈ</b><i>FF48</i></li><li><b>ｉ</b><i>FF49</i></li><li><b>ｊ</b><i>FF4A</i></li><li><b>ｋ</b><i>FF4B</i></li><li><b>ｌ</b><i>FF4C</i></li><li><b>ｍ</b><i>FF4D</i></li><li><b>ｎ</b><i>FF4E</i></li><li><b>ｏ</b><i>FF4F</i></li><li><b>ｐ</b><i>FF50</i></li><li><b>ｑ</b><i>FF51</i></li><li><b>ｒ</b><i>FF52</i></li><li><b>ｓ</b><i>FF53</i></li><li><b>ｔ</b><i>FF54</i></li><li><b>ｕ</b><i>FF55</i></li><li><b>ｖ</b><i>FF56</i></li><li><b>ｗ</b><i>FF57</i></li><li><b>ｘ</b><i>FF58</i></li><li><b>ｙ</b><i>FF59</i></li><li><b>ｚ</b><i>FF5A</i></li><li><b>｛</b><i>FF5B</i></li><li><b>｜</b><i>FF5C</i></li><li><b>｝</b><i>FF5D</i></li><li><b>～</b><i>FF5E</i></li><li><b>｟</b><i>FF5F</i></li><li><b>｠</b><i>FF60</i></li><li><b>｡</b><i>FF61</i></li><li><b>｢</b><i>FF62</i></li><li><b>｣</b><i>FF63</i></li><li><b>､</b><i>FF64</i></li><li><b>･</b><i>FF65</i></li><li><b>ｦ</b><i>FF66</i></li><li><b>ｧ</b><i>FF67</i></li><li><b>ｨ</b><i>FF68</i></li><li><b>ｩ</b><i>FF69</i></li><li><b>ｪ</b><i>FF6A</i></li><li><b>ｫ</b><i>FF6B</i></li><li><b>ｬ</b><i>FF6C</i></li><li><b>ｭ</b><i>FF6D</i></li><li><b>ｮ</b><i>FF6E</i></li><li><b>ｯ</b><i>FF6F</i></li><li><b>ｰ</b><i>FF70</i></li><li><b>ｱ</b><i>FF71</i></li><li><b>ｲ</b><i>FF72</i></li><li><b>ｳ</b><i>FF73</i></li><li><b>ｴ</b><i>FF74</i></li><li><b>ｵ</b><i>FF75</i></li><li><b>ｶ</b><i>FF76</i></li><li><b>ｷ</b><i>FF77</i></li><li><b>ｸ</b><i>FF78</i></li><li><b>ｹ</b><i>FF79</i></li><li><b>ｺ</b><i>FF7A</i></li><li><b>ｻ</b><i>FF7B</i></li><li><b>ｼ</b><i>FF7C</i></li><li><b>ｽ</b><i>FF7D</i></li><li><b>ｾ</b><i>FF7E</i></li><li><b>ｿ</b><i>FF7F</i></li><li><b>ﾀ</b><i>FF80</i></li><li><b>ﾁ</b><i>FF81</i></li><li><b>ﾂ</b><i>FF82</i></li><li><b>ﾃ</b><i>FF83</i></li><li><b>ﾄ</b><i>FF84</i></li><li><b>ﾅ</b><i>FF85</i></li><li><b>ﾆ</b><i>FF86</i></li><li><b>ﾇ</b><i>FF87</i></li><li><b>ﾈ</b><i>FF88</i></li><li><b>ﾉ</b><i>FF89</i></li><li><b>ﾊ</b><i>FF8A</i></li><li><b>ﾋ</b><i>FF8B</i></li><li><b>ﾌ</b><i>FF8C</i></li><li><b>ﾍ</b><i>FF8D</i></li><li><b>ﾎ</b><i>FF8E</i></li><li><b>ﾏ</b><i>FF8F</i></li><li><b>ﾐ</b><i>FF90</i></li><li><b>ﾑ</b><i>FF91</i></li><li><b>ﾒ</b><i>FF92</i></li><li><b>ﾓ</b><i>FF93</i></li><li><b>ﾔ</b><i>FF94</i></li><li><b>ﾕ</b><i>FF95</i></li><li><b>ﾖ</b><i>FF96</i></li><li><b>ﾗ</b><i>FF97</i></li><li><b>ﾘ</b><i>FF98</i></li><li><b>ﾙ</b><i>FF99</i></li><li><b>ﾚ</b><i>FF9A</i></li><li><b>ﾛ</b><i>FF9B</i></li><li><b>ﾜ</b><i>FF9C</i></li><li><b>ﾝ</b><i>FF9D</i></li><li><b>ﾞ</b><i>FF9E</i></li><li><b>ﾟ</b><i>FF9F</i></li><li><b>ﾠ</b><i>FFA0</i></li><li><b>ﾡ</b><i>FFA1</i></li><li><b>ﾢ</b><i>FFA2</i></li><li><b>ﾣ</b><i>FFA3</i></li><li><b>ﾤ</b><i>FFA4</i></li><li><b>ﾥ</b><i>FFA5</i></li><li><b>ﾦ</b><i>FFA6</i></li><li><b>ﾧ</b><i>FFA7</i></li><li><b>ﾨ</b><i>FFA8</i></li><li><b>ﾩ</b><i>FFA9</i></li><li><b>ﾪ</b><i>FFAA</i></li><li><b>ﾫ</b><i>FFAB</i></li><li><b>ﾬ</b><i>FFAC</i></li><li><b>ﾭ</b><i>FFAD</i></li><li><b>ﾮ</b><i>FFAE</i></li><li><b>ﾯ</b><i>FFAF</i></li><li><b>ﾰ</b><i>FFB0</i></li><li><b>ﾱ</b><i>FFB1</i></li><li><b>ﾲ</b><i>FFB2</i></li><li><b>ﾳ</b><i>FFB3</i></li><li><b>ﾴ</b><i>FFB4</i></li><li><b>ﾵ</b><i>FFB5</i></li><li><b>ﾶ</b><i>FFB6</i></li><li><b>ﾷ</b><i>FFB7</i></li><li><b>ﾸ</b><i>FFB8</i></li><li><b>ﾹ</b><i>FFB9</i></li><li><b>ﾺ</b><i>FFBA</i></li><li><b>ﾻ</b><i>FFBB</i></li><li><b>ﾼ</b><i>FFBC</i></li><li><b>ﾽ</b><i>FFBD</i></li><li><b>ﾾ</b><i>FFBE</i></li><li class="na"><b></b><i>FFBF</i></li><li class="na"><b></b><i>FFC0</i></li><li class="na"><b></b><i>FFC1</i></li><li><b>ￂ</b><i>FFC2</i></li><li><b>ￃ</b><i>FFC3</i></li><li><b>ￄ</b><i>FFC4</i></li><li><b>ￅ</b><i>FFC5</i></li><li><b>ￆ</b><i>FFC6</i></li><li><b>ￇ</b><i>FFC7</i></li><li class="na"><b></b><i>FFC8</i></li><li class="na"><b></b><i>FFC9</i></li><li><b>ￊ</b><i>FFCA</i></li><li><b>ￋ</b><i>FFCB</i></li><li><b>ￌ</b><i>FFCC</i></li><li><b>ￍ</b><i>FFCD</i></li><li><b>ￎ</b><i>FFCE</i></li><li><b>ￏ</b><i>FFCF</i></li><li class="na"><b></b><i>FFD0</i></li><li class="na"><b></b><i>FFD1</i></li><li><b>ￒ</b><i>FFD2</i></li><li><b>ￓ</b><i>FFD3</i></li><li><b>ￔ</b><i>FFD4</i></li><li><b>ￕ</b><i>FFD5</i></li><li><b>ￖ</b><i>FFD6</i></li><li><b>ￗ</b><i>FFD7</i></li><li class="na"><b></b><i>FFD8</i></li><li class="na"><b></b><i>FFD9</i></li><li><b>ￚ</b><i>FFDA</i></li><li><b>ￛ</b><i>FFDB</i></li><li><b>ￜ</b><i>FFDC</i></li><li class="na"><b></b><i>FFDD</i></li><li class="na"><b></b><i>FFDE</i></li><li class="na"><b></b><i>FFDF</i></li><li><b>￠</b><i>FFE0</i></li><li><b>￡</b><i>FFE1</i></li><li><b>￢</b><i>FFE2</i></li><li><b>￣</b><i>FFE3</i></li><li><b>￤</b><i>FFE4</i></li><li><b>￥</b><i>FFE5</i></li><li><b>￦</b><i>FFE6</i></li><li class="na"><b></b><i>FFE7</i></li><li><b>￨</b><i>FFE8</i></li><li><b>￩</b><i>FFE9</i></li><li><b>￪</b><i>FFEA</i></li><li><b>￫</b><i>FFEB</i></li><li><b>￬</b><i>FFEC</i></li><li><b>￭</b><i>FFED</i></li><li><b>￮</b><i>FFEE</i></li><li class="na"><b></b><i>FFEF</i></li></ol>
+<!-- /gen -->
+
+<footer>
+<p>T2Font アーキテクチャ解説 04。契約の正典はパッケージの README（<code>Packages/info.someiyoshino.t2font/README.md</code>）の §7・§9、インポートの中の工程は 02 章（<code>docs/architecture/02-truetype-to-atlas.html</code>）。</p>
+</footer>
+</main>
+</div>
+</body>
+</html>

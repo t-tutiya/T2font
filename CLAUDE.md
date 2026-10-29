@@ -59,4 +59,6 @@ Unity の版は `ProjectSettings/ProjectVersion.txt` が正典（LTS の最新�
   ベイカーの出力を変えたら図が古くなる（図の作り方と出力のハッシュは同書の末尾）。
 - **アトラスから画面まで**（`docs/architecture/03-atlas-to-screen.html`・契約はパッケージの README §4・§5）: ホストが字を置き、CanvasRenderer と Canvas を経て
   シェーダがレンダーターゲットへ描き、画面に出るまでの図解。Runtime・シェーダ・ベイカーの出力を変えたら `Tools/docs-figures/03-atlas-to-screen/` で図を作り直す。
+- **ベイク仕様の書き方**（`docs/architecture/04-bake-spec.html`・契約はパッケージの README §7・§9）: `.t2font` のキー・アセットを作る手順・失敗の文面・文字セットの中身。
+  文字セット・ベイク仕様の読み取り・ベイカーの文面を変えたら `Tools/docs-figures/04-bake-spec/` で表と付録を作り直す。
 - **テストの三層**（`docs/guides/testing-workflow.md`・D-TESTARCH）: 外部 NUnit／EditMode／Play Mode。安い層で表現できるものは安い層へ置く。
