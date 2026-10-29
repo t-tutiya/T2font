@@ -10,8 +10,8 @@ using NUnit.Framework;
 namespace info.someiyoshino.T2Font.Tests
 {
     /// <summary>
-    /// SDF のアトラスの生成（<see cref="SdfAtlasBaker"/>・パッケージの README §9）。画質の基準は輪郭そのもの（平らにした多角形の
-    /// 面積と外接）で、塗りと距離変換と縮小を通した距離場が、元の字形と同じ大きさの墨を再構成することを見る。
+    /// SDF のアトラスの生成（<see cref="SdfAtlasBaker"/>・パッケージの README §9）。画質の基準は輪郭そのもの（フラット化した多角形の
+    /// 面積と境界ボックス）で、塗りと距離変換と縮小を通した距離場が、元のグリフと同じ大きさのインク部を再構成することを見る。
     /// </summary>
     [TestFixture]
     public class SdfAtlasBakerTests
@@ -35,7 +35,7 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void セルのplaneとatlasは同じ矩形を指し_墨と距離域を覆う()
+        public void セルのplaneとatlasは同じ矩形を指し_インク部と距離レンジを覆う()
         {
             var settings = new SdfBakeSettings { EmPx = 32, RangeEm = 0.125 };
             FontFaceData face = Face("Agあ几、「");
@@ -44,7 +44,7 @@ namespace info.someiyoshino.T2Font.Tests
             for (var glyph = 0; glyph < face.GlyphCount; glyph++)
             {
                 SdfGlyphCell c = atlas.Cells[glyph];
-                var label = $"字形 {glyph}（U+{face.CodepointOf(glyph):X4}）";
+                var label = $"グリフ {glyph}（U+{face.CodepointOf(glyph):X4}）";
                 var widthPx = (c.planeRight - c.planeLeft) * settings.EmPx;
                 var heightPx = (c.planeTop - c.planeBottom) * settings.EmPx;
                 Assert.That(c.atlasRight - c.atlasLeft, Is.EqualTo(widthPx).Within(1e-3), label + " 幅");
@@ -66,7 +66,7 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void 墨の無い字形は空のセル()
+        public void インクの無いグリフは空のセル()
         {
             FontFaceData face = Face(" A");
             SdfAtlas atlas = SdfAtlasBaker.Bake(face, new SdfBakeSettings { EmPx = 24 });
@@ -78,7 +78,7 @@ namespace info.someiyoshino.T2Font.Tests
 
         // 距離場から再構成した被覆（シェーダと同じ clamp(距離 + 0.5)）の総和は、輪郭の多角形の面積に一致する。
         // 0.5 以上の texel を数える方法は、画素の中心が縁のどちら側に落ちるかで数 % 揺れるため基準にしない。
-        // 外接は 0.5 以上の texel の端で測り、画素の中心での標本化なので輪郭の外接と ±1.5 px で一致する。
+        // 境界ボックスは 0.5 以上の texel の端で測り、画素の中心でサンプリングするので輪郭の境界ボックスと ±1.5 px で一致する。
         [TestCase('几')]
         [TestCase('埃')]
         [TestCase('鬱')]
@@ -87,7 +87,7 @@ namespace info.someiyoshino.T2Font.Tests
         [TestCase('あ')]
         [TestCase('A')]
         [TestCase('g')]
-        public void 再構成した墨の面積と外接は輪郭と一致する(char ch)
+        public void 再構成したインク部の面積と境界ボックスは輪郭と一致する(char ch)
         {
             var settings = new SdfBakeSettings { EmPx = 48 };
             FontFaceData face = FontFaceBuilder.Build(Font, new[] { (int)ch });
@@ -120,20 +120,20 @@ namespace info.someiyoshino.T2Font.Tests
             var inkWidth = edges.Max(e => Math.Max(e.X0, e.X1)) - edges.Min(e => Math.Min(e.X0, e.X1));
             var inkHeight = edges.Max(e => Math.Max(e.Y0, e.Y1)) - edges.Min(e => Math.Min(e.Y0, e.Y1));
 
-            Assert.That(coverage, Is.EqualTo(area).Within(area * 0.03), "墨の面積（±3%）");
-            Assert.That(xMax - xMin + 1, Is.EqualTo(inkWidth).Within(1.5), "墨の幅");
-            Assert.That(yMax - yMin + 1, Is.EqualTo(inkHeight).Within(1.5), "墨の高さ");
+            Assert.That(coverage, Is.EqualTo(area).Within(area * 0.03), "インク部の面積（±3%）");
+            Assert.That(xMax - xMin + 1, Is.EqualTo(inkWidth).Within(1.5), "インク部の幅");
+            Assert.That(yMax - yMin + 1, Is.EqualTo(inkHeight).Within(1.5), "インク部の高さ");
         }
 
         [Test]
-        public void 距離域の外は0か255に飽和し_矩形の縁は外側()
+        public void 距離レンジの外は0か255に飽和し_矩形の縁は外側()
         {
             var settings = new SdfBakeSettings { EmPx = 48, RangeEm = 0.125 };
             SdfAtlas atlas = SdfAtlasBaker.Bake(Face("口"), settings);
             SdfGlyphCell c = atlas.Cells[0];
             FontAtlasPage page = atlas.Pages[c.page];
 
-            // 矩形の外周の texel は墨から距離域ほど離れている＝ほぼ 0。
+            // 矩形の外周の texel はインク部から距離レンジほど離れている＝ほぼ 0。
             for (var x = c.atlasLeft; x < c.atlasRight; x++)
             {
                 Assert.That(page.Pixels[(c.atlasBottom * page.Width) + x], Is.LessThanOrEqualTo(16));
@@ -165,11 +165,11 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void 箱を省くと墨の外接の和になる()
+        public void 箱を省くとインク境界の和になる()
         {
             SdfAtlas atlas = SdfAtlasBaker.Bake(Face("Ag"), new SdfBakeSettings { EmPx = 24 });
 
-            // 代替字形（M+ 1c の glyph 0）の墨も和に入る。A と g と .notdef の外接の和。
+            // 代替グリフ（M+ 1c の glyph 0）のインク部も和に入る。A と g と .notdef の境界ボックスの和。
             Assert.That(atlas.InkBounds.HasValue, Is.True);
             EmBox ink = atlas.InkBounds!.Value;
             Assert.That(atlas.CellBox.Left, Is.EqualTo(ink.Left));
@@ -180,7 +180,7 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void 距離域を持つ()
+        public void 距離レンジを持つ()
         {
             SdfAtlas atlas = SdfAtlasBaker.Bake(Face("A"), new SdfBakeSettings { EmPx = 40, RangeEm = 0.1 });
             Assert.That(atlas.EmPx, Is.EqualTo(40f));
@@ -188,7 +188,7 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void ページは優先の級の順に埋まる()
+        public void ページは優先クラスの順に埋まる()
         {
             // 1 ページに 1 セルしか入らない寸法にして、ページ番号＝並び順を見る。
             var box = new EmBox(-0.1, -0.3, 1.1, 1.1);
@@ -202,16 +202,16 @@ namespace info.someiyoshino.T2Font.Tests
             SdfAtlas atlas = SdfAtlasBaker.Bake(face, settings);
             int PageOf(char c) => atlas.Cells[GlyphOf(face, c)].page;
 
-            Assert.That(atlas.Cells[face.Notdef].page, Is.EqualTo(0), "代替字形は漢字以外の級の先頭");
+            Assert.That(atlas.Cells[face.Notdef].page, Is.EqualTo(0), "代替グリフは漢字以外のクラスの先頭");
             Assert.That(PageOf('a'), Is.LessThan(PageOf('あ')));
             Assert.That(PageOf('あ'), Is.LessThan(PageOf('亜')));
             Assert.That(PageOf('亜'), Is.LessThan(PageOf('熙')));
         }
 
         [Test]
-        public void セルは距離域とガードの余白を持ち_寸法は4の倍数()
+        public void セルは距離レンジとガードの余白を持ち_寸法は4の倍数()
         {
-            // em48・距離域 9px（0.1875em）: 余白＝ceil(9)+1＝10。墨箱 1.08×1.26em → 52＋20＝72・61＋20＝81→84。
+            // em48・距離レンジ 9px（0.1875em）: 余白＝ceil(9)+1＝10。インク境界 1.08×1.26em → 52＋20＝72・61＋20＝81→84。
             SdfAtlasBaker.CellGeometry cell = SdfAtlasBaker.ComputeCell(SpikeBox, 48, 48 * SdfEncoding.RangeEm);
 
             Assert.That(cell.Width, Is.EqualTo(72));
@@ -223,7 +223,7 @@ namespace info.someiyoshino.T2Font.Tests
         [Test]
         public void JIS規模は既定の上限で1ページに収まる()
         {
-            // JIS X 0208 を M+ 1c で焼いた字数（5,787 字）を、既定の em・距離域のセルで並べる。
+            // JIS X 0208 を M+ 1c でベイクした字数（5,787 字）を、既定の em・距離レンジのセルで並べる。
             var defaults = new SdfBakeSettings();
             SdfAtlasBaker.CellGeometry cell = SdfAtlasBaker.ComputeCell(SpikeBox, defaults.EmPx, defaults.RangePx);
             AtlasLayout layout = AtlasLayout.Plan(5787, cell.Width, cell.Height, defaults.MaxPageWidth, defaults.MaxPageHeight);
@@ -259,7 +259,7 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void 墨のある字が無くても代替字形の1ページがある()
+        public void インクのある字が無くても代替グリフの1ページがある()
         {
             FontFaceData face = Face(" ");
             SdfAtlas atlas = SdfAtlasBaker.Bake(face, new SdfBakeSettings());
@@ -269,7 +269,7 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void 代替字形は目に見える墨を持つ()
+        public void 代替グリフは目に見えるインク部を持つ()
         {
             FontFaceData face = Face("Aあ");
             SdfAtlas atlas = SdfAtlasBaker.Bake(face, new SdfBakeSettings { EmPx = 24 });
@@ -287,27 +287,27 @@ namespace info.someiyoshino.T2Font.Tests
             Assert.That(inked, Is.GreaterThan(20));
         }
 
-        // 生成器の出力が変わったら SdfAtlasBaker.Version（字の表が変わったなら FontFaceBuilder.Version）を上げ、この値も
-        // 合わせて直す（版数を上げないと古い取込の結果が使われ続ける・パッケージの README §7.5）。golden は CoreCLR x64 で取ったもの
+        // 生成器の出力が変わったら SdfAtlasBaker.Version（タイポグラフィテーブルが変わったなら FontFaceBuilder.Version）を上げ、この値も
+        // 合わせて直す（バージョンを上げないと古いインポートの結果が使われ続ける・パッケージの README §7.5）。golden は CoreCLR x64 で取ったもの
         // ——浮動小数の末尾が違いうる Mono では比べない。
         private const string Golden =
             "1/1:3a1907d317cc309f4ec1f45232e7f38b3e1dc0c0d0fd635c9ea9d976ae967a50/85ed0be3ca2b0cff956b8c28e8cf9c6ae31dd64cddba416c5c749c139ae4e256";
 
         [Test]
-        public void 出力が変わったら版数を上げる()
+        public void 出力が変わったらバージョンを上げる()
         {
             FontFaceData face = Face(" Agあ几、「鬱");
             SdfAtlas atlas = SdfAtlasBaker.Bake(face, new SdfBakeSettings { EmPx = 24 });
             var stamp = $"{FontFaceBuilder.Version}/{SdfAtlasBaker.Version}:{face.ComputeContentHash()}/{atlas.ComputeContentHash()}";
             Assert.That(stamp == Golden, Is.True,
-                $"出力のハッシュが golden と違う（実際 {stamp}・golden {Golden}）。意図した変更なら版数を上げて golden を直す");
+                $"出力のハッシュが golden と違う（実際 {stamp}・golden {Golden}）。意図した変更ならバージョンを上げて golden を直す");
         }
 
-        // 開発用の字集合（DevelopmentDefault・既定値）を全字焼く計時。明示して回す
-        // （dotnet test --filter "Name~開発用の字集合を既定値で"）。
+        // 開発用の文字セット（DevelopmentDefault・既定値）を全字ベイクする計時。明示して回す
+        // （dotnet test --filter "Name~開発用の文字セットを既定値で"）。
         [Test]
-        [Explicit("計時用。開発用の全字を焼く")]
-        public void 開発用の字集合を既定値で1ページに焼ける()
+        [Explicit("計時用。開発用の全字をベイクする")]
+        public void 開発用の文字セットを既定値で1ページにベイクできる()
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
             FontFaceData face = FontFaceBuilder.Build(Font, FontCharsets.Build(FontCharsetKind.DevelopmentDefault));

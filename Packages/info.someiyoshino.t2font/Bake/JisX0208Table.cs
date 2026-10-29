@@ -4,7 +4,7 @@ namespace info.someiyoshino.T2Font.Bake
 {
     /// <summary>
     /// JIS X 0208 の全 6,879 字（Unicode・JIS の標準の対応表による）と、Windows（CP932）で入力されやすい周辺の字。
-    /// 生成器の固定字集合（README §7.2）の元データ。
+    /// 生成器の固定の文字セット（README §7.2）の元データ。
     ///
     /// <para>
     /// 表は区点の順（1 区 1 点から）。EUC-JP の 2 バイト（0xA1A1〜0xFEFE）を JIS 標準の対応で Unicode へ

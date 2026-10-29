@@ -5,8 +5,8 @@ using System;
 namespace info.someiyoshino.T2Font.Bake
 {
     /// <summary>
-    /// em の矩形（ペン原点とベースライン基準・y 上向き）。生成器が墨の外接と、セルが収める墨の箱に使う（倍精度のまま持つ
-    /// ——字の表の <see cref="GlyphMetrics"/> は単精度に丸めた値で、焼きはこちらの値で行う）。
+    /// em の矩形（ペン原点とベースライン基準・y 上向き）。生成器がグリフのインク境界と、セルが収めるインク境界（cellBox）に使う（倍精度のまま持つ
+    /// ——タイポグラフィテーブルの <see cref="GlyphMetrics"/> は単精度に丸めた値で、ベイクはこちらの値で行う）。
     /// </summary>
     public readonly struct EmBox
     {

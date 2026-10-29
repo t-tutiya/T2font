@@ -6,13 +6,13 @@ using System.Collections.Generic;
 namespace info.someiyoshino.T2Font.Bake
 {
     /// <summary>
-    /// TrueType（<c>glyf</c> 輪郭）フォントの読取器（README §7.3）。
+    /// TrueType（<c>glyf</c> 輪郭）フォントのリーダー（README §7.3）。
     ///
     /// <para>
-    /// 読むのは字の表と輪郭に要る表だけ——<c>head</c>（em の単位・<c>loca</c> の形式）・<c>hhea</c>（縦メトリクス）・
-    /// <c>maxp</c>（字形数）・<c>hmtx</c>（送り幅）・<c>cmap</c>（字 → 字形番号）・<c>loca</c>／<c>glyf</c>（輪郭）。
-    /// 字形の置換（<c>GSUB</c>）・位置調整（<c>GPOS</c>）・ヒンティング命令は読まない（字の表は置換を持たず、
-    /// 表現はどれも輪郭そのものから作るのでヒンティングが要らない）。全表現が同じ読取器を通る（README §2.3）。
+    /// 読むのはタイポグラフィテーブルと輪郭に要る表だけ——<c>head</c>（em の単位・<c>loca</c> の形式）・<c>hhea</c>（縦メトリクス）・
+    /// <c>maxp</c>（グリフ数）・<c>hmtx</c>（送り幅）・<c>cmap</c>（字 → グリフインデックス）・<c>loca</c>／<c>glyf</c>（輪郭）。
+    /// グリフの置換（<c>GSUB</c>）・位置調整（<c>GPOS</c>）・ヒンティング命令は読まない（タイポグラフィテーブルは置換を持たず、
+    /// 表現はどれも輪郭そのものから作るのでヒンティングが要らない）。全表現が同じリーダーを通る（README §2.3）。
     /// </para>
     ///
     /// <para>
@@ -31,7 +31,7 @@ namespace info.someiyoshino.T2Font.Bake
         private const uint TagOtto = 0x4F54544F;  // 'OTTO'（CFF 輪郭）
         private const uint TagTtcf = 0x74746366;  // 'ttcf'（フォントコレクション）
 
-        // 複合字形の入れ子の上限。仕様上の上限は無いが、循環参照した壊れたフォントで無限再帰しないための柵。
+        // 複合グリフの入れ子の上限。仕様上の上限は無いが、循環参照した壊れたフォントで無限再帰しないための柵。
         private const int MaxCompositeDepth = 16;
 
         private readonly byte[] _data;
@@ -45,8 +45,8 @@ namespace info.someiyoshino.T2Font.Bake
         private readonly int[] _codepoints;
 
         /// <summary>
-        /// 単体のフォントを読む。フォントコレクション（TTC）は読まない——生成仕様は書体の番号を持たないので、読めば
-        /// どの書体を焼くかを黙って決めることになる（README §2.1）。
+        /// 単体のフォントを読む。フォントコレクション（TTC）は読まない——ベイク仕様は書体の番号を持たないので、読めば
+        /// どの書体をベイクするかを黙って決めることになる（README §2.1）。
         /// </summary>
         /// <exception cref="NotSupportedException">CFF 輪郭のフォント・フォントコレクション。</exception>
         /// <exception cref="FormatException">必要な表が無い・表が範囲外を指すなど、壊れたフォント。</exception>
@@ -58,7 +58,7 @@ namespace info.someiyoshino.T2Font.Bake
             if (sfntVersion == TagTtcf)
             {
                 throw new NotSupportedException(
-                    "フォントコレクション（TTC）は未対応です。単体のフォント（.ttf）を指定してください（生成仕様は書体の番号を持ちません）。");
+                    "フォントコレクション（TTC）は未対応です。単体のフォント（.ttf）を指定してください（ベイク仕様は書体の番号を持ちません）。");
             }
             if (sfntVersion == TagOtto)
             {
@@ -94,18 +94,18 @@ namespace info.someiyoshino.T2Font.Bake
             GlyphCount = ReadU16(maxp.Offset + 4);
             if (_numberOfHMetrics == 0 || _numberOfHMetrics > GlyphCount)
             {
-                throw new FormatException($"hhea.numberOfHMetrics（{_numberOfHMetrics}）が字形数（{GlyphCount}）と合いません。");
+                throw new FormatException($"hhea.numberOfHMetrics（{_numberOfHMetrics}）がグリフ数（{GlyphCount}）と合いません。");
             }
             if (hmtx.Length < (4 * _numberOfHMetrics) + (2 * (GlyphCount - _numberOfHMetrics)))
             {
-                throw new FormatException("hmtx 表が字形数に対して短すぎます。");
+                throw new FormatException("hmtx 表がグリフ数に対して短すぎます。");
             }
             _hmtxOffset = hmtx.Offset;
 
             var locaEntries = GlyphCount + 1;
             if (loca.Length < locaEntries * (_locaLong ? 4 : 2))
             {
-                throw new FormatException("loca 表が字形数に対して短すぎます。");
+                throw new FormatException("loca 表がグリフ数に対して短すぎます。");
             }
             _locaOffset = loca.Offset;
             _glyfOffset = glyf.Offset;
@@ -120,7 +120,7 @@ namespace info.someiyoshino.T2Font.Bake
         /// <summary>em の単位数（<c>head.unitsPerEm</c>）。</summary>
         public int UnitsPerEm { get; }
 
-        /// <summary>字形の数（<c>maxp.numGlyphs</c>）。</summary>
+        /// <summary>グリフの数（<c>maxp.numGlyphs</c>）。</summary>
         public int GlyphCount { get; }
 
         /// <summary>アセンダ（フォント単位・<c>hhea</c>）。</summary>
@@ -132,22 +132,22 @@ namespace info.someiyoshino.T2Font.Bake
         /// <summary>行間の追加分（フォント単位・<c>hhea</c>）。</summary>
         public int LineGap { get; }
 
-        /// <summary><c>cmap</c> が字形を割り当てている全コードポイント（昇順）。</summary>
+        /// <summary><c>cmap</c> がグリフを割り当てている全コードポイント（昇順）。</summary>
         public IReadOnlyList<int> Codepoints => _codepoints;
 
-        /// <summary><paramref name="codepoint"/> に字形があるか（字形番号 0＝.notdef は「無い」）。</summary>
+        /// <summary><paramref name="codepoint"/> にグリフがあるか（グリフインデックス 0＝.notdef は「無い」）。</summary>
         public bool Contains(int codepoint)
         {
             return _cmap.ContainsKey(codepoint);
         }
 
-        /// <summary><paramref name="codepoint"/> の字形番号。無ければ false。</summary>
+        /// <summary><paramref name="codepoint"/> のグリフインデックス。無ければ false。</summary>
         public bool TryGetGlyphIndex(int codepoint, out int glyphIndex)
         {
             return _cmap.TryGetValue(codepoint, out glyphIndex);
         }
 
-        /// <summary>字形の送り幅（フォント単位）。</summary>
+        /// <summary>グリフの送り幅（フォント単位）。</summary>
         public int GetAdvanceWidth(int glyphIndex)
         {
             CheckGlyphIndex(glyphIndex);
@@ -156,8 +156,8 @@ namespace info.someiyoshino.T2Font.Bake
         }
 
         /// <summary>
-        /// 字形の輪郭（フォント単位・y 上向き）。複合字形は部品を変換して 1 つの輪郭の集まりに展開する。
-        /// 墨の無い字形（空白）は輪郭 0 本を返す。
+        /// グリフの輪郭（フォント単位・y 上向き）。複合グリフは部品を変換して 1 つの輪郭の集まりに展開する。
+        /// インクの無いグリフ（空白）は輪郭 0 本を返す。
         /// </summary>
         public GlyphOutline GetOutline(int glyphIndex)
         {
@@ -219,7 +219,7 @@ namespace info.someiyoshino.T2Font.Bake
         // ── cmap ─────────────────────────────────────────────────
 
         /// <summary>
-        /// 字 → 字形番号の表を読む。選ぶ下位表は「全 Unicode（format 12）」を優先し、無ければ
+        /// 字 → グリフインデックスの表を読む。選ぶ下位表は「全 Unicode（format 12）」を優先し、無ければ
         /// 「BMP（format 4）」——どちらも Unicode 符号化（platform 0 か platform 3 の encoding 1／10）に限る。
         /// </summary>
         private Dictionary<int, int> ReadCharacterMap(int cmapOffset, int cmapLength)
@@ -345,7 +345,7 @@ namespace info.someiyoshino.T2Font.Bake
         {
             if (glyphIndex < 0 || glyphIndex >= GlyphCount)
             {
-                throw new ArgumentOutOfRangeException(nameof(glyphIndex), $"字形番号 {glyphIndex} は範囲外です（字形数 {GlyphCount}）。");
+                throw new ArgumentOutOfRangeException(nameof(glyphIndex), $"グリフインデックス {glyphIndex} は範囲外です（グリフ数 {GlyphCount}）。");
             }
         }
 
@@ -365,7 +365,7 @@ namespace info.someiyoshino.T2Font.Bake
             }
             if (end < start || end > _glyfLength)
             {
-                throw new FormatException($"loca が字形 {glyphIndex} に不正な範囲を与えています。");
+                throw new FormatException($"loca がグリフ {glyphIndex} に不正な範囲を与えています。");
             }
             return (_glyfOffset + start, _glyfOffset + end);
         }
@@ -374,17 +374,17 @@ namespace info.someiyoshino.T2Font.Bake
         {
             if (depth > MaxCompositeDepth)
             {
-                throw new FormatException($"複合字形の入れ子が深すぎます（字形 {glyphIndex}。循環参照の疑い）。");
+                throw new FormatException($"複合グリフの入れ子が深すぎます（グリフ {glyphIndex}。循環参照の疑い）。");
             }
 
             var (start, end) = GlyphRange(glyphIndex);
             if (end == start)
             {
-                return;  // 墨の無い字形
+                return;  // インクの無いグリフ
             }
             if (end - start < 10)
             {
-                throw new FormatException($"字形 {glyphIndex} のヘッダが短すぎます。");
+                throw new FormatException($"グリフ {glyphIndex} のヘッダが短すぎます。");
             }
 
             var numberOfContours = ReadI16(start);
@@ -414,7 +414,7 @@ namespace info.someiyoshino.T2Font.Bake
                 p += 2;
                 if (c > 0 && endPoints[c] < endPoints[c - 1])
                 {
-                    throw new FormatException($"字形 {glyphIndex} の輪郭の終点が昇順ではありません。");
+                    throw new FormatException($"グリフ {glyphIndex} の輪郭の終点が昇順ではありません。");
                 }
             }
             var pointCount = endPoints[numberOfContours - 1] + 1;
@@ -614,14 +614,14 @@ namespace info.someiyoshino.T2Font.Bake
                 }
                 remaining -= contour.Length;
             }
-            throw new FormatException($"複合字形 {glyphIndex} の点の照合が範囲外の点 {index} を指しています。");
+            throw new FormatException($"複合グリフ {glyphIndex} の点の照合が範囲外の点 {index} を指しています。");
         }
 
         private void RequireInGlyph(int glyphIndex, int position, int length, int end)
         {
             if (position + length > end)
             {
-                throw new FormatException($"字形 {glyphIndex} のデータが途中で切れています。");
+                throw new FormatException($"グリフ {glyphIndex} のデータが途中で切れています。");
             }
         }
 

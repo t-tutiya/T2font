@@ -9,7 +9,7 @@ using NUnit.Framework;
 namespace info.someiyoshino.T2Font.Tests
 {
     /// <summary>
-    /// TrueType の読取器（<see cref="TrueTypeFont"/>・パッケージの README §7.3）。期待値は検証用の M+ 1c
+    /// TrueType のリーダー（<see cref="TrueTypeFont"/>・パッケージの README §7.3）。期待値は検証用の M+ 1c
     /// （<c>mplus-1c-regular.ttf</c>）の表を別の実装（Python で表を直に読んだもの）で読んだ値。フォントを差し替えたら値も取り直す。
     /// </summary>
     [TestFixture]
@@ -35,14 +35,14 @@ namespace info.someiyoshino.T2Font.Tests
         [TestCase('あ', 2806)]
         [TestCase('几', 3422)]
         [TestCase('◀', 2391)]
-        public void cmapで字形番号を引く(char ch, int expected)
+        public void cmapでグリフインデックスを引く(char ch, int expected)
         {
             Assert.That(Font.TryGetGlyphIndex(ch, out var gid), Is.True);
             Assert.That(gid, Is.EqualTo(expected));
         }
 
         [Test]
-        public void cmapの全コードポイントは昇順で字形0を含まない()
+        public void cmapの全コードポイントは昇順でグリフ0を含まない()
         {
             IReadOnlyList<int> cps = Font.Codepoints;
             Assert.That(cps.Count, Is.EqualTo(8431));
@@ -65,13 +65,13 @@ namespace info.someiyoshino.T2Font.Tests
             Assert.That(Font.GetAdvanceWidth(gid), Is.EqualTo(expected));
         }
 
-        // 外接の期待値は glyf のヘッダ（このフォントは全点の外接をヘッダに書いている）。
+        // 境界ボックスの期待値は glyf のヘッダのグリフ境界ボックス（このフォントは全点の境界ボックスをヘッダに書いている）。
         [TestCase('A', 2, 30, 0, 633, 730)]
         [TestCase('g', 2, 45, -230, 488, 530)]
         [TestCase('あ', 3, 97, -63, 903, 803)]
         [TestCase('几', 1, 40, -80, 977, 770)]
-        [TestCase('⺅', 2, 170, -87, 798, 817)]  // ⺅＝複合字形（部品 1 つの参照）。輪郭数は部品のもの
-        public void 輪郭の外接と輪郭数(char ch, int contours, int xMin, int yMin, int xMax, int yMax)
+        [TestCase('⺅', 2, 170, -87, 798, 817)]  // ⺅＝複合グリフ（部品 1 つの参照）。輪郭数は部品のもの
+        public void 輪郭の境界ボックスと輪郭数(char ch, int contours, int xMin, int yMin, int xMax, int yMax)
         {
             Font.TryGetGlyphIndex(ch, out var gid);
             GlyphOutline outline = Font.GetOutline(gid);
@@ -85,7 +85,7 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void 複合字形は部品と同じ輪郭になる()
+        public void 複合グリフは部品と同じ輪郭になる()
         {
             Font.TryGetGlyphIndex('⺅', out var composite);
             GlyphOutline a = Font.GetOutline(composite);
@@ -147,7 +147,7 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void 輪郭を平らにすると閉じた線分の列になる()
+        public void 輪郭をフラット化すると閉じた線分の列になる()
         {
             Font.TryGetGlyphIndex('あ', out var gid);
             var edges = new List<OutlineEdge>();

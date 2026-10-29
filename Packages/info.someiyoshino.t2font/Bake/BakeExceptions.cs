@@ -13,7 +13,7 @@ namespace info.someiyoshino.T2Font.Bake
         }
     }
 
-    /// <summary>生成仕様の誤り（ファイル名と理由を文面が名指す）。取込はこれで止まる（README §7.1）。</summary>
+    /// <summary>ベイク仕様の誤り（ファイル名と理由を文面が名指す）。インポートはこれで止まる（README §7.1）。</summary>
     public sealed class FontSpecException : Exception
     {
         public FontSpecException(string message)

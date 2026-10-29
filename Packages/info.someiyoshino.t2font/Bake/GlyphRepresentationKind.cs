@@ -10,20 +10,20 @@ using Newtonsoft.Json.Linq;
 namespace info.someiyoshino.T2Font.Bake
 {
     /// <summary>
-    /// 表現の種類の記述子（README §7.4）。生成仕様の <c>representation.kind</c> の名前・描ける効果・設定の検査を持つ。
-    /// UnityEngine を参照しないので、外部 NUnit で生成仕様と様式の照合ができる。表現を足すパッケージは派生を 1 つ置く（README §8）。
+    /// 表現の種類の記述子（README §7.4）。ベイク仕様の <c>representation.kind</c> の名前・描ける効果・設定の検査を持つ。
+    /// UnityEngine を参照しないので、外部 NUnit でベイク仕様とエッジスタイルの照合ができる。表現を足すパッケージは派生を 1 つ置く（README §8）。
     /// </summary>
     public abstract class GlyphRepresentationKind
     {
-        /// <summary>生成仕様に書く名前（小文字の英数字。例 <c>sdf</c>）。</summary>
+        /// <summary>ベイク仕様に書く名前（小文字の英数字。例 <c>sdf</c>）。</summary>
         public abstract string Name { get; }
 
-        /// <summary>この種類の表現が描ける効果（README §6.3）。宣言の正典で、焼き器が表現の資産へ写す。</summary>
+        /// <summary>この種類の表現が描ける効果（README §6.3）。宣言の正典で、ベイカーが表現のアセットへ写す。</summary>
         public abstract GlyphEffects Effects { get; }
 
         /// <summary>
-        /// この種類の焼き器の出力の版数。<b>同じ入力から出る出力が変わる変更をしたら上げる</b>（README §7.5）。取込器は版数が変わった
-        /// 種類の生成仕様を取り込み直す。
+        /// この種類のベイカーの出力のバージョン。<b>同じ入力から出る出力が変わる変更をしたら上げる</b>（README §7.5）。インポーターはバージョンが変わった
+        /// 種類のベイク仕様を再インポートする。
         /// </summary>
         public abstract int Version { get; }
 
@@ -41,14 +41,14 @@ namespace info.someiyoshino.T2Font.Bake
         public abstract GlyphRepresentationKind Kind { get; }
 
         /// <summary>
-        /// 生成仕様へ書き戻すときの <c>representation</c> の節のキー（<c>kind</c> を除く）と、JSON の値の綴り。省略できる値も全部書く
+        /// ベイク仕様へ書き戻すときの <c>representation</c> の節のキー（<c>kind</c> を除く）と、JSON の値の綴り。省略できる値も全部書く
         /// （既定値が変わっても意味が変わらない）。<see cref="GlyphRepresentationKind.ParseSettings"/> で同じ値に読み戻せること。
         /// </summary>
         public abstract IEnumerable<KeyValuePair<string, string>> ToJsonMembers();
     }
 
     /// <summary>
-    /// 使う表現の種類の一覧（README §7.4）。利用側のプロジェクトが 1 か所で明示して並べ、生成仕様の読取と様式の照合に渡す。
+    /// 使う表現の種類の一覧（README §7.4）。利用側のプロジェクトが 1 か所で明示して並べ、ベイク仕様の読み取りとエッジスタイルの照合に渡す。
     /// </summary>
     public sealed class GlyphRepresentationKinds
     {
@@ -86,7 +86,7 @@ namespace info.someiyoshino.T2Font.Bake
     }
 
     /// <summary>
-    /// 生成仕様の JSON のオブジェクト 1 つを読む補助（誤りの文面にファイル名と行を付ける）。生成仕様の最上位と、表現の種類の
+    /// ベイク仕様の JSON のオブジェクト 1 つを読む補助（誤りの文面にファイル名と行を付ける）。ベイク仕様の最上位と、表現の種類の
     /// <c>representation</c> の節の両方がこれで読む——どちらも「未知のキー・型の違う値は失敗」の規則に揃う（README §7.1）。
     /// </summary>
     public sealed class SpecSection
@@ -160,7 +160,7 @@ namespace info.someiyoshino.T2Font.Bake
         }
 
         /// <summary>
-        /// 墨の箱 <c>[左, 下, 右, 上]</c>（em）のキー。無ければ null。
+        /// インク境界 <c>[左, 下, 右, 上]</c>（em）のキー。無ければ null。
         /// </summary>
         public EmBox? OptionalBox(string key)
         {

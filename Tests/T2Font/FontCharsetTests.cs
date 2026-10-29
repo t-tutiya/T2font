@@ -9,7 +9,7 @@ using NUnit.Framework;
 
 namespace info.someiyoshino.T2Font.Tests
 {
-    /// <summary>固定の字集合と優先の級（<see cref="FontCharsets"/>・パッケージの README §7.2・§9）。</summary>
+    /// <summary>固定の文字セットと優先クラス（<see cref="FontCharsets"/>・パッケージの README §7.2・§9）。</summary>
     [TestFixture]
     public class FontCharsetTests
     {
@@ -86,7 +86,7 @@ namespace info.someiyoshino.T2Font.Tests
         [TestCase('亜', 2)]
         [TestCase('熙', 3)]
         [TestCase('丂', 4)]
-        public void 優先の級(char ch, int expected)
+        public void 優先クラス(char ch, int expected)
         {
             Assert.That(FontCharsets.PriorityClass(ch), Is.EqualTo(expected));
         }

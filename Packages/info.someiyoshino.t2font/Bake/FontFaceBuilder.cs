@@ -9,11 +9,11 @@ using System.Text;
 namespace info.someiyoshino.T2Font.Bake
 {
     /// <summary>
-    /// 字の表の生成結果（README §3・§7.3）。全表現が同じものを受け取り、表現はこれに描くためのデータを足す。
+    /// タイポグラフィテーブルの生成結果（README §3・§7.3）。全表現が同じものを受け取り、表現はこれに描くためのデータを足す。
     ///
     /// <para>
-    /// 字形番号の並びは <c>T2FontAsset</c> と同じ: <c>0 ≤ i &lt; Codepoints.Length</c> は字 <c>Codepoints[i]</c> の字形（昇順）、
-    /// その後ろに .notdef（<see cref="Notdef"/>）。焼き器は字形番号ごとに <see cref="Outline"/> と <see cref="InkBox"/> を読む。
+    /// グリフインデックスの並びは <c>T2FontAsset</c> と同じ: <c>0 ≤ i &lt; Codepoints.Length</c> は字 <c>Codepoints[i]</c> のグリフ（昇順）、
+    /// その後ろに .notdef（<see cref="Notdef"/>）。ベイカーはグリフインデックスごとに <see cref="Outline"/> と <see cref="InkBox"/> を読む。
     /// </para>
     /// </summary>
     public sealed class FontFaceData
@@ -37,45 +37,45 @@ namespace info.someiyoshino.T2Font.Bake
         /// <summary>フォント単位の値（em）。</summary>
         public FontFaceMetrics Face { get; }
 
-        /// <summary>収めた字（昇順）。添字が字形番号。</summary>
+        /// <summary>収めた字（昇順）。添字がグリフインデックス。</summary>
         public int[] Codepoints { get; }
 
-        /// <summary>字形番号順の字の表の記録。末尾が .notdef。</summary>
+        /// <summary>グリフインデックス順のタイポグラフィテーブルの記録。末尾が .notdef。</summary>
         public GlyphMetrics[] Glyphs { get; }
 
-        /// <summary>代替字形（元フォントの glyph 0＝.notdef）の字形番号（＝<see cref="Codepoints"/> の長さ）。</summary>
+        /// <summary>代替グリフ（元フォントの glyph 0＝.notdef）のグリフインデックス（＝<see cref="Codepoints"/> の長さ）。</summary>
         public int Notdef => Codepoints.Length;
 
-        /// <summary>字形の数（.notdef を含む）。</summary>
+        /// <summary>グリフの数（.notdef を含む）。</summary>
         public int GlyphCount => Glyphs.Length;
 
         /// <summary>元フォントの em の単位数（<see cref="Outline"/> の座標の単位）。</summary>
         public int UnitsPerEm { get; }
 
-        /// <summary>依頼されたが元フォントに字形が無かった字（昇順）。扱い（警告か失敗か）は呼び出し側が決める。</summary>
+        /// <summary>依頼されたが元フォントにグリフが無かった字（昇順）。扱い（警告か失敗か）は呼び出し側が決める。</summary>
         public IReadOnlyList<int> Missing { get; }
 
-        /// <summary>字形番号 <paramref name="glyph"/> の字（.notdef は <see cref="FontFaceBuilder.NotdefCodepoint"/>）。</summary>
+        /// <summary>グリフインデックス <paramref name="glyph"/> の字（.notdef は <see cref="FontFaceBuilder.NotdefCodepoint"/>）。</summary>
         public int CodepointOf(int glyph)
         {
             return glyph < Codepoints.Length ? Codepoints[glyph] : FontFaceBuilder.NotdefCodepoint;
         }
 
-        /// <summary>字形の輪郭（フォント単位・y 上向き）。墨の無い字形は null。</summary>
+        /// <summary>グリフの輪郭（フォント単位・y 上向き）。インクの無いグリフは null。</summary>
         public GlyphOutline? Outline(int glyph)
         {
             return _outlines[glyph];
         }
 
-        /// <summary>字形の墨の外接（em・倍精度）。墨の無い字形では意味を持たない（<see cref="Outline"/> が null）。</summary>
+        /// <summary>グリフのインク境界（em・倍精度）。インクの無いグリフでは意味を持たない（<see cref="Outline"/> が null）。</summary>
         public EmBox InkBox(int glyph)
         {
             return _inkBoxes[glyph];
         }
 
         /// <summary>
-        /// 字の表（縦メトリクス・字・字形ごとの記録）の SHA-256（小文字の 16 進）。同じ入力から出る字の表が変わったことを検出し、
-        /// 版数（<see cref="FontFaceBuilder.Version"/>）の上げ忘れを止める検査が使う（README §7.5）。
+        /// タイポグラフィテーブル（縦メトリクス・字・グリフごとの記録）の SHA-256（小文字の 16 進）。同じ入力から出るタイポグラフィテーブルが変わったことを検出し、
+        /// バージョン（<see cref="FontFaceBuilder.Version"/>）の上げ忘れを止める検査が使う（README §7.5）。
         /// </summary>
         public string ComputeContentHash()
         {
@@ -112,23 +112,23 @@ namespace info.someiyoshino.T2Font.Bake
     }
 
     /// <summary>
-    /// TrueType フォントから字の表を作る（README §7.3 の 3）。表現によらない手順で、送り幅と墨の外接は表現を替えても同じになる
-    /// （README §2.3）。UnityEngine を参照しない純 C# で、Unity の取込器と外部 NUnit の両方から同じコードを呼ぶ。
+    /// TrueType フォントからタイポグラフィテーブルを作る（README §7.3 の 3）。表現によらない手順で、送り幅とインク境界は表現を替えても同じになる
+    /// （README §2.3）。UnityEngine を参照しない純 C# で、Unity のインポーターと外部 NUnit の両方から同じコードを呼ぶ。
     /// </summary>
     public static class FontFaceBuilder
     {
         /// <summary>
-        /// 字の表の生成の版数。<b>同じ入力から出る字の表が変わる変更をしたら必ず上げる</b>——取込器の版数がこれから決まり、上げないと
-        /// 古い取込の結果が使われ続ける（README §7.5）。
+        /// タイポグラフィテーブルの生成のバージョン。<b>同じ入力から出るタイポグラフィテーブルが変わる変更をしたら必ず上げる</b>——インポーターのバージョンがこれから決まり、上げないと
+        /// 古いインポートの結果が使われ続ける（README §7.5）。
         /// </summary>
         public const int Version = 1;
 
-        /// <summary>.notdef の字形が名乗る字（字形番号から字を引くときの印）。</summary>
+        /// <summary>.notdef のグリフが名乗る字（グリフインデックスから字を引くときの印）。</summary>
         public const int NotdefCodepoint = -1;
 
         /// <summary>
-        /// <paramref name="font"/> から <paramref name="codepoints"/> の字の表を作る。フォントに無い字は
-        /// <see cref="FontFaceData.Missing"/> へ載せて飛ばす。代替字形（glyph 0）は必ず足す——元フォントの .notdef が空なら枠を描く
+        /// <paramref name="font"/> から <paramref name="codepoints"/> のタイポグラフィテーブルを作る。フォントに無い字は
+        /// <see cref="FontFaceData.Missing"/> へ載せて飛ばす。代替グリフ（glyph 0）は必ず足す——元フォントの .notdef が空なら枠を描く
         /// （収録されていない字を、黙って消さずに目に見える形で描くためのもの・README §3.1）。
         /// </summary>
         /// <exception cref="ArgumentException">Unicode のスカラー値でない字がある。</exception>
@@ -184,7 +184,7 @@ namespace info.someiyoshino.T2Font.Bake
             return new FontFaceData(face, mapped.ToArray(), glyphs.ToArray(), outlines.ToArray(), inkBoxes.ToArray(), font.UnitsPerEm, missing);
         }
 
-        // 墨の外接は輪郭の点の外接（制御点を含む＝曲線の外接より広いことがある）。幅 0 の字形（縦棒 1 本の点列など）でも
+        // インク境界は輪郭の点の境界ボックス（制御点を含む＝曲線の境界ボックスより広いことがある）。幅 0 のグリフ（縦棒 1 本の点列など）でも
         // 箱が作れるよう、右端と上端を左端と下端よりわずかに大きくする。
         private static void Add(
             GlyphOutline outline, double advance, double units,

@@ -9,7 +9,7 @@ using System.Text;
 
 namespace info.someiyoshino.T2Font.Bake
 {
-    /// <summary>生成仕様から作った字の表と、取込の報告に出すもの。</summary>
+    /// <summary>ベイク仕様から作ったタイポグラフィテーブルと、インポートの報告に出すもの。</summary>
     public sealed class FontSpecFace
     {
         internal FontSpecFace(FontFaceData face, IReadOnlyList<int> missingFromCharsets)
@@ -18,25 +18,25 @@ namespace info.someiyoshino.T2Font.Bake
             MissingFromCharsets = missingFromCharsets;
         }
 
-        /// <summary>字の表。</summary>
+        /// <summary>タイポグラフィテーブル。</summary>
         public FontFaceData Face { get; }
 
         /// <summary>
-        /// 固定の字集合のうち元フォントに無かった字（昇順）。固定の字集合は上限集合なので欠けは失敗にせず、件数を報告する
+        /// 固定の文字セットのうち元フォントに無かった字（昇順）。固定の文字セットは上限集合なので欠けは失敗にせず、件数を報告する
         /// （README §7.1）。
         /// </summary>
         public IReadOnlyList<int> MissingFromCharsets { get; }
     }
 
     /// <summary>
-    /// 生成仕様と元フォントから字の表を作る（README §7.3 の 2・3）。取込器と外部 NUnit が同じ手順を通る。表現を作るのは
-    /// 各表現の焼き器の仕事で、ここは全表現で共通の部分だけを持つ。
+    /// ベイク仕様と元フォントからタイポグラフィテーブルを作る（README §7.3 の 2・3）。インポーターと外部 NUnit が同じ手順を通る。表現を作るのは
+    /// 各表現のベイカーの仕事で、ここは全表現で共通の部分だけを持つ。
     /// </summary>
     public static class FontSpecBaker
     {
         /// <summary>
-        /// 字の表を作る。名指しの追加字が元フォントに無ければ失敗する（作者が明示した要求を黙って捨てない・README §2.1）。
-        /// 固定の字集合の欠けは <see cref="FontSpecFace.MissingFromCharsets"/> へ載せて続ける。
+        /// タイポグラフィテーブルを作る。指定の追加文字が元フォントに無ければ失敗する（作者が明示した要求を黙って捨てない・README §2.1）。
+        /// 固定の文字セットの欠けは <see cref="FontSpecFace.MissingFromCharsets"/> へ載せて続ける。
         /// </summary>
         /// <exception cref="FontBakeException">追加字が元フォントに無い。</exception>
         public static FontSpecFace BuildFace(FontBakeSpec spec, TrueTypeFont font, string sourceName)
@@ -66,8 +66,8 @@ namespace info.someiyoshino.T2Font.Bake
         }
 
         /// <summary>
-        /// 生成元（字の表の生成の版数・表現の種類とその版数・生成仕様の本文・元フォントのバイト列）の SHA-256（小文字の 16 進）。
-        /// 資産の <c>sourceHash</c> に入れ、「どの入力から作った資産か」を追えるようにする。
+        /// 生成元（タイポグラフィテーブルの生成のバージョン・表現の種類とそのバージョン・ベイク仕様の本文・元フォントのバイト列）の SHA-256（小文字の 16 進）。
+        /// アセットの <c>sourceHash</c> に入れ、「どの入力から作ったアセットか」を追えるようにする。
         /// </summary>
         public static string SourceHash(string specText, byte[] fontBytes, GlyphRepresentationKind kind)
         {

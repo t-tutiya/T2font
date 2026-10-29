@@ -10,7 +10,7 @@ using NUnit.Framework;
 namespace info.someiyoshino.T2Font.Tests
 {
     /// <summary>
-    /// フォントの生成仕様（<c>*.t2font</c>・パッケージの README §7）の読み取りと、生成仕様からの字の表の生成。
+    /// フォントのベイク仕様（<c>*.t2font</c>・パッケージの README §7）の読み取りと、ベイク仕様からのタイポグラフィテーブルの生成。
     /// 綴りの誤りを既定値で黙って読まないこと（README §2.1）を中心に見る。
     /// </summary>
     [TestFixture]
@@ -60,7 +60,7 @@ namespace info.someiyoshino.T2Font.Tests
             Assert.That(settings.EmPx, Is.EqualTo(40));
             Assert.That(settings.MaxPageWidth, Is.EqualTo(4096));
             Assert.That(settings.MaxPageHeight, Is.EqualTo(4096));
-            Assert.That(settings.RangeEm, Is.EqualTo((double)SdfEncoding.RangeEm), "距離域は生成仕様では選べない");
+            Assert.That(settings.RangeEm, Is.EqualTo((double)SdfEncoding.RangeEm), "距離レンジはベイク仕様では選べない");
         }
 
         [Test]
@@ -104,11 +104,11 @@ namespace info.someiyoshino.T2Font.Tests
         [TestCase(@"{ ""source"": ""Content/a.ttf"", ""coverage"": ""fixed"", ""characters"": ""A"", " + Sdf + " }", "Assets/ か Packages/ で始まり")]
         [TestCase(@"{ ""source"": ""Assets\\a.ttf"", ""coverage"": ""fixed"", ""characters"": ""A"", " + Sdf + " }", "Assets/ か Packages/ で始まり")]
         [TestCase(@"{ ""source"": ""Assets/a.ttf"", ""coverage"": ""all"", ""characters"": ""A"", " + Sdf + " }", "coverage は")]
-        [TestCase(@"{ ""source"": ""Assets/a.ttf"", ""coverage"": ""fixed"", ""charsets"": [""Jis""], " + Sdf + " }", "未知の字集合 \"Jis\"")]
-        [TestCase(@"{ ""source"": ""Assets/a.ttf"", ""coverage"": ""fixed"", ""charsets"": [""1""], " + Sdf + " }", "未知の字集合 \"1\"")]
-        [TestCase(@"{ ""source"": ""Assets/a.ttf"", ""coverage"": ""fixed"", ""charsets"": [""Ascii, JisX0208""], " + Sdf + " }", "未知の字集合")]
-        [TestCase(@"{ ""source"": ""Assets/a.ttf"", ""coverage"": ""fixed"", ""charsets"": [""None""], " + Sdf + " }", "未知の字集合")]
-        [TestCase(@"{ ""source"": ""Assets/a.ttf"", ""coverage"": ""fixed"", ""charsets"": ""Ascii"", " + Sdf + " }", "charsets は字集合の名前の配列")]
+        [TestCase(@"{ ""source"": ""Assets/a.ttf"", ""coverage"": ""fixed"", ""charsets"": [""Jis""], " + Sdf + " }", "未知の文字セット \"Jis\"")]
+        [TestCase(@"{ ""source"": ""Assets/a.ttf"", ""coverage"": ""fixed"", ""charsets"": [""1""], " + Sdf + " }", "未知の文字セット \"1\"")]
+        [TestCase(@"{ ""source"": ""Assets/a.ttf"", ""coverage"": ""fixed"", ""charsets"": [""Ascii, JisX0208""], " + Sdf + " }", "未知の文字セット")]
+        [TestCase(@"{ ""source"": ""Assets/a.ttf"", ""coverage"": ""fixed"", ""charsets"": [""None""], " + Sdf + " }", "未知の文字セット")]
+        [TestCase(@"{ ""source"": ""Assets/a.ttf"", ""coverage"": ""fixed"", ""charsets"": ""Ascii"", " + Sdf + " }", "charsets は文字セットの名前の配列")]
         [TestCase(@"{ ""source"": ""Assets/a.ttf"", ""coverage"": ""fixed"", " + Sdf + " }", "charsets か characters")]
         [TestCase(@"[ ""source"" ]", "最上位は")]
         [TestCase(@"{ " + Base + ", " + Sdf + " } x", "JSON として読めません")]
@@ -129,7 +129,7 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void 名指しの追加字が元フォントに無ければ字の表を作らずに止める()
+        public void 指定の追加文字が元フォントに無ければタイポグラフィテーブルを作らずに止める()
         {
             var spec = Parse("{ \"source\": \"Assets/a.ttf\", \"coverage\": \"fixed\", \"characters\": \"A\U0010FFFD\", " + Sdf + " }");
             FontBakeException? ex = Assert.Throws<FontBakeException>(() => FontSpecBaker.BuildFace(spec, Font, "test.t2font"));
@@ -137,7 +137,7 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void 固定の字集合の欠けは件数として報告して続ける()
+        public void 固定の文字セットの欠けは件数として報告して続ける()
         {
             // JIS X 0208 のうち元フォント（M+ 1c）に無いのは第 2 水準の 1,232 字。
             var spec = Parse(@"{ ""source"": ""Assets/a.ttf"", ""coverage"": ""fixed"", ""charsets"": [""JisX0208""], ""characters"": ""◀"", " + Sdf + " }");
@@ -161,7 +161,7 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void 字集合の名前は列挙子の綴りそのもの()
+        public void 文字セットの名前は列挙子の綴りそのもの()
         {
             var names = new[] { "Ascii", "JisX0208", "WindowsVariants", "NecRow13", "IbmExtensions", "CommonSymbols", "DevelopmentDefault" };
             foreach (var name in names)
@@ -192,7 +192,7 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void 字集合だけを替えた生成仕様は字を名指しで持つ()
+        public void 文字セットだけを替えたベイク仕様は字を名指しで持つ()
         {
             var original = Parse(@"{ ""source"": ""Assets/a.ttf"", ""coverage"": ""corpus"", ""charsets"": [""JisX0208""], " + Sdf + " }");
             FontBakeSpec narrowed = original.WithCharacters(new[] { (int)'几', 'あ' });

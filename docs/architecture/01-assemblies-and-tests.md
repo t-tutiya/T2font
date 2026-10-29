@@ -50,8 +50,8 @@
 - **Runtime・Editor・Viewer・Conformance** は UnityEngine を使い、Job A ではコンパイルされない（PR の Job B が見る）。
 - 適合検査はパッケージの `Conformance`（Editor 専用・自動参照しない）に、テストの枠組みに依らない検査の関数として置く——表現を足す別の
   パッケージのテストからも呼べるようにするため。それを呼ぶ Unity 側のテストは本プロジェクトの `Assets/Tests/EditMode/T2Font/` に置く
-  （検査に使うフォント資産＝検証用の M+ 1c の生成仕様 `Assets/Content/Fonts/` がプロジェクトにあるため。`testables` は使わない）。
-- 本プロジェクトの生成仕様が取込の純 C# の手順を通ることは、外部 NUnit（`Tests/T2Font/ProjectFontSpecTests.cs`）が Unity を開く前に確かめる。
+  （検査に使うフォントアセット＝検証用の M+ 1c のベイク仕様 `Assets/Content/Fonts/` がプロジェクトにあるため。`testables` は使わない）。
+- 本プロジェクトのベイク仕様がインポートの純 C# の手順を通ることは、外部 NUnit（`Tests/T2Font/ProjectFontSpecTests.cs`）が Unity を開く前に確かめる。
 
 ## テストの置き場
 

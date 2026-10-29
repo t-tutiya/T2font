@@ -10,11 +10,11 @@ using Object = UnityEngine.Object;
 namespace info.someiyoshino.T2Font.Conformance
 {
     /// <summary>
-    /// 表現の適合検査（README §10）。表現を足したら、その表現で焼いたフォントを渡して通す。検査は誤りの文面の一覧を返し、空なら適合
+    /// 表現の適合検査（README §10）。表現を足したら、その表現でベイクしたフォントを渡して通す。検査は誤りの文面の一覧を返し、空なら適合
     /// ——テストの枠組みに依らないので、どのパッケージのテストからも呼べる。
     ///
     /// <list type="bullet">
-    /// <item><see cref="CheckGeometry"/>: 全字形の幾何（README §4.2・§4.3）。描画装置は要らない。</item>
+    /// <item><see cref="CheckGeometry"/>: 全グリフの幾何（README §4.2・§4.3）。描画装置は要らない。</item>
     /// <item><see cref="CheckRendering"/>: シェーダの契約（README §5 の S2・S3・S4・S6 と矩形クリップ）を、実際に描いた画素で確かめる。
     /// 描画装置が要る（<see cref="CanRender"/>）。</item>
     /// </list>
@@ -37,7 +37,7 @@ namespace info.someiyoshino.T2Font.Conformance
         public static bool CanRender => SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null;
 
         /// <summary>
-        /// 描けると宣言した効果（README §6.3）が墨の外接から外へ描かれうる最大の距離（em・README §6.2）。全効果なら
+        /// 描けると宣言した効果（README §6.3）がインク境界から外へ描かれうる最大の距離（em・README §6.2）。全効果なら
         /// <see cref="GlyphEdgeStyle.MaxOuterExtentEm"/>。面の縁のぼかしは縁取りの帯の内側に収まるので、縁取りとの大きい方を取る。
         /// </summary>
         public static float OuterExtentEm(GlyphEffects effects)
@@ -50,10 +50,10 @@ namespace info.someiyoshino.T2Font.Conformance
         }
 
         /// <summary>
-        /// 全字形の幾何を検査する（README §4.2・§4.3）: 墨の無い字形は何も書かない・墨のある字形は三角形を書きテクスチャを持つ・
-        /// UV0.zw が頂点の em 座標と一致する・頂点の外接が墨の外接を効果の外延（<see cref="OuterExtentEm"/>）だけ広げた範囲を覆う。
+        /// 全グリフの幾何を検査する（README §4.2・§4.3）: インクの無いグリフは何も書かない・インクのあるグリフは三角形を書きテクスチャを持つ・
+        /// UV0.zw が頂点の em 座標と一致する・頂点の境界ボックスがインク境界を効果の外延（<see cref="OuterExtentEm"/>）だけ広げた範囲を覆う。
         /// </summary>
-        /// <remarks>覆いは頂点の外接で見る（quad なら十分。三角形の和が範囲を隙間なく覆うかまでは見ない）。</remarks>
+        /// <remarks>覆いは頂点の境界ボックスで見る（quad なら十分。三角形の和が範囲を隙間なく覆うかまでは見ない）。</remarks>
         public static IReadOnlyList<string> CheckGeometry(T2FontAsset font)
         {
             if (font == null)
@@ -79,13 +79,13 @@ namespace info.someiyoshino.T2Font.Conformance
             }
             if (failed > problems.Count)
             {
-                problems.Add($"ほか {failed - problems.Count} 字形");
+                problems.Add($"ほか {failed - problems.Count} グリフ");
             }
             return problems;
         }
 
         /// <summary>
-        /// シェーダの契約を描いた画素で検査する。<paramref name="codepoint"/> は、墨が字の中央の縦の列を上下の水平な縁で横切る、塗り
+        /// シェーダの契約を描いた画素で検査する。<paramref name="codepoint"/> は、インク部が字の中央の縦の列を上下の水平な縁で横切る、塗り
         /// つぶしの字（「■」U+25A0 など）にする——縁取りの幅と AA の幅を、その列の画素を数えて測る。
         /// <list type="bullet">
         /// <item>S2・S6: 面の色は頂点色の rgb、フェードは頂点色の α で、透明にクリアした先へ描いても α は 1 回だけ掛かる。</item>
@@ -159,15 +159,15 @@ namespace info.someiyoshino.T2Font.Conformance
 
             if (!metrics.HasInk)
             {
-                return geometry.VertexCount == 0 ? null : $"{Name(font, glyph)}: 墨の無い字形が幾何（頂点 {geometry.VertexCount}）を書きました。";
+                return geometry.VertexCount == 0 ? null : $"{Name(font, glyph)}: インクの無いグリフが幾何（頂点 {geometry.VertexCount}）を書きました。";
             }
             if (geometry.VertexCount == 0 || geometry.IndexCount == 0)
             {
-                return $"{Name(font, glyph)}: 墨のある字形が幾何を書きませんでした。";
+                return $"{Name(font, glyph)}: インクのあるグリフが幾何を書きませんでした。";
             }
             if (representation.GetTexture(glyph) == null)
             {
-                return $"{Name(font, glyph)}: 墨のある字形のテクスチャが null です。";
+                return $"{Name(font, glyph)}: インクのあるグリフのテクスチャが null です。";
             }
 
             float left = float.MaxValue, bottom = float.MaxValue, right = float.MinValue, top = float.MinValue;
@@ -190,7 +190,7 @@ namespace info.someiyoshino.T2Font.Conformance
                 || right < metrics.inkRight + extent - Epsilon || top < metrics.inkTop + extent - Epsilon)
             {
                 return Invariant(
-                    $"{Name(font, glyph)}: 幾何 [{left:0.####}, {bottom:0.####}, {right:0.####}, {top:0.####}] が墨の外接 ")
+                    $"{Name(font, glyph)}: 幾何 [{left:0.####}, {bottom:0.####}, {right:0.####}, {top:0.####}] がインク境界 ")
                     + Invariant($"[{metrics.inkLeft:0.####}, {metrics.inkBottom:0.####}, {metrics.inkRight:0.####}, {metrics.inkTop:0.####}] ")
                     + Invariant($"を外延 {extent:0.####}em だけ広げた範囲を覆いません（README §4.3）。");
             }
@@ -260,7 +260,7 @@ namespace info.someiyoshino.T2Font.Conformance
                 }
                 if (solid == 0)
                 {
-                    problems.Add(Invariant($"S3: {size}px で描いた字の墨が中央の列を通りません（検査の字には「■」のような塗りつぶしの字を渡す）。"));
+                    problems.Add(Invariant($"S3: {size}px で描いた字のインク部が中央の列を通りません（検査の字には「■」のような塗りつぶしの字を渡す）。"));
                 }
                 else if (partial > 4)
                 {
@@ -283,7 +283,7 @@ namespace info.someiyoshino.T2Font.Conformance
             }
             mesh.colors = colors;
 
-            // 墨の中心を画像の中心へ置く（中央の列が墨の中心を通る）。画像は幾何が収まる大きさにする。
+            // インク部の中心を画像の中心へ置く（中央の列がインク部の中心を通る）。画像は幾何が収まる大きさにする。
             var bounds = mesh.bounds;
             var centerX = (metrics.inkLeft + metrics.inkRight) * 0.5f * size;
             var centerY = (metrics.inkBottom + metrics.inkTop) * 0.5f * size;
@@ -351,7 +351,7 @@ namespace info.someiyoshino.T2Font.Conformance
         {
             return glyph < font.Codepoints.Count
                 ? $"'{font.name}' の字 {TextCodepoints.Display(font.Codepoints[glyph])}（U+{font.Codepoints[glyph]:X4}）"
-                : $"'{font.name}' の字形 {glyph}";
+                : $"'{font.name}' のグリフ {glyph}";
         }
 
         private static string Describe(Color c)

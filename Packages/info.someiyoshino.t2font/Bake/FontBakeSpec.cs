@@ -17,12 +17,12 @@ namespace info.someiyoshino.T2Font.Bake
         /// <summary>本文フォント。利用側は本文の全字を覆うことを検査する。</summary>
         Corpus,
 
-        /// <summary>装飾書体。固定の字集合だけを焼き、欠けは実行時の代替字形で見せる。</summary>
+        /// <summary>装飾書体。固定の文字セットだけをベイクし、欠けは実行時の代替グリフで見せる。</summary>
         Fixed,
     }
 
     /// <summary>
-    /// フォントの生成仕様（<c>*.t2font</c>・JSON・README §7）。共通のキー（元フォント・網羅の種類・字集合）と、表現の種類ごとの
+    /// フォントのベイク仕様（<c>*.t2font</c>・JSON・README §7）。共通のキー（元フォント・網羅の種類・文字セット）と、表現の種類ごとの
     /// <c>representation</c> の節を持つ。
     ///
     /// <para>
@@ -32,7 +32,7 @@ namespace info.someiyoshino.T2Font.Bake
     /// </summary>
     public sealed class FontBakeSpec
     {
-        /// <summary>生成仕様ファイルの拡張子（取込器の主拡張子）。</summary>
+        /// <summary>ベイク仕様ファイルの拡張子（インポーターの主拡張子）。</summary>
         public const string Extension = ".t2font";
 
         private static readonly string[] KnownKeys = { "source", "coverage", "charsets", "characters", "representation" };
@@ -54,17 +54,17 @@ namespace info.someiyoshino.T2Font.Bake
         /// <summary>網羅の種類。</summary>
         public FontCoverage Coverage { get; }
 
-        /// <summary>固定の字集合（元フォントに無い字は上限集合の欠けとして件数だけを報告する）。</summary>
+        /// <summary>固定の文字セット（元フォントに無い字は上限集合の欠けとして件数だけを報告する）。</summary>
         public FontCharsetKind Charsets { get; }
 
-        /// <summary>名指しの追加字（元フォントに無ければ失敗する）。</summary>
+        /// <summary>指定の追加文字（元フォントに無ければ失敗する）。</summary>
         public string Characters { get; }
 
         /// <summary>表現の種類と、その種類の設定。</summary>
         public GlyphRepresentationSettings Representation { get; }
 
         /// <summary>
-        /// 生成仕様を読む。<paramref name="sourceName"/> は誤りの文面に出す名前（ファイルのパス）、<paramref name="kinds"/> は
+        /// ベイク仕様を読む。<paramref name="sourceName"/> は誤りの文面に出す名前（ファイルのパス）、<paramref name="kinds"/> は
         /// 使える表現の種類の一覧（README §7.4）。
         /// </summary>
         /// <exception cref="FontSpecException">JSON の構文・未知のキー・型・値の範囲・未知の表現の種類の誤り。</exception>
@@ -112,7 +112,7 @@ namespace info.someiyoshino.T2Font.Bake
             {
                 if (!(charsetsToken is JArray array))
                 {
-                    throw root.Fail(charsetsToken, "charsets は字集合の名前の配列にしてください。");
+                    throw root.Fail(charsetsToken, "charsets は文字セットの名前の配列にしてください。");
                 }
                 foreach (var item in array)
                 {
@@ -120,7 +120,7 @@ namespace info.someiyoshino.T2Font.Bake
                     var kind = name == null ? (FontCharsetKind?)null : CharsetByName(name);
                     if (kind == null)
                     {
-                        throw root.Fail(item, $"未知の字集合 {item.ToString(Formatting.None)} です（名前は {string.Join("・", KnownCharsets())}）。");
+                        throw root.Fail(item, $"未知の文字セット {item.ToString(Formatting.None)} です（名前は {string.Join("・", KnownCharsets())}）。");
                     }
                     charsets |= kind.Value;
                 }
@@ -144,13 +144,13 @@ namespace info.someiyoshino.T2Font.Bake
             return new FontBakeSpec(source, coverage, charsets, characters, ParseRepresentation(root, kinds));
         }
 
-        /// <summary>固定の字集合のコードポイント。</summary>
+        /// <summary>固定の文字セットのコードポイント。</summary>
         public SortedSet<int> FixedCodepoints()
         {
             return FontCharsets.Build(Charsets);
         }
 
-        /// <summary>名指しの追加字のコードポイント。</summary>
+        /// <summary>指定の追加文字のコードポイント。</summary>
         public SortedSet<int> NamedCodepoints()
         {
             var set = new SortedSet<int>();
@@ -159,9 +159,9 @@ namespace info.someiyoshino.T2Font.Bake
         }
 
         /// <summary>
-        /// 字集合だけを <paramref name="codepoints"/> に替えた生成仕様。ほかの値（元フォント・網羅の種類・表現）は写して自己完結にする。
-        /// 字は名指しの追加字（<c>characters</c>）として明示し、固定の字集合は持たない——焼く字が生成仕様の本文だけで決まり、名指しの字は
-        /// 元フォントに無ければ取込が失敗するので、黙って欠けない。本文から字を決めて焼き直す利用側の道具が使う。
+        /// 文字セットだけを <paramref name="codepoints"/> に替えたベイク仕様。ほかの値（元フォント・網羅の種類・表現）は写して自己完結にする。
+        /// 字は指定の追加文字（<c>characters</c>）として明示し、固定の文字セットは持たない——ベイクする字がベイク仕様の本文だけで決まり、指定文字は
+        /// 元フォントに無ければインポートが失敗するので、黙って欠けない。本文から字を決めて再ベイクする利用側の道具が使う。
         /// </summary>
         /// <exception cref="ArgumentException">字が無い・描く字でない（制御文字・BOM・サロゲート）値がある。</exception>
         public FontBakeSpec WithCharacters(IEnumerable<int> codepoints)
@@ -188,7 +188,7 @@ namespace info.someiyoshino.T2Font.Bake
         }
 
         /// <summary>
-        /// 生成仕様の本文（JSON）。<see cref="Parse"/> で同じ値に読み戻せる。<paramref name="headerLines"/> は先頭に <c>//</c> の
+        /// ベイク仕様の本文（JSON）。<see cref="Parse"/> で同じ値に読み戻せる。<paramref name="headerLines"/> は先頭に <c>//</c> の
         /// コメントとして書く（無ければ空の列）。キーは省略できる値も含めて全部書く（既定値が変わっても意味が変わらない）。
         /// </summary>
         public string ToJson(IEnumerable<string> headerLines)

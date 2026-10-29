@@ -11,7 +11,7 @@ namespace info.someiyoshino.T2Font.Tests
         private static readonly int[] Codepoints = { ' ', 'A', 'あ', '几', 0x20BB7 };
 
         [Test]
-        public void 添字がそのまま字形番号になる()
+        public void 添字がそのままグリフインデックスになる()
         {
             for (var i = 0; i < Codepoints.Length; i++)
             {

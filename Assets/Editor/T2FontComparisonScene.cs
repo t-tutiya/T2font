@@ -7,9 +7,9 @@ using UnityEngine;
 namespace info.someiyoshino.T2font.EditorTools
 {
     /// <summary>
-    /// 目視の比較の場面を作るメニュー（t2font-v0.1-plan S6）。検証用の M+ 1c を、表示サイズ・縁の様式・フェード・
+    /// 目視の比較の場面を作るメニュー（t2font-v0.1-plan S6）。検証用の M+ 1c を、表示サイズ・エッジスタイル・フェード・
     /// クリップを変えて並べた新しい場面を開く。場面は保存しない（必要なら手で保存する）——字は検証ビューが実行時に作るので、
-    /// 生成仕様を焼き直せば開き直すだけで最新の表現を見られる。
+    /// ベイク仕様を再ベイクすれば開き直すだけで最新の表現を見られる。
     /// </summary>
     internal static class T2FontComparisonScene
     {
@@ -22,7 +22,7 @@ namespace info.someiyoshino.T2font.EditorTools
             var font = AssetDatabase.LoadAssetAtPath<T2FontAsset>(FontPath);
             if (font == null)
             {
-                EditorUtility.DisplayDialog("T2font", $"{FontPath} を読めません（取込の誤りを Console で確かめてください）。", "OK");
+                EditorUtility.DisplayDialog("T2font", $"{FontPath} を読めません（インポートの誤りを Console で確かめてください）。", "OK");
                 return;
             }
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())

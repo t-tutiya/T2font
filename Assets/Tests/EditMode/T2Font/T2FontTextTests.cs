@@ -34,7 +34,7 @@ namespace T2font.EditModeTests
         }
 
         [Test]
-        public void 墨のある字ごとに1つのCanvasRendererを作る()
+        public void インクのある字ごとに1つのCanvasRendererを作る()
         {
             _text.Font = TestFontAssets.Mplus1cSdf();
             _text.Text = "A あ\n■";
@@ -54,7 +54,7 @@ namespace T2font.EditModeTests
         }
 
         [Test]
-        public void 範囲の外の様式は描かずにLogErrorを出す()
+        public void 範囲の外のエッジスタイルは描かずにLogErrorを出す()
         {
             _text.Font = TestFontAssets.Mplus1cSdf();
             _text.Text = "A";

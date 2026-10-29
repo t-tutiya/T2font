@@ -4,7 +4,7 @@
 representation (SDF included), with a pure C# TrueType reader and baker, a `.t2font` importer, a viewer and a conformance suite.
 The package lives in [`Packages/info.someiyoshino.t2font/`](Packages/info.someiyoshino.t2font/README.md). License: [MIT](LICENSE).
 
-Unity uGUI の文字描画のためのパッケージ。フォント資産を「字の表」と差し替えられる「字形の表現」に分け、表現を足しても字を置く側の
+Unity uGUI の文字描画のためのパッケージ。フォントアセットを「タイポグラフィテーブル」と差し替えられる「グリフの表現」に分け、表現を足しても字を置く側の
 コードが変わらない API を提供する。使い方と契約はパッケージの README、ライセンスは MIT（権利者 t-tutiya）。
 
 ## Install / 導入

@@ -1,0 +1,2595 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>TrueType からアトラスへ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&amp;family=M+PLUS+1+Code:wght@400;600&amp;family=Shippori+Mincho+B1:wght@600;800&amp;display=swap">
+<style>
+/* レイアウト: 本文は 1 列（約 44 字）、図版と表は本文より広い列。1100px 以上では左に目次の列を足す。 */
+:root {
+  --paper: #f2f4f3;
+  --surface: #fbfcfb;
+  --sunken: #e6eae9;
+  --ink: #15191b;
+  --muted: #56626a;
+  --rule: #d2d9d8;
+  --rule-strong: #a7b2b4;
+  --guide: #0a7280;
+  --ctrl: #b0136b;
+  --amber: #a85f00;
+  --tint-guide: rgba(10, 114, 128, 0.10);
+  --tint-guide-strong: rgba(10, 114, 128, 0.30);
+  --tint-ctrl: rgba(176, 19, 107, 0.12);
+  --tint-amber: rgba(168, 95, 0, 0.15);
+  --glyph-fill: rgba(21, 25, 27, 0.09);
+  --invert: 0;
+  --atl-0: #ffc247;
+  --atl-1: #3fd0db;
+  --atl-2: #ff72c2;
+  --atl-q: rgba(255, 255, 255, 0.55);
+  --atl-bg: #050607;
+  --atl-cap: #c3cdd0;
+  --font-display: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  --font-body: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic UI", "Meiryo", "Noto Sans JP", sans-serif;
+  --font-mono: "M PLUS 1 Code", "SFMono-Regular", Menlo, Consolas, "Noto Sans Mono CJK JP", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1213;
+    --surface: #151a1c;
+    --sunken: #1d2427;
+    --ink: #e1e6e7;
+    --muted: #97a3a8;
+    --rule: #283134;
+    --rule-strong: #485559;
+    --guide: #46c1cc;
+    --ctrl: #ef68b4;
+    --amber: #e5a23b;
+    --tint-guide: rgba(70, 193, 204, 0.12);
+    --tint-guide-strong: rgba(70, 193, 204, 0.34);
+    --tint-ctrl: rgba(239, 104, 180, 0.16);
+    --tint-amber: rgba(229, 162, 59, 0.18);
+    --glyph-fill: rgba(225, 230, 231, 0.10);
+    --invert: 1;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1213;
+  --surface: #151a1c;
+  --sunken: #1d2427;
+  --ink: #e1e6e7;
+  --muted: #97a3a8;
+  --rule: #283134;
+  --rule-strong: #485559;
+  --guide: #46c1cc;
+  --ctrl: #ef68b4;
+  --amber: #e5a23b;
+  --tint-guide: rgba(70, 193, 204, 0.12);
+  --tint-guide-strong: rgba(70, 193, 204, 0.34);
+  --tint-ctrl: rgba(239, 104, 180, 0.16);
+  --tint-amber: rgba(229, 162, 59, 0.18);
+  --glyph-fill: rgba(225, 230, 231, 0.10);
+  --invert: 1;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.85;
+  -webkit-text-size-adjust: 100%;
+}
+.wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 96px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 56px;
+}
+.masthead, .toc, main { min-width: 0; }
+
+/* 見出しと本文 */
+.masthead { grid-column: 1 / -1; padding-bottom: 28px; border-bottom: 1px solid var(--rule); margin-bottom: 8px; }
+.eyebrow { margin: 0 0 10px; font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.06em; color: var(--guide); }
+h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.1rem, 1.5rem + 2.6vw, 3.4rem);
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-wrap: balance;
+}
+.lede { max-width: 40em; margin: 18px 0 0; font-size: 1.08rem; }
+.specimen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px 28px;
+  margin: 26px 0 0;
+  max-width: 960px;
+}
+.specimen div { min-width: 0; border-top: 2px solid var(--ink); padding-top: 8px; }
+.specimen dt { font-size: 0.78rem; letter-spacing: 0.08em; color: var(--muted); }
+.specimen dd { margin: 2px 0 0; font-size: 0.92rem; line-height: 1.6; overflow-wrap: anywhere; }
+.masthead .note { margin-top: 22px; }
+
+h2 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.45rem, 1.2rem + 0.9vw, 1.9rem);
+  line-height: 1.35;
+  margin: 72px 0 18px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rule);
+  text-wrap: balance;
+  max-width: 920px;
+}
+h2 .num { display: inline-block; min-width: 1.6em; font-family: var(--font-mono); font-weight: 600; color: var(--guide); }
+h3 { font-size: 1.14rem; line-height: 1.5; margin: 44px 0 10px; text-wrap: balance; max-width: 44em; }
+h3 .num { font-family: var(--font-mono); font-weight: 600; color: var(--guide); margin-right: 0.5em; }
+h4 { font-size: 1rem; margin: 30px 0 6px; max-width: 44em; }
+p, ul, ol, dl.defs { max-width: 44em; }
+p { margin: 0 0 14px; }
+ul, ol { padding-left: 1.4em; margin: 0 0 14px; }
+li { margin-bottom: 4px; }
+a { color: var(--guide); text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--guide); outline-offset: 2px; border-radius: 2px; }
+code, .mono { font-family: var(--font-mono); }
+code { font-size: 0.86em; background: var(--sunken); padding: 0.05em 0.35em; border-radius: 3px; overflow-wrap: anywhere; }
+pre {
+  max-width: 920px;
+  overflow-x: auto;
+  background: var(--sunken);
+  padding: 14px 16px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  line-height: 1.7;
+}
+pre code { background: none; padding: 0; font-size: inherit; }
+.note {
+  max-width: 44em;
+  padding: 10px 14px;
+  border-left: 3px solid var(--guide);
+  background: var(--tint-guide);
+  font-size: 0.94rem;
+}
+.note.warn { border-left-color: var(--amber); background: var(--tint-amber); }
+.formula {
+  max-width: 44em;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+/* 目次 */
+.toc { font-size: 0.9rem; margin: 24px 0 8px; }
+.toc h2 { all: unset; display: block; font-size: 0.78rem; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px; }
+.toc ol { list-style: none; padding: 0; margin: 0; max-width: none; columns: 2 15em; column-gap: 28px; }
+.toc li { margin: 0 0 4px; break-inside: avoid; line-height: 1.5; }
+.toc li li { padding-left: 1.6em; font-size: 0.86rem; }
+.toc ol ol { columns: auto; margin-top: 4px; }
+.toc a { text-decoration: none; color: var(--ink); }
+.toc a:hover { color: var(--guide); }
+.toc .n { font-family: var(--font-mono); color: var(--guide); display: inline-block; min-width: 1.6em; }
+@media (min-width: 1100px) {
+  .wrap { grid-template-columns: 210px minmax(0, 1fr); }
+  .toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; margin-top: 60px; }
+  .toc ol { columns: auto; }
+}
+
+/* 図版 */
+figure.fig {
+  margin: 26px 0 30px;
+  max-width: 920px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 16px;
+}
+figure.fig.dark-plate { background: var(--atl-bg); border-color: var(--atl-bg); }
+figure.fig.dark-plate figcaption { color: var(--atl-cap); }
+figure.fig.dark-plate .fn { color: var(--atl-1); }
+figcaption { margin-top: 12px; font-size: 0.88rem; line-height: 1.7; color: var(--muted); max-width: 52em; }
+figcaption .fn { font-family: var(--font-mono); color: var(--guide); margin-right: 0.6em; font-weight: 600; }
+.scroll { overflow-x: auto; }
+svg.dia { display: block; width: 100%; height: auto; min-width: 600px; }
+svg.dia.narrow { min-width: 0; max-width: 300px; margin: 0 auto; }
+svg.dia.atlas { min-width: 0; }
+svg.dia text { font-family: var(--font-body); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 10px 0 0; padding: 0; list-style: none; font-size: 0.84rem; color: var(--muted); max-width: none; }
+.legend li { display: flex; align-items: center; gap: 6px; margin: 0; }
+.legend svg { flex: none; }
+.sw { display: inline-block; width: 14px; height: 14px; border-radius: 2px; flex: none; }
+
+.quad { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+.quad figure { margin: 0; min-width: 0; }
+.quad img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); background: var(--surface); }
+.quad figcaption { margin-top: 6px; font-size: 0.82rem; }
+img.pixel { image-rendering: pixelated; }
+img.inv { filter: invert(var(--invert)); }
+.render-plate img { display: block; max-width: 100%; height: auto; border-radius: 2px; }
+
+.split { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (min-width: 760px) { .split { grid-template-columns: minmax(0, 1fr) 300px; } }
+
+/* 表 */
+.tbl { max-width: 920px; overflow-x: auto; margin: 16px 0 22px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; line-height: 1.6; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; vertical-align: top; padding: 7px 10px; border-bottom: 1px solid var(--rule); }
+th { font-weight: 700; font-size: 0.8rem; letter-spacing: 0.04em; color: var(--muted); background: var(--sunken); white-space: nowrap; }
+td.num, th.num { text-align: right; }
+td.mono, td .mono { font-family: var(--font-mono); font-size: 0.86rem; }
+tr.read td { background: var(--tint-guide); }
+tr.read td:first-child { box-shadow: inset 3px 0 0 var(--guide); }
+tr.pick td { background: var(--tint-ctrl); }
+.yes { color: var(--guide); font-weight: 700; }
+td.nw { white-space: nowrap; }
+.nb { display: inline-block; }
+.bytes { font-family: var(--font-mono); white-space: nowrap; }
+.chip { display: inline-block; padding: 0 0.4em; border-radius: 3px; font-family: var(--font-mono); font-size: 0.85rem; }
+.f-hdr { background: var(--sunken); }
+.f-pts { background: var(--tint-amber); }
+.f-ins { background: var(--sunken); }
+.f-flg { background: var(--tint-ctrl); }
+.f-x { background: var(--tint-guide-strong); }
+.f-y { background: var(--tint-guide); }
+.f-pad { background: transparent; color: var(--muted); }
+
+/* グリフインデックスの並び */
+.strip { display: flex; gap: 4px; overflow-x: auto; padding: 4px 0 8px; max-width: 920px; }
+.strip .g { flex: none; min-width: 56px; padding: 6px 6px 4px; border: 1px solid var(--rule); background: var(--surface); border-radius: 3px; text-align: center; }
+.strip .g b { display: block; font-size: 1.35rem; line-height: 1.3; font-weight: 400; min-height: 1.3em; }
+.strip .g span { display: block; font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); line-height: 1.4; }
+.strip .gap { flex: none; align-self: center; color: var(--muted); padding: 0 4px; }
+.strip .g.nd { border-color: var(--ctrl); }
+
+dl.defs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 18px; }
+@media (min-width: 640px) { dl.defs { grid-template-columns: 11em minmax(0, 1fr); } }
+dl.defs dt { font-weight: 700; }
+dl.defs dd { margin: 0 0 8px; }
+
+footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 0.84rem; color: var(--muted); max-width: 920px; }
+
+/* SVG の部品（色はすべて上のトークンから） */
+.lbl { font-size: 13px; fill: var(--ink); }
+.lbl-s { font-size: 11.5px; fill: var(--muted); }
+.lbl-b { font-size: 13px; font-weight: 700; fill: var(--ink); }
+.dia .mono { font-family: var(--font-mono); }
+.dia .strong { fill: var(--ink); font-weight: 700; }
+.dia .ctrl { fill: var(--ctrl); }
+.node { fill: var(--surface); stroke: var(--rule-strong); stroke-width: 1.2; }
+.node.in { fill: var(--tint-guide); stroke: var(--guide); }
+.node.host { fill: var(--sunken); stroke: var(--rule-strong); }
+.node.sdf { stroke: var(--ctrl); stroke-width: 1.6; }
+.node-t { font-size: 14px; font-weight: 700; fill: var(--ink); }
+.node-s { font-size: 12px; fill: var(--muted); font-family: var(--font-mono); }
+.asm { font-size: 11px; fill: var(--guide); font-family: var(--font-mono); letter-spacing: 0.04em; }
+.flow { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+.ah-flow, .ah-dim { fill: var(--muted); }
+.ah-guide { fill: var(--guide); }
+.ah-ink { fill: var(--ink); }
+.ah-ctrl { fill: var(--ctrl); }
+.ah-amber { fill: var(--atl-0); }
+.map-bg { fill: var(--sunken); }
+.map-hdr { fill: var(--amber); }
+.map-read { fill: var(--guide); }
+.map-other { fill: var(--rule-strong); }
+.leader { stroke: var(--muted); stroke-width: 1; }
+.leader-c { stroke: var(--ctrl); stroke-width: 1.4; fill: none; }
+.cellbox { fill: var(--surface); stroke: var(--rule-strong); }
+.cellbox.hl { fill: var(--tint-ctrl); stroke: var(--ctrl); }
+.glyfblk { fill: var(--sunken); stroke: var(--rule-strong); }
+.glyfblk.hl { fill: var(--tint-ctrl); stroke: var(--ctrl); stroke-width: 1.5; }
+.base { stroke: var(--guide); stroke-width: 1.2; }
+.vguide { stroke: var(--guide); stroke-width: 1; stroke-dasharray: 5 4; }
+.vguide.faint { opacity: 0.5; }
+.g-fill { fill: var(--glyph-fill); }
+.g-stroke { stroke: var(--ink); stroke-width: 1.3; stroke-linejoin: round; }
+.g-solid { fill: var(--ink); }
+.pt-on { fill: var(--ink); }
+.pt-off { fill: var(--surface); stroke: var(--ctrl); stroke-width: 1.6; }
+.pt-implied { fill: var(--amber); }
+.ctrl-poly { fill: none; stroke: var(--ctrl); stroke-width: 0.9; stroke-dasharray: 3 3; opacity: 0.85; }
+.dim { stroke: var(--muted); stroke-width: 1; }
+.dim-g { stroke: var(--guide); stroke-width: 1.2; }
+.tick { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 3; }
+.gapband { fill: var(--tint-amber); }
+.emsq { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 4; }
+.inkbox { fill: none; stroke: var(--ctrl); stroke-width: 1.2; stroke-dasharray: 5 3; }
+.origin { fill: var(--guide); stroke: var(--surface); stroke-width: 1.5; }
+.curve { fill: none; stroke: var(--ink); stroke-width: 1.4; }
+.chord { fill: none; stroke: var(--guide); stroke-width: 2.2; stroke-linejoin: round; }
+.pt-seg { fill: var(--guide); }
+.scan { stroke: var(--amber); stroke-width: 1.6; }
+.xing { fill: var(--surface); stroke: var(--amber); stroke-width: 2; }
+.wnum { font-family: var(--font-mono); font-size: 13px; font-weight: 600; fill: var(--guide); }
+.px-in { fill: var(--tint-guide-strong); }
+.grid { stroke: var(--rule); stroke-width: 0.6; }
+.grid-t { stroke: var(--rule-strong); stroke-width: 1.6; }
+.pc-in { fill: var(--ink); }
+.pc-out { fill: var(--rule-strong); }
+.edge { stroke: var(--ctrl); stroke-width: 1.6; fill: none; }
+.texel { fill: var(--surface); }
+.texel.mid { fill: var(--sunken); }
+.tap { fill: var(--tint-ctrl); stroke: var(--ctrl); stroke-width: 1.2; }
+.texc { fill: var(--guide); }
+.para { fill: none; stroke: var(--rule-strong); stroke-width: 1.2; }
+.env { fill: none; stroke: var(--guide); stroke-width: 2.6; }
+.enc { fill: none; stroke: var(--guide); stroke-width: 2.6; stroke-linejoin: round; }
+.band-ext { fill: var(--tint-ctrl); }
+.band-aa { fill: var(--tint-amber); }
+.cell { fill: var(--surface); stroke: var(--ink); stroke-width: 1.4; }
+.cellink { fill: var(--tint-amber); stroke: var(--amber); stroke-width: 1.2; }
+.glyphrect { fill: none; stroke: var(--guide); stroke-width: 2; }
+.slot { stroke-width: 2; fill-opacity: 0.14; }
+.slot.c0 { fill: var(--atl-0); stroke: var(--atl-0); }
+.slot.c1 { fill: var(--atl-1); stroke: var(--atl-1); }
+.slot.c2 { fill: var(--atl-2); stroke: var(--atl-2); }
+.qrect { fill: none; stroke: var(--atl-q); stroke-width: 1.2; stroke-dasharray: 4 3; }
+.fillorder { stroke: var(--atl-0); stroke-width: 3; }
+.atl { font-size: 22px; fill: var(--atl-0); font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+html { scroll-behavior: smooth; }
+h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="masthead">
+<p class="eyebrow">T2Font アーキテクチャ解説 02 ／ パッケージ info.someiyoshino.t2font</p>
+<h1><span class="nb">TrueType</span> <span class="nb">からアトラスへ</span></h1>
+<p class="lede">ベイク仕様（<code>.t2font</code>）と TrueType フォントから、タイポグラフィテーブルと SDF のテクスチャアトラスがベイクされるまでを、パッケージのコードの順に追う。途中で TrueType のデータ構造とフォントメトリクスの読み方も押さえる。</p>
+<dl class="specimen">
+<div><dt>見本の元フォント</dt><dd><code>Assets/Authoring/Fonts/mplus-1c-regular.ttf</code><br>M+ 1c Regular・グリフ 8,778・unitsPerEm 1000</dd></div>
+<div><dt>見本のベイク仕様</dt><dd><code>Assets/Content/Fonts/mplus-1c-sdf.t2font</code><br>Ascii ＋ 指定文字・<code>sdf</code>・emPx 48・R8</dd></div>
+<div><dt>ベイクした結果</dt><dd>206 字 ＋ .notdef ＝ グリフ 207<br>1 ページ 1020×1008 px・セル 68×72 px</dd></div>
+</dl>
+<p class="note">契約（何を守るか）の正典はパッケージの README で、本書は動作（どう動いているか）を図で補う。実データの図は、記述時点のパッケージの Bake のコードを上の見本に対して実際に走らせて作った（作り方は<a href="#method">末尾</a>）。</p>
+</header>
+
+<nav class="toc" aria-label="目次">
+<h2>目次</h2>
+<ol>
+<li><a href="#overview"><span class="n">1</span>全体の流れ</a></li>
+<li><a href="#sfnt"><span class="n">2</span>TrueType ファイルの構造</a>
+<ol>
+<li><a href="#directory">外枠と表の目録</a></li>
+<li><a href="#tables">T2Font が読む表</a></li>
+<li><a href="#cmap">cmap</a></li>
+<li><a href="#hmtx">hmtx</a></li>
+<li><a href="#glyf">loca と glyf</a></li>
+<li><a href="#simple">単純グリフの符号化</a></li>
+<li><a href="#composite">複合グリフ</a></li>
+</ol></li>
+<li><a href="#outline"><span class="n">3</span>輪郭と 2 次ベジエ</a></li>
+<li><a href="#metrics"><span class="n">4</span>フォントメトリクス</a></li>
+<li><a href="#face"><span class="n">5</span>タイポグラフィテーブルを作る</a></li>
+<li><a href="#sdf"><span class="n">6</span>SDF アトラスをベイクする</a>
+<ol>
+<li><a href="#encoding">距離の符号化</a></li>
+<li><a href="#cell">セルの寸法</a></li>
+<li><a href="#layout">並べる順とページ</a></li>
+<li><a href="#render">字ごとの工程</a></li>
+<li><a href="#parallel">並列と決定性</a></li>
+</ol></li>
+<li><a href="#texture"><span class="n">7</span>テクスチャとアセットにする</a></li>
+<li><a href="#use"><span class="n">8</span>ベイクした結果を描く</a></li>
+<li><a href="#terms"><span class="n">9</span>用語</a></li>
+<li><a href="#method"><span class="n">10</span>図の作り方</a></li>
+</ol>
+</nav>
+
+<main>
+
+<h2 id="overview"><span class="num">1</span>全体の流れ</h2>
+<p>インポーター <code>T2FontImporter</code> は、<code>.t2font</code> をインポートするたびに下の段を順に回す（パッケージの README §7.3）。①〜④の計算は UnityEngine を参照しない純 C#（アセンブリ <code>Someiyoshino.T2Font.Bake</code>）で、Unity に触れるのはテクスチャを作る所とアセットを登録する所だけ。だから外部の NUnit が、インポーターと同じコードを Unity を起動せずに検査できる（01 章「パッケージ T2Font」）。</p>
+
+<figure class="fig" id="fig-pipeline">
+<div class="scroll"><svg class="dia " viewBox="0 0 760 652" width="760" height="652" role="img" aria-label="インポートの 5 段の流れ図" xmlns="http://www.w3.org/2000/svg">
+<rect class="node in" x="40" y="16" width="300" height="62" rx="6"/><text class="node-t" x="54" y="40" text-anchor="start">ベイク仕様 .t2font</text><text class="node-s" x="54" y="60" text-anchor="start">source・coverage・charsets・characters・representation</text>
+<rect class="node in" x="420" y="16" width="300" height="62" rx="6"/><text class="node-t" x="434" y="40" text-anchor="start">元フォント .ttf</text><text class="node-s" x="434" y="60" text-anchor="start">TrueType 輪郭（glyf）の単体のフォント</text>
+<line class="flow" x1="190" y1="78" x2="190" y2="104"/><line class="flow" x1="570" y1="78" x2="570" y2="104"/><line class="flow" x1="190" y1="104" x2="570" y2="104"/>
+<line class="flow" x1="380" y1="104" x2="380" y2="122"/><polygon class="ah-flow" points="380,124 376.4,116 383.6,116"/>
+<rect class="node host" x="40" y="124" width="680" height="44" rx="6"/><text class="node-t" x="54" y="148" text-anchor="start">T2FontImporter.OnImportAsset</text><text class="asm" x="708" y="148" text-anchor="end">Editor</text>
+<line class="flow" x1="380" y1="170" x2="380" y2="190"/><polygon class="ah-flow" points="380,192 376.4,184 383.6,184"/>
+<rect class="node step" x="40" y="192" width="680" height="61" rx="6"/><text class="node-t" x="54" y="216" text-anchor="start">① ベイク仕様を読む</text><text class="node-s" x="54" y="236" text-anchor="start">FontBakeSpec.Parse — 未知のキー・型の違いで止める</text><text class="asm" x="708" y="216" text-anchor="end">Bake</text>
+<line class="flow" x1="380" y1="253" x2="380" y2="273"/><polygon class="ah-flow" points="380,275 376.4,267 383.6,267"/>
+<rect class="node step" x="40" y="275" width="680" height="61" rx="6"/><text class="node-t" x="54" y="299" text-anchor="start">② フォントの表を読む</text><text class="node-s" x="54" y="319" text-anchor="start">TrueTypeFont — head・hhea・maxp・hmtx・cmap・loca・glyf</text><text class="asm" x="708" y="299" text-anchor="end">Bake</text>
+<line class="flow" x1="380" y1="336" x2="380" y2="356"/><polygon class="ah-flow" points="380,358 376.4,350 383.6,350"/>
+<rect class="node step" x="40" y="358" width="680" height="78" rx="6"/><text class="node-t" x="54" y="382" text-anchor="start">③ タイポグラフィテーブルを作る（全表現で共通）</text><text class="node-s" x="54" y="402" text-anchor="start">FontSpecBaker.BuildFace → FontFaceBuilder.Build</text><text class="node-s" x="54" y="419" text-anchor="start">→ FontFaceData（縦メトリクス・字・送り幅・インク境界・輪郭）</text><text class="asm" x="708" y="382" text-anchor="end">Bake</text>
+<line class="flow" x1="380" y1="436" x2="380" y2="456"/><polygon class="ah-flow" points="380,458 376.4,450 383.6,450"/>
+<rect class="node step sdf" x="40" y="458" width="680" height="78" rx="6"/><text class="node-t" x="54" y="482" text-anchor="start">④ 表現をベイクする（SDF）</text><text class="node-s" x="54" y="502" text-anchor="start">SdfGlyphBaker.Bake → SdfAtlasBaker.Bake → SdfAtlas（セル・ページ）</text><text class="node-s" x="54" y="519" text-anchor="start">BuildPage → Texture2D（R8／BC4）</text><text class="asm" x="708" y="482" text-anchor="end">Bake＋Editor</text>
+<line class="flow" x1="380" y1="536" x2="380" y2="556"/><polygon class="ah-flow" points="380,558 376.4,550 383.6,550"/>
+<rect class="node step" x="40" y="558" width="680" height="78" rx="6"/><text class="node-t" x="54" y="582" text-anchor="start">⑤ アセットを組む</text><text class="node-s" x="54" y="602" text-anchor="start">SdfRepresentation.Create・T2FontAsset.Create</text><text class="node-s" x="54" y="619" text-anchor="start">→ AddObjectToAsset（主＝T2FontAsset・副＝表現とページ）</text><text class="asm" x="708" y="582" text-anchor="end">Runtime の型</text>
+</svg></div>
+<figcaption><span class="fn">図 1</span>インポートの流れ。右肩はその段のコードが属するアセンブリ。④だけが表現（ここでは SDF）ごとに替わり、③までは全表現で共通。</figcaption>
+</figure>
+
+<div class="tbl"><table>
+<thead><tr><th>段</th><th>主な型</th><th>ファイル（パッケージ内）</th><th>出力</th></tr></thead>
+<tbody>
+<tr><td>① ベイク仕様を読む</td><td><code>FontBakeSpec</code></td><td class="mono">Bake/FontBakeSpec.cs</td><td>元フォントのパス・文字セット・表現の設定</td></tr>
+<tr><td>② フォントを読む</td><td><code>TrueTypeFont</code></td><td class="mono">Bake/TrueTypeFont.cs<br>Bake/GlyphOutline.cs</td><td>縦メトリクス・送り幅・cmap・輪郭を引けるリーダー</td></tr>
+<tr><td>③ タイポグラフィテーブルを作る</td><td><code>FontSpecBaker</code>・<code>FontFaceBuilder</code></td><td class="mono">Bake/FontSpecBaker.cs<br>Bake/FontFaceBuilder.cs</td><td><code>FontFaceData</code></td></tr>
+<tr><td>④ 表現をベイクする</td><td><code>SdfGlyphBaker</code>・<code>SdfAtlasBaker</code>・<code>AtlasLayout</code>・<code>ScanlineRasterizer</code>・<code>DistanceTransform</code></td><td class="mono">Editor/SdfGlyphBaker.cs<br>Bake/SdfAtlasBaker.cs ほか</td><td><code>SdfAtlas</code> → <code>Texture2D</code></td></tr>
+<tr><td>⑤ アセットを組む</td><td><code>SdfRepresentation</code>・<code>T2FontAsset</code></td><td class="mono">Runtime/</td><td>メインアセット <code>T2FontAsset</code> とサブアセット</td></tr>
+</tbody></table></div>
+
+<p>どの段で誤ってもアセットは作らない。例外はインポートの誤り（<code>LogImportError</code>）として報告され、ベイカーが作りかけたサブアセットはインポーターが捨てる。ロードは null になり、参照が明確に失敗する（README §2.1）。</p>
+
+<h2 id="sfnt"><span class="num">2</span>TrueType ファイルの構造</h2>
+
+<h3 id="directory"><span class="num">2.1</span>外枠: オフセット表と表の目録</h3>
+<p>TrueType のファイル（sfnt 形式）は、4 文字のタグを名前に持つ「表」の集まりで、先頭に目録がある。数値はすべてビッグエンディアンで、<code>TrueTypeFont</code> は <code>ReadU16</code>・<code>ReadI16</code>・<code>ReadU32</code> で 1 バイトずつ組み立てて読む（どの読み出しもファイルの範囲を確かめ、外を指せば <code>FormatException</code>）。</p>
+
+<div class="tbl"><table>
+<thead><tr><th>位置</th><th>型</th><th>欄</th><th>M+ 1c の値・扱い</th></tr></thead>
+<tbody>
+<tr><td class="mono">0</td><td class="mono">u32</td><td>sfntVersion</td><td><code>0x00010000</code>（TrueType 輪郭）</td></tr>
+<tr><td class="mono">4</td><td class="mono">u16</td><td>numTables</td><td>21</td></tr>
+<tr><td class="mono">6</td><td class="mono">u16 ×3</td><td>searchRange・entrySelector・rangeShift</td><td>二分探索の補助。読まない</td></tr>
+<tr><td class="mono">12 + 16i</td><td class="mono">tag・u32 ×3</td><td>表の記録: タグ・checkSum・offset・length</td><td>タグで辞書にする。checkSum は確かめない</td></tr>
+</tbody></table></div>
+
+<p>先頭の sfntVersion で形式を見分ける。<code>0x00010000</code> と <code>'true'</code>（Apple の TrueType）は読み、<code>'OTTO'</code>（CFF 輪郭＝多くの .otf）と <code>'ttcf'</code>（フォントコレクション）は <code>NotSupportedException</code> で止める。コレクションを読まないのは、ベイク仕様が書体の番号を持たず、読めばどの書体をベイクするかを黙って決めることになるため。</p>
+
+<figure class="fig" id="fig-filemap">
+<div class="scroll"><svg class="dia " viewBox="0 0 760 132" width="760" height="132" role="img" aria-label="M+ 1c Regular のファイル中の表の配置" xmlns="http://www.w3.org/2000/svg">
+<rect class="map-bg" x="20" y="40" width="720" height="34"/>
+<rect class="map-hdr" x="20" y="40" width="2" height="34"/>
+<rect class="map-other" x="740" y="40" width="1.2" height="34"/>
+<rect class="map-other" x="718.2" y="40" width="1.2" height="34"/>
+<rect class="map-other" x="723.4" y="40" width="6.5" height="34"/>
+<rect class="map-other" x="718.8" y="40" width="4.6" height="34"/>
+<rect class="map-other" x="20.2" y="40" width="1.2" height="34"/>
+<rect class="map-other" x="739.7" y="40" width="1.2" height="34"/>
+<rect class="map-read" x="35" y="40" width="32.8" height="34"/>
+<rect class="map-other" x="68" y="40" width="1.2" height="34"/>
+<rect class="map-other" x="67.8" y="40" width="1.2" height="34"/>
+<rect class="map-other" x="718.2" y="40" width="1.2" height="34"/>
+<rect class="map-read" x="82.8" y="40" width="634.7" height="34"/>
+<rect class="map-read" x="20.1" y="40" width="1.2" height="34"/>
+<rect class="map-read" x="20.2" y="40" width="1.2" height="34"/>
+<rect class="map-read" x="20.2" y="40" width="14.7" height="34"/>
+<rect class="map-read" x="68" y="40" width="14.7" height="34"/>
+<rect class="map-read" x="20.2" y="40" width="1.2" height="34"/>
+<rect class="map-other" x="717.5" y="40" width="1.2" height="34"/>
+<rect class="map-other" x="718.1" y="40" width="1.2" height="34"/>
+<rect class="map-other" x="68" y="40" width="1.2" height="34"/>
+<rect class="map-other" x="740" y="40" width="1.2" height="34"/>
+<rect class="map-other" x="730" y="40" width="9.7" height="34"/>
+<line class="leader" x1="400.1" y1="74" x2="400.1" y2="88"/><text class="lbl mono" x="400.1" y="100" text-anchor="middle">glyf</text>
+<text class="lbl-s" x="400.1" y="118" text-anchor="middle">88%（1,512,880 バイト）</text>
+<text class="lbl-s mono" x="20" y="30" text-anchor="start">0</text>
+<text class="lbl-s mono" x="740" y="30" text-anchor="end">1,716,248 バイト</text>
+<line class="leader" x1="53.6" y1="74" x2="53.6" y2="88"/>
+<text class="lbl-s" x="20" y="100" text-anchor="start">目録と小さな表（head・hhea・maxp・hmtx・cmap・loca ほか）</text>
+<line class="leader" x1="726.7" y1="74" x2="724.7" y2="88"/><text class="lbl mono" x="724.7" y="100" text-anchor="end">GPOS</text>
+</svg></div>
+<figcaption><span class="fn">図 2</span>M+ 1c Regular の中の表の並び（横軸はファイルのバイト位置）。青緑が T2Font の読む表、灰がそれ以外。ファイルの大半は輪郭の表 glyf が占める。</figcaption>
+</figure>
+
+<div class="tbl"><table>
+<thead><tr><th>タグ</th><th class="num">offset</th><th class="num">length</th><th>読む</th><th>中身</th></tr></thead>
+<tbody>
+<tr class="read"><td class="mono">head</td><td class="num mono">348</td><td class="num mono">54</td><td><span class="yes">読む</span></td><td>unitsPerEm（+18）・indexToLocFormat（+50）</td></tr>
+<tr class="read"><td class="mono">hhea</td><td class="num mono">404</td><td class="num mono">36</td><td><span class="yes">読む</span></td><td>ascender（+4）・descender（+6）・lineGap（+8）・numberOfHMetrics（+34）</td></tr>
+<tr class="read"><td class="mono">maxp</td><td class="num mono">440</td><td class="num mono">32</td><td><span class="yes">読む</span></td><td>numGlyphs（+4）</td></tr>
+<tr><td class="mono">OS/2</td><td class="num mono">472</td><td class="num mono">86</td><td>—</td><td>別系統の縦メトリクス・字幅の分類など</td></tr>
+<tr class="read"><td class="mono">hmtx</td><td class="num mono">560</td><td class="num mono">35,082</td><td><span class="yes">読む</span></td><td>送り幅（advanceWidth）</td></tr>
+<tr class="read"><td class="mono">cmap</td><td class="num mono">35,644</td><td class="num mono">78,182</td><td><span class="yes">読む</span></td><td>字 → グリフインデックス</td></tr>
+<tr><td class="mono">fpgm</td><td class="num mono">113,828</td><td class="num mono">613</td><td>—</td><td>ヒンティング命令</td></tr>
+<tr><td class="mono">prep</td><td class="num mono">114,444</td><td class="num mono">46</td><td>—</td><td>ヒンティング命令</td></tr>
+<tr><td class="mono">cvt </td><td class="num mono">114,492</td><td class="num mono">14</td><td>—</td><td>ヒンティングの値</td></tr>
+<tr class="read"><td class="mono">loca</td><td class="num mono">114,508</td><td class="num mono">35,116</td><td><span class="yes">読む</span></td><td>グリフインデックス → glyf 内の範囲</td></tr>
+<tr class="read"><td class="mono">glyf</td><td class="num mono">149,624</td><td class="num mono">1,512,880</td><td><span class="yes">読む</span></td><td>輪郭</td></tr>
+<tr><td class="mono">name</td><td class="num mono">1,662,504</td><td class="num mono">1,638</td><td>—</td><td>書体名・著作権表示</td></tr>
+<tr><td class="mono">post</td><td class="num mono">1,664,144</td><td class="num mono">32</td><td>—</td><td>PostScript 名</td></tr>
+<tr><td class="mono">gasp</td><td class="num mono">1,664,176</td><td class="num mono">8</td><td>—</td><td>表示サイズ別の AA の指定</td></tr>
+<tr><td class="mono">GDEF</td><td class="num mono">1,664,184</td><td class="num mono">1,572</td><td>—</td><td>GSUB／GPOS の補助</td></tr>
+<tr><td class="mono">GSUB</td><td class="num mono">1,665,756</td><td class="num mono">11,036</td><td>—</td><td>グリフの置換（合字・縦書きの代替など）</td></tr>
+<tr><td class="mono">GPOS</td><td class="num mono">1,676,792</td><td class="num mono">15,582</td><td>—</td><td>位置調整（カーニングなど）</td></tr>
+<tr><td class="mono">vmtx</td><td class="num mono">1,692,376</td><td class="num mono">23,088</td><td>—</td><td>縦書きの送り</td></tr>
+<tr><td class="mono">PfEd</td><td class="num mono">1,715,464</td><td class="num mono">720</td><td>—</td><td>FontForge の編集情報</td></tr>
+<tr><td class="mono">vhea</td><td class="num mono">1,716,184</td><td class="num mono">36</td><td>—</td><td>縦書きのメトリクス</td></tr>
+<tr><td class="mono">FFTM</td><td class="num mono">1,716,220</td><td class="num mono">28</td><td>—</td><td>FontForge の刻印</td></tr>
+</tbody></table></div>
+
+<h3 id="tables"><span class="num">2.2</span>T2Font が読む表</h3>
+<p>読むのはタイポグラフィテーブルと輪郭に要る表だけで、構築子（<code>new TrueTypeFont(bytes)</code>）が全部を確かめてから位置を覚える。表が無い・短すぎる・ファイルの外を指す、hmtx と loca がグリフ数に対して短い、などは構築の時点で <code>FormatException</code> になる。</p>
+<div class="tbl"><table>
+<thead><tr><th>表</th><th>読む欄（表の先頭からの位置）</th><th>使い道</th></tr></thead>
+<tbody>
+<tr><td class="mono">head</td><td>unitsPerEm（+18・u16）・indexToLocFormat（+50・i16）</td><td>em の単位数（0 なら止める）・loca の形式</td></tr>
+<tr><td class="mono">hhea</td><td>ascender（+4）・descender（+6）・lineGap（+8）・numberOfHMetrics（+34）</td><td>縦メトリクス・hmtx の組の数</td></tr>
+<tr><td class="mono">maxp</td><td>numGlyphs（+4）</td><td>グリフ数</td></tr>
+<tr><td class="mono">hmtx</td><td>advanceWidth</td><td>送り幅</td></tr>
+<tr><td class="mono">cmap</td><td>Unicode の下位表 1 つ</td><td>字 → グリフインデックス</td></tr>
+<tr><td class="mono">loca</td><td>グリフ数 ＋ 1 個のオフセット</td><td>グリフインデックス → glyf の中の範囲</td></tr>
+<tr><td class="mono">glyf</td><td>グリフのデータ</td><td>輪郭</td></tr>
+</tbody></table></div>
+<p>グリフの置換（GSUB）と位置調整（GPOS・kern）は読まない。タイポグラフィテーブルは置換を持たず、送り幅だけで字を並べる。ヒンティング（fpgm・prep・cvt とグリフの中の命令）も読まない。表現はどれも輪郭そのものから作るので要らない。OS/2・vhea・vmtx・name・post も読まない。構築した後は状態を変えないので、ベイカーの並列処理から同時に引いてよい。</p>
+
+<h3 id="cmap"><span class="num">2.3</span>cmap — 字からグリフインデックスへ</h3>
+<p>cmap は複数の下位表を持ち、各下位表は（platform・encoding）の組で符号化を名乗る。<code>ReadCharacterMap</code> は Unicode を名乗る下位表（platform 0、または platform 3 の encoding 1／10）のうち、format 12（全 Unicode）を最優先し、無ければ format 4（BMP だけ）を選ぶ。ほかの format は読まない。</p>
+<div class="tbl"><table>
+<thead><tr><th>platform</th><th>encoding</th><th>format</th><th class="num">offset</th><th>順位</th><th>M+ 1c での扱い</th></tr></thead>
+<tbody>
+<tr><td class="mono">0</td><td class="mono">3</td><td class="mono">4</td><td class="num mono">52</td><td>2 番手</td><td>format 12 があるので使わない</td></tr>
+<tr class="read"><td class="mono">0</td><td class="mono">4</td><td class="mono">12</td><td class="num mono">30396</td><td>1 番手</td><td><span class="yes">これを読む</span>（目録で最初に現れた 1 番手）</td></tr>
+<tr><td class="mono">0</td><td class="mono">5</td><td class="mono">14</td><td class="num mono">76108</td><td>対象外</td><td>異体字セレクタ。読まない</td></tr>
+<tr><td class="mono">1</td><td class="mono">0</td><td class="mono">6</td><td class="num mono">77660</td><td>対象外</td><td>Macintosh の旧符号化</td></tr>
+<tr><td class="mono">3</td><td class="mono">1</td><td class="mono">4</td><td class="num mono">52</td><td>2 番手</td><td>platform 0／3 と同じ下位表を指す</td></tr>
+<tr><td class="mono">3</td><td class="mono">10</td><td class="mono">12</td><td class="num mono">30396</td><td>1 番手</td><td>platform 0／4 と同じ下位表を指す</td></tr>
+</tbody></table></div>
+
+<p>2 つの format は、連続した字の範囲を 1 行で表す点が同じで、グリフインデックスの出し方が違う。「あ」（U+3042）の例で並べる。</p>
+<div class="tbl"><table>
+<thead><tr><th></th><th>format 12（グループ）</th><th>format 4（区間）</th></tr></thead>
+<tbody>
+<tr><td>1 行の中身</td><td>startCharCode・endCharCode・startGlyphID（u32 ×3）</td><td>endCode・startCode・idDelta・idRangeOffset（並列の u16 配列）</td></tr>
+<tr><td>グリフインデックス</td><td class="mono">startGlyphID + (字 − startCharCode)</td><td class="mono">idRangeOffset = 0 なら (字 + idDelta) mod 65536。それ以外は glyphIdArray を引いてから idDelta を足す</td></tr>
+<tr><td>あ の行</td><td class="mono">U+3041–U+3096 → 2805</td><td class="mono">U+3041–U+3096・idDelta −9548</td></tr>
+<tr><td>あ のグリフインデックス</td><td class="mono">2805 + (0x3042 − 0x3041) = 2806</td><td class="mono">12354 − 9548 = 2806</td></tr>
+</tbody></table></div>
+<p>グリフインデックス 0（.notdef）と、グリフ数以上を指す対応は「その字は無い」として捨てる。読み終えた対応からは、全コードポイントの昇順の配列も作る（M+ 1c では 8,431 字）。</p>
+
+<h3 id="hmtx"><span class="num">2.4</span>hmtx — 送り幅</h3>
+<p>hmtx は先頭に numberOfHMetrics 個の組（advanceWidth u16・lsb i16）を並べ、続けて残りのグリフの lsb だけを並べる。番号が numberOfHMetrics 以上のグリフは、最後の組の送り幅を使う（送り幅の同じグリフが後ろに続くフォントで表を縮めるための形）。M+ 1c は numberOfHMetrics 8,763・グリフ 8,778 で、番号 8,763 以降の 15 グリフは最後の組の送り幅を使う。</p>
+<p><code>GetAdvanceWidth</code> は送り幅だけを読み、lsb（左の余白）は読まない。左の余白は輪郭の点から取るインク境界で分かる（<a href="#metrics">§4</a>）。</p>
+
+<h3 id="glyf"><span class="num">2.5</span>loca と glyf — グリフのデータの在処</h3>
+<p>glyf はグリフのデータを詰めて並べた表で、グリフの境目は loca が持つ。<code>head.indexToLocFormat</code> が 0 なら u16 に「オフセット÷2」、1 なら u32 のオフセットそのもの。グリフ g のデータは glyf の <code>[loca[g], loca[g+1])</code> で、長さが 0 ならインクの無いグリフになる（M+ 1c の空白 U+0020 のグリフ 3 は <code>loca[3] = loca[4] = 84</code>）。<code>GlyphRange</code> は終わりが始まりより前・glyf の外を指せば止める。</p>
+<figure class="fig" id="fig-loca">
+<div class="scroll"><svg class="dia " viewBox="0 0 760 236" width="760" height="236" role="img" aria-label="loca の値が glyf の中のグリフの範囲を指す図" xmlns="http://www.w3.org/2000/svg">
+<text class="lbl-b" x="20" y="22" text-anchor="start">loca（long 形式・u32）</text>
+<rect class="cellbox" x="20" y="36" width="150" height="28"/>
+<text class="lbl mono" x="30" y="55" text-anchor="start">[2374]</text>
+<text class="lbl mono" x="160" y="55" text-anchor="end">193,088</text>
+<rect class="cellbox hl" x="20" y="70" width="150" height="28"/>
+<text class="lbl mono" x="30" y="89" text-anchor="start">[2375]</text>
+<text class="lbl mono" x="160" y="89" text-anchor="end">193,124</text>
+<rect class="cellbox" x="20" y="104" width="150" height="28"/>
+<text class="lbl mono" x="30" y="123" text-anchor="start">[2376]</text>
+<text class="lbl mono" x="160" y="123" text-anchor="end">193,152</text>
+<text class="lbl" x="20" y="160" text-anchor="start">グリフ g の範囲 ＝ glyf ＋ [loca[g], loca[g+1])</text>
+<text class="lbl-s" x="20" y="180" text-anchor="start">short 形式（0）は u16 に「オフセット÷2」を入れる</text>
+<text class="lbl-s" x="20" y="198" text-anchor="start">同じ値が続けばインクの無いグリフ（空白など・輪郭 0 本）</text>
+<text class="lbl-b" x="300" y="22" text-anchor="start">glyf（ファイルの 149,624 バイト目から）</text>
+<rect class="map-bg" x="300" y="70" width="440" height="40"/>
+<rect class="glyfblk" x="371" y="70" width="127.7" height="40"/>
+<rect class="glyfblk hl" x="498.7" y="70" width="99.4" height="40"/>
+<rect class="glyfblk" x="598.1" y="70" width="141.9" height="40"/>
+<text class="lbl-s" x="434.8" y="95" text-anchor="middle">グリフ 2374（36 B）</text>
+<text class="lbl-s strong" x="548.4" y="95" text-anchor="middle">2375 ■（28 B）</text>
+<path class="leader-c" d="M170 50 C 235 50 341 140 371 112"/><polygon class="ah-ctrl" points="371,112 371.2,118.6 366.2,116.6"/>
+<path class="leader-c" d="M170 84 C 235 84 468.7 140 498.7 112"/><polygon class="ah-ctrl" points="498.7,112 499,118.6 494,116.6"/>
+<path class="leader-c" d="M170 118 C 235 118 568.1 140 598.1 112"/><polygon class="ah-ctrl" points="598.1,112 598.3,118.6 593.3,116.6"/>
+<text class="lbl-s mono" x="498.7" y="136" text-anchor="middle">193,124</text>
+<text class="lbl-s mono" x="598.1" y="150" text-anchor="middle">193,152</text>
+</svg></div>
+<figcaption><span class="fn">図 3</span>M+ 1c（loca は long 形式）で、グリフ 2375（■）の範囲を引く。loca の隣り合う 2 つの値が、glyf の中の 1 グリフのバイト列を挟む。</figcaption>
+</figure>
+
+<h3 id="simple"><span class="num">2.6</span>単純グリフの符号化</h3>
+<p>グリフのデータの先頭 10 バイトはヘッダ（numberOfContours とグリフ境界ボックス）。numberOfContours が 0 以上なら単純グリフで、輪郭の終点の番号・ヒンティング命令・点ごとのフラグ・x 座標・y 座標の順に続く。座標は直前の点からの差分で、x をすべて読み終えてから y を読む。■（U+25A0・グリフ 2375）の 28 バイトを全部解くと次のとおり。</p>
+
+<div class="split">
+<div class="tbl" style="margin:0"><table>
+<thead><tr><th class="num">位置</th><th>バイト</th><th>欄</th><th>値</th></tr></thead>
+<tbody>
+<tr><td class="num mono">0</td><td><span class="chip f-hdr">00 01</span></td><td class="mono">numberOfContours</td><td>1（≥ 0 なので単純グリフ）</td></tr>
+<tr><td class="num mono">2</td><td><span class="chip f-hdr">00 87 00 00 03 61 02 da</span></td><td class="mono">xMin・yMin・xMax・yMax</td><td>135・0・865・730（グリフ境界ボックス。T2Font は使わず、点から取り直す）</td></tr>
+<tr><td class="num mono">10</td><td><span class="chip f-pts">00 03</span></td><td class="mono">endPtsOfContours[0]</td><td>3 → 点は 4 個（輪郭 1 本）</td></tr>
+<tr><td class="num mono">12</td><td><span class="chip f-ins">00 00</span></td><td class="mono">instructionLength</td><td>0（ヒンティング命令なし。あっても読み飛ばす）</td></tr>
+<tr><td class="num mono">14</td><td><span class="chip f-flg">33 11 21 11</span></td><td class="mono">flags[0..3]</td><td>0x33・0x11・0x21・0x11（下の表で解く）</td></tr>
+<tr><td class="num mono">18</td><td><span class="chip f-x">87 02 da</span></td><td class="mono">xCoordinates</td><td>+135（1 バイト）・同じ・+730（2 バイト）・同じ</td></tr>
+<tr><td class="num mono">21</td><td><span class="chip f-y">02 da fd 26</span></td><td class="mono">yCoordinates</td><td>同じ・+730（2 バイト）・同じ・−730（2 バイト）</td></tr>
+<tr><td class="num mono">25</td><td><span class="chip f-pad">00 00 00</span></td><td class="mono">（詰め物）</td><td>次のグリフを 4 バイト境界へ揃える</td></tr>
+</tbody></table></div>
+<figure class="fig" id="fig-square" style="margin:0">
+<svg class="dia narrow" viewBox="0 0 300 250" width="300" height="250" role="img" aria-label="■ の 4 点と輪郭の向き" xmlns="http://www.w3.org/2000/svg">
+<line class="base" x1="20" y1="212" x2="280" y2="212"/>
+<text class="lbl-s" x="150" y="230" text-anchor="middle">ベースライン</text>
+<path class="g-fill g-stroke" d="M79.4 212 L79.4 36.8 L254.6 36.8 L254.6 212 Z"/>
+<polygon class="ah-ink" points="79.4,124.4 83.5,133.4 75.4,133.4"/>
+<rect class="pt-on" x="75.4" y="208" width="8" height="8"/>
+<text class="lbl-s mono" x="79.4" y="230" text-anchor="middle">0（135, 0）</text>
+<polygon class="ah-ink" points="167,36.8 158,40.9 158,32.8"/>
+<rect class="pt-on" x="75.4" y="32.8" width="8" height="8"/>
+<text class="lbl-s mono" x="79.4" y="26.8" text-anchor="middle">1（135, 730）</text>
+<polygon class="ah-ink" points="254.6,124.4 250.5,115.4 258.6,115.4"/>
+<rect class="pt-on" x="250.6" y="32.8" width="8" height="8"/>
+<text class="lbl-s mono" x="254.6" y="26.8" text-anchor="middle">2（865, 730）</text>
+<polygon class="ah-ink" points="167,212 176,207.9 176,216.1"/>
+<rect class="pt-on" x="250.6" y="208" width="8" height="8"/>
+<text class="lbl-s mono" x="254.6" y="230" text-anchor="middle">3（865, 0）</text>
+<text class="lbl-s" x="167" y="128.4" text-anchor="middle">時計回り＝外周</text>
+</svg>
+<figcaption><span class="fn">図 4</span>復号した 4 点（フォント単位）。外周なので時計回りに巡る。</figcaption>
+</figure>
+</div>
+
+<p>フラグの各ビットは次の意味を持つ。0x10 と 0x20 は、差分が 1 バイトのときは符号（立てば正）、2 バイトのときは「差分 0 で座標を省く」を意味する、という二役になっている。</p>
+<div class="tbl"><table>
+<thead><tr><th>ビット</th><th>名前</th><th>意味</th></tr></thead>
+<tbody>
+<tr><td class="mono">0x01</td><td class="mono">ON_CURVE_POINT</td><td>輪郭の上の点。0 なら 2 次ベジエの制御点（off-curve）</td></tr>
+<tr><td class="mono">0x02</td><td class="mono">X_SHORT_VECTOR</td><td>x の差分が 1 バイト（u8）</td></tr>
+<tr><td class="mono">0x04</td><td class="mono">Y_SHORT_VECTOR</td><td>y の差分が 1 バイト</td></tr>
+<tr><td class="mono">0x08</td><td class="mono">REPEAT_FLAG</td><td>次の 1 バイトの回数だけ、同じフラグを繰り返す</td></tr>
+<tr><td class="mono">0x10</td><td class="mono">X_IS_SAME_OR_POSITIVE…</td><td>1 バイトなら正の向き。2 バイトの形なら x は省かれ差分 0</td></tr>
+<tr><td class="mono">0x20</td><td class="mono">Y_IS_SAME_OR_POSITIVE…</td><td>同じく y について</td></tr>
+</tbody></table></div>
+<p>■ の 1 点目のフラグ 0x33 は ON｜X_SHORT｜0x10｜0x20 で、「x は 1 バイトの正の差分（+0x87＝135）、y は省略（差分 0）」と読める。2 点目の 0x11 は ON｜0x10 で、「x は省略、y は 2 バイトの差分（0x02DA＝+730）」。<code>AppendSimpleGlyph</code> はこの順に読み、どの読み出しもグリフの範囲の中かを確かめる（<code>RequireInGlyph</code>）。輪郭の終点の番号が昇順でなければ止める。ヒンティング命令は長さだけ読んで飛ばす。</p>
+
+<h3 id="composite"><span class="num">2.7</span>複合グリフ</h3>
+<p>numberOfContours が負なら複合グリフで、ほかのグリフ（部品）を変換して重ねて 1 グリフにする。部品ごとに flags・glyphIndex・2 つの引数・省略できる変換を持ち、flags の MORE_COMPONENTS（0x20）が立っている間続く。</p>
+<div class="tbl"><table>
+<thead><tr><th>flags のビット</th><th>意味</th></tr></thead>
+<tbody>
+<tr><td class="mono">0x0001 ARG_1_AND_2_ARE_WORDS</td><td>2 つの引数が 2 バイトずつ（無ければ 1 バイトずつ）</td></tr>
+<tr><td class="mono">0x0002 ARGS_ARE_XY_VALUES</td><td>引数がずらし (dx, dy)。立っていなければ、親の点と部品の点の番号（点の照合）</td></tr>
+<tr><td class="mono">0x0008 WE_HAVE_A_SCALE<br>0x0040 …X_AND_Y_SCALE<br>0x0080 …TWO_BY_TWO</td><td>部品の線形変換。値は F2Dot14（符号付き 2.14 の固定小数点・÷16384）</td></tr>
+<tr><td class="mono">0x0800 SCALED_COMPONENT_OFFSET<br>0x1000 UNSCALED_…</td><td>ずらしにも変換の大きさを掛けるか</td></tr>
+</tbody></table></div>
+<p><code>AppendCompositeGlyph</code> は部品を再帰で展開し、部品の各点に「部品の線形変換 → ずらし → 親までの変換」を掛けて 1 つの輪郭の並びにまとめる。入れ子は 16 段まで（循環参照した壊れたフォントで止まらないための柵）。点の照合では、ここまでに組んだ点の arg1 番と部品の arg2 番が重なるようにずらしを決める。ずらしに変換を掛ける指定では、FreeType と Apple の実装と同じく軸ごとに行列の列の長さを掛ける。M+ 1c Regular の複合グリフは 244 あり、どれも部品 1 つ・ずらし 0 の、ほかのグリフの形を借りるだけのものになっている。</p>
+
+<h2 id="outline"><span class="num">3</span>輪郭と 2 次ベジエ</h2>
+<p><code>GetOutline(glyphIndex)</code> はグリフを <code>GlyphOutline</code>（輪郭ごとに <code>OutlinePoint</code> の配列）にして返す。点は x・y（フォント単位・y は上向き）と、輪郭の上の点か（<code>OnCurve</code>）を持つ。輪郭は閉じていて、最後の点から最初の点へ戻る。</p>
+
+<figure class="fig" id="fig-outline">
+<div class="scroll"><svg class="dia " viewBox="0 0 520 420" width="520" height="420" role="img" aria-label="あ の輪郭の on-curve 点と off-curve 点" xmlns="http://www.w3.org/2000/svg">
+<line class="base" x1="10" y1="370" x2="510" y2="370"/>
+<text class="lbl-s" x="8" y="364" text-anchor="start">ベースライン y = 0</text>
+<line class="base" x1="95" y1="10" x2="95" y2="410"/>
+<text class="lbl-s" x="99" y="406" text-anchor="start">ペン原点 x = 0</text>
+<path class="g-fill g-stroke" d="M345.32 368.74 Q391.1 359.92 417.35 334.72 Q443.6 309.52 443.6 274.66 Q443.6 220.06 390.68 199.48 Q362.96 280.54 310.25 328 Q257.54 375.46 205.46 375.46 Q172.7 375.46 154.22 355.93 Q135.74 336.4 135.74 301.54 Q135.74 258.7 163.67 224.89 Q191.6 191.08 240.74 174.7 L240.74 112.54 L150.86 112.54 L150.86 85.66 L240.74 85.66 L240.74 32.74 L271.4 32.74 L271.4 85.66 L459.14 85.66 L459.14 112.54 L271.4 112.54 L271.4 166.72 Q299.54 161.26 327.26 161.26 Q396.14 161.26 435.2 191.71 Q474.26 222.16 474.26 274.66 Q474.26 321.28 441.92 353.62 Q409.58 385.96 352.88 396.46 L345.32 368.74 L345.32 368.74 Z M362.54 191.92 Q346.58 189.4 327.26 189.4 Q297.44 189.4 271.4 195.7 L271.4 323.38 Q299.12 303.22 323.27 269.41 Q347.42 235.6 362.54 191.92 L362.54 191.92 Z M240.74 205.36 Q206.3 219.64 186.35 244.21 Q166.4 268.78 166.4 298.6 Q166.4 322.12 177.32 334.93 Q188.24 347.74 208.4 347.74 Q224.36 347.74 240.74 341.02 L240.74 205.36 L240.74 205.36 Z"/>
+<path class="ctrl-poly" d="M345.32 368.74 L391.1 359.92 L443.6 309.52 L443.6 274.66 L443.6 220.06 L390.68 199.48 L362.96 280.54 L257.54 375.46 L205.46 375.46 L172.7 375.46 L135.74 336.4 L135.74 301.54 L135.74 258.7 L191.6 191.08 L240.74 174.7 L240.74 112.54 L150.86 112.54 L150.86 85.66 L240.74 85.66 L240.74 32.74 L271.4 32.74 L271.4 85.66 L459.14 85.66 L459.14 112.54 L271.4 112.54 L271.4 166.72 L299.54 161.26 L327.26 161.26 L396.14 161.26 L474.26 222.16 L474.26 274.66 L474.26 321.28 L409.58 385.96 L352.88 396.46 Z"/>
+<polygon class="ah-guide" points="386.2,355.8 378.4,365 374.2,356"/>
+<path class="ctrl-poly" d="M362.54 191.92 L346.58 189.4 L327.26 189.4 L297.44 189.4 L271.4 195.7 L271.4 323.38 L299.12 303.22 L347.42 235.6 Z"/>
+<polygon class="ah-guide" points="345.7,190 357.1,185.9 356.4,195.8"/>
+<path class="ctrl-poly" d="M240.74 205.36 L206.3 219.64 L166.4 268.78 L166.4 298.6 L166.4 322.12 L188.24 347.74 L208.4 347.74 L224.36 347.74 L240.74 341.02 Z"/>
+<polygon class="ah-guide" points="209.9,222.2 216,211.8 221.8,219.8"/>
+<circle class="pt-implied" cx="417.35" cy="334.72" r="2.4"/>
+<circle class="pt-implied" cx="310.25" cy="328" r="2.4"/>
+<circle class="pt-implied" cx="154.22" cy="355.93" r="2.4"/>
+<circle class="pt-implied" cx="163.67" cy="224.89" r="2.4"/>
+<circle class="pt-implied" cx="435.2" cy="191.71" r="2.4"/>
+<circle class="pt-implied" cx="441.92" cy="353.62" r="2.4"/>
+<circle class="pt-implied" cx="323.27" cy="269.41" r="2.4"/>
+<circle class="pt-implied" cx="186.35" cy="244.21" r="2.4"/>
+<circle class="pt-implied" cx="177.32" cy="334.93" r="2.4"/>
+<rect class="pt-on" x="342.1" y="365.5" width="6.4" height="6.4"/>
+<circle class="pt-off" cx="391.1" cy="359.92" r="3.6"/>
+<circle class="pt-off" cx="443.6" cy="309.52" r="3.6"/>
+<rect class="pt-on" x="440.4" y="271.5" width="6.4" height="6.4"/>
+<circle class="pt-off" cx="443.6" cy="220.06" r="3.6"/>
+<rect class="pt-on" x="387.5" y="196.3" width="6.4" height="6.4"/>
+<circle class="pt-off" cx="362.96" cy="280.54" r="3.6"/>
+<circle class="pt-off" cx="257.54" cy="375.46" r="3.6"/>
+<rect class="pt-on" x="202.3" y="372.3" width="6.4" height="6.4"/>
+<circle class="pt-off" cx="172.7" cy="375.46" r="3.6"/>
+<circle class="pt-off" cx="135.74" cy="336.4" r="3.6"/>
+<rect class="pt-on" x="132.5" y="298.3" width="6.4" height="6.4"/>
+<circle class="pt-off" cx="135.74" cy="258.7" r="3.6"/>
+<circle class="pt-off" cx="191.6" cy="191.08" r="3.6"/>
+<rect class="pt-on" x="237.5" y="171.5" width="6.4" height="6.4"/>
+<rect class="pt-on" x="237.5" y="109.3" width="6.4" height="6.4"/>
+<rect class="pt-on" x="147.7" y="109.3" width="6.4" height="6.4"/>
+<rect class="pt-on" x="147.7" y="82.5" width="6.4" height="6.4"/>
+<rect class="pt-on" x="237.5" y="82.5" width="6.4" height="6.4"/>
+<rect class="pt-on" x="237.5" y="29.5" width="6.4" height="6.4"/>
+<rect class="pt-on" x="268.2" y="29.5" width="6.4" height="6.4"/>
+<rect class="pt-on" x="268.2" y="82.5" width="6.4" height="6.4"/>
+<rect class="pt-on" x="455.9" y="82.5" width="6.4" height="6.4"/>
+<rect class="pt-on" x="455.9" y="109.3" width="6.4" height="6.4"/>
+<rect class="pt-on" x="268.2" y="109.3" width="6.4" height="6.4"/>
+<rect class="pt-on" x="268.2" y="163.5" width="6.4" height="6.4"/>
+<circle class="pt-off" cx="299.54" cy="161.26" r="3.6"/>
+<rect class="pt-on" x="324.1" y="158.1" width="6.4" height="6.4"/>
+<circle class="pt-off" cx="396.14" cy="161.26" r="3.6"/>
+<circle class="pt-off" cx="474.26" cy="222.16" r="3.6"/>
+<rect class="pt-on" x="471.1" y="271.5" width="6.4" height="6.4"/>
+<circle class="pt-off" cx="474.26" cy="321.28" r="3.6"/>
+<circle class="pt-off" cx="409.58" cy="385.96" r="3.6"/>
+<rect class="pt-on" x="349.7" y="393.3" width="6.4" height="6.4"/>
+<rect class="pt-on" x="359.3" y="188.7" width="6.4" height="6.4"/>
+<circle class="pt-off" cx="346.58" cy="189.4" r="3.6"/>
+<rect class="pt-on" x="324.1" y="186.2" width="6.4" height="6.4"/>
+<circle class="pt-off" cx="297.44" cy="189.4" r="3.6"/>
+<rect class="pt-on" x="268.2" y="192.5" width="6.4" height="6.4"/>
+<rect class="pt-on" x="268.2" y="320.2" width="6.4" height="6.4"/>
+<circle class="pt-off" cx="299.12" cy="303.22" r="3.6"/>
+<circle class="pt-off" cx="347.42" cy="235.6" r="3.6"/>
+<rect class="pt-on" x="237.5" y="202.2" width="6.4" height="6.4"/>
+<circle class="pt-off" cx="206.3" cy="219.64" r="3.6"/>
+<circle class="pt-off" cx="166.4" cy="268.78" r="3.6"/>
+<rect class="pt-on" x="163.2" y="295.4" width="6.4" height="6.4"/>
+<circle class="pt-off" cx="166.4" cy="322.12" r="3.6"/>
+<circle class="pt-off" cx="188.24" cy="347.74" r="3.6"/>
+<rect class="pt-on" x="205.2" y="344.5" width="6.4" height="6.4"/>
+<circle class="pt-off" cx="224.36" cy="347.74" r="3.6"/>
+<rect class="pt-on" x="237.5" y="337.8" width="6.4" height="6.4"/>
+</svg></div>
+<ul class="legend">
+<li><svg width="12" height="12" aria-hidden="true"><rect class="pt-on" x="2" y="2" width="8" height="8"/></svg>on-curve 点（ファイルにある）</li>
+<li><svg width="14" height="14" aria-hidden="true"><circle class="pt-off" cx="7" cy="7" r="4.5"/></svg>off-curve 点＝制御点</li>
+<li><svg width="12" height="12" aria-hidden="true"><circle class="pt-implied" cx="6" cy="6" r="3"/></svg>暗黙の on-curve 点（ファイルに無い）</li>
+<li><svg width="28" height="12" aria-hidden="true"><line class="ctrl-poly" x1="1" y1="6" x2="27" y2="6"/></svg>点を書かれた順に結んだ線</li>
+<li><svg width="14" height="14" aria-hidden="true"><polygon class="ah-guide" points="13,7 3,2 3,12"/></svg>輪郭の向き</li>
+</ul>
+<figcaption><span class="fn">図 5</span>M+ 1c の「あ」（グリフ 2806）の輪郭 3 本。ファイルにある点は 51 個で、暗黙の on-curve 点が 9 個ある。</figcaption>
+</figure>
+
+<p>TrueType の曲線は 2 次ベジエで、off-curve 点がその制御点になる。off-curve 点が 2 つ続くと、その中点に on-curve 点が暗黙にある（ファイルには書かれない）。直線の区間は on-curve 点どうしを結ぶだけ。全点が off-curve の輪郭は、最初の 2 点の中点から始める。<code>GlyphOutline.Flatten</code> はこの規則で曲線を組み立ててから線分にする（<a href="#flatten">§6.4</a>）。</p>
+<p>輪郭の向きは意味を持つ。外周は時計回り、穴の周（「o」の内側など）は反時計回りに巡るのが TrueType の慣習で、塗るときに向きを数えて内外を決める（<a href="#fill">§6.4 塗る</a>）。</p>
+<p>境界ボックスは <code>TryGetBounds</code> が制御点を含む全点から取る。2 次ベジエは制御点の凸包の中にあるので、曲線の境界ボックスを必ず含む（保守的に広い）。glyf のヘッダにあるグリフ境界ボックスは使わず、展開し終えた点から取り直す。</p>
+
+<h2 id="metrics"><span class="num">4</span>フォントメトリクス</h2>
+<p>字を並べるのに要る値は、行の高さを決める縦の値と、字ごとの送り幅とインク境界の 2 種に分かれる。どちらもフォント単位で書かれていて、<code>unitsPerEm</code> で割ると em（字の大きさに対する比）になる。原点はペン原点とベースラインで、y は上向き。</p>
+
+<figure class="fig" id="fig-metrics">
+<div class="scroll"><svg class="dia " viewBox="0 0 752 495" width="752" height="495" role="img" aria-label="g と あ のメトリクス（フォント単位）" xmlns="http://www.w3.org/2000/svg">
+<line class="vguide" x1="20" y1="30" x2="602" y2="30"/>
+<text class="lbl-s" x="24" y="25" text-anchor="start">ascender</text>
+<text class="lbl-s mono" x="608" y="34" text-anchor="start">+1075</text>
+<line class="base" x1="20" y1="320.2" x2="602" y2="320.2"/>
+<text class="lbl-s" x="24" y="315.2" text-anchor="start">ベースライン</text>
+<text class="lbl-s mono" x="608" y="324.2" text-anchor="start">0</text>
+<line class="vguide" x1="20" y1="406.7" x2="602" y2="406.7"/>
+<text class="lbl-s" x="24" y="401.7" text-anchor="start">descender</text>
+<text class="lbl-s mono" x="608" y="410.7" text-anchor="start">-320</text>
+<rect class="gapband" x="20" y="406.7" width="582" height="24.3"/>
+<text class="lbl-s" x="24" y="427" text-anchor="start">lineGap 90</text>
+<line class="vguide faint" x1="20" y1="431" x2="602" y2="431"/>
+<text class="lbl-s" x="608" y="435" text-anchor="start">次の行の ascender</text>
+<line class="dim" x1="112" y1="30" x2="112" y2="431"/><polygon class="ah-dim" points="112,431 109.3,425 114.7,425"/><polygon class="ah-dim" points="112,30 114.7,36 109.3,36"/>
+<text class="lbl-s" x="104" y="224.5" text-anchor="end">行送り</text>
+<text class="lbl-s mono" x="104" y="240.5" text-anchor="end">1.485em</text>
+<path class="g-fill g-stroke" d="M271.76 179.85 L271.76 312.15 Q271.76 348.6 256.1 365.48 Q240.44 382.35 206.96 382.35 Q185.63 382.35 167.54 376.41 L167.54 358.32 Q186.44 366.15 206.96 366.15 Q230.45 366.15 240.85 353.73 Q251.24 341.31 251.24 312.96 L251.24 299.46 L250.7 299.46 Q234.23 320.25 206.69 320.25 Q182.12 320.25 167.13 301.22 Q152.15 282.18 152.15 248.16 Q152.15 212.25 167.13 194.7 Q182.12 177.15 206.69 177.15 Q233.96 177.15 251.51 199.83 L252.05 199.83 L252.32 179.85 L271.76 179.85 L271.76 179.85 Z M172.94 248.16 Q172.94 275.43 183.34 289.74 Q193.73 304.05 212.09 304.05 Q227.75 304.05 239.5 292.44 Q251.24 280.83 251.24 264.63 L251.24 233.31 Q251.24 217.11 239.5 205.23 Q227.75 193.35 212.09 193.35 Q172.94 193.35 172.94 248.16 L172.94 248.16 Z"/>
+<rect class="inkbox" x="152.2" y="177.2" width="119.6" height="205.2"/>
+<circle class="origin" cx="140" cy="320.2" r="4"/>
+<line class="tick" x1="140" y1="320.2" x2="140" y2="459"/>
+<line class="tick" x1="292" y1="320.2" x2="292" y2="459"/>
+<line class="dim-g" x1="140" y1="453" x2="292" y2="453"/><polygon class="ah-guide" points="292,453 286,455.7 286,450.3"/><polygon class="ah-guide" points="140,453 146,450.3 146,455.7"/>
+<text class="lbl-s mono" x="216" y="471" text-anchor="middle">送り幅 563</text>
+<rect class="emsq" x="292" y="88.1" width="270" height="270"/>
+<text class="lbl-s" x="558" y="82.1" text-anchor="end">em 正方形（1000 × 1000）</text>
+<path class="g-fill g-stroke" d="M452.93 319.44 Q482.36 313.77 499.24 297.57 Q516.11 281.37 516.11 258.96 Q516.11 223.86 482.09 210.63 Q464.27 262.74 430.38 293.25 Q396.5 323.76 363.02 323.76 Q341.96 323.76 330.08 311.21 Q318.2 298.65 318.2 276.24 Q318.2 248.7 336.15 226.97 Q354.11 205.23 385.7 194.7 L385.7 154.74 L327.92 154.74 L327.92 137.46 L385.7 137.46 L385.7 103.44 L405.41 103.44 L405.41 137.46 L526.1 137.46 L526.1 154.74 L405.41 154.74 L405.41 189.57 Q423.5 186.06 441.32 186.06 Q485.6 186.06 510.71 205.64 Q535.82 225.21 535.82 258.96 Q535.82 288.93 515.03 309.72 Q494.24 330.51 457.79 337.26 L452.93 319.44 L452.93 319.44 Z M464 205.77 Q453.74 204.15 441.32 204.15 Q422.15 204.15 405.41 208.2 L405.41 290.28 Q423.23 277.32 438.75 255.59 Q454.28 233.85 464 205.77 L464 205.77 Z M385.7 214.41 Q363.56 223.59 350.74 239.39 Q337.91 255.18 337.91 274.35 Q337.91 289.47 344.93 297.71 Q351.95 305.94 364.91 305.94 Q375.17 305.94 385.7 301.62 L385.7 214.41 L385.7 214.41 Z"/>
+<rect class="inkbox" x="318.2" y="103.4" width="217.6" height="233.8"/>
+<circle class="origin" cx="292" cy="320.2" r="4"/>
+<line class="tick" x1="292" y1="320.2" x2="292" y2="459"/>
+<line class="tick" x1="562" y1="320.2" x2="562" y2="459"/>
+<line class="dim-g" x1="292" y1="453" x2="562" y2="453"/><polygon class="ah-guide" points="562,453 556,455.7 556,450.3"/><polygon class="ah-guide" points="292,453 298,450.3 298,455.7"/>
+<text class="lbl-s mono" x="427" y="471" text-anchor="middle">送り幅 1000</text>
+<line class="tick" x1="318.2" y1="320.2" x2="318.2" y2="352.6"/>
+<line class="dim" x1="292" y1="348.6" x2="318.2" y2="348.6"/><polygon class="ah-dim" points="318.2,348.6 312.2,351.3 312.2,345.9"/><polygon class="ah-dim" points="292,348.6 298,345.9 298,351.3"/>
+<text class="lbl-s mono" x="294" y="363.6" text-anchor="start">左の余白 97</text>
+<text class="lbl-s ctrl" x="541.8" y="115.4" text-anchor="start">インク境界</text>
+<text class="lbl-s mono ctrl" x="541.8" y="129.4" text-anchor="start">(97, -63) – (903, 803)</text>
+<text class="lbl-s mono ctrl" x="152.2" y="396.4" text-anchor="start">(45, -230)</text>
+<text class="lbl-s" x="136" y="338.2" text-anchor="end">ペン原点</text>
+</svg></div>
+<figcaption><span class="fn">図 6</span>M+ 1c の「g」と「あ」をペン原点から順に置いた図（数値はフォント単位・1000＝1em）。破線の箱がインク境界、青緑の点がペン原点。点線の正方形は OS/2 表の typo 値（860／−140）が置く em 正方形で、参考に描いた（T2Font は読まない）。</figcaption>
+</figure>
+
+<h3><span class="num">4.1</span>縦の値（hhea）</h3>
+<p>ascender はベースラインから行の上端まで、descender は下端まで（下が負）、lineGap は行と行の間に足す分。次の行のベースラインまでの行送りは <code>ascender − descender + lineGap</code> で、M+ 1c では (1075 + 320 + 90) / 1000 ＝ 1.485em。T2Font は hhea の 3 つの値を <code>FontFaceMetrics</code>（em・単精度）として持つ。同じ種類の値は OS/2 表にもあり（M+ 1c の typo 値は 860／−140／90、win 値は 1075／320）、フォントによって食い違うが、T2Font は hhea だけを読む。</p>
+
+<h3><span class="num">4.2</span>横の値とインク境界</h3>
+<p>送り幅（advance）は、この字を置いた後にペンを右へ進める量で、hmtx から読む。インク境界（ink bounds）はグリフの点の境界ボックスで、左端がペン原点からインク部までの左の余白、<code>送り幅 − 右端</code> が右の余白になる。インク部は送り幅の外や、ペン原点の左にはみ出してもよい（「g」のインク部はベースラインの下へ 0.23em 出る）。</p>
+<p>タイポグラフィテーブルはグリフごとに <code>GlyphMetrics</code>（送り幅とインク境界・em・単精度）を持つ。見本の値を抜き出すと次のとおり。</p>
+<div class="tbl"><table>
+<thead><tr><th>字</th><th class="num">グリフインデックス</th><th class="num">advance</th><th class="num">inkLeft</th><th class="num">inkBottom</th><th class="num">inkRight</th><th class="num">inkTop</th></tr></thead>
+<tbody>
+<tr><td>あ</td><td class="num mono">101</td><td class="num mono">1</td><td class="num mono">0.097</td><td class="num mono">-0.063</td><td class="num mono">0.903</td><td class="num mono">0.803</td></tr>
+<tr><td>g</td><td class="num mono">71</td><td class="num mono">0.563</td><td class="num mono">0.045</td><td class="num mono">-0.23</td><td class="num mono">0.488</td><td class="num mono">0.53</td></tr>
+<tr><td>■</td><td class="num mono">95</td><td class="num mono">1</td><td class="num mono">0.135</td><td class="num mono">0</td><td class="num mono">0.865</td><td class="num mono">0.73</td></tr>
+<tr><td>（空白 U+0020）</td><td class="num mono">0</td><td class="num mono">0.27</td><td class="num mono">0</td><td class="num mono">0</td><td class="num mono">0</td><td class="num mono">0</td></tr>
+<tr><td>.notdef</td><td class="num mono">206</td><td class="num mono">0.364</td><td class="num mono">0.033</td><td class="num mono">0</td><td class="num mono">0.298</td><td class="num mono">0.666</td></tr>
+</tbody></table></div>
+<ul>
+<li>インク境界は描くための余白（SDF の距離レンジなど）を含まない。余白は表現の持ち物で、タイポグラフィテーブルに入れると表現を替えたときに値が変わる（README §3.3）。</li>
+<li>インクの無い字（空白）は ink が全部 0 で、送り幅だけを持つ。</li>
+<li>タイポグラフィテーブルへは単精度に丸めた値を入れ、ベイカーは丸める前の倍精度の箱（<code>EmBox</code>）でベイクする。</li>
+</ul>
+
+<h2 id="face"><span class="num">5</span>タイポグラフィテーブルを作る</h2>
+<p><code>FontSpecBaker.BuildFace</code> は、ベイク仕様の文字セット（<code>charsets</code>）と指定文字（<code>characters</code>）の和を作り、<code>FontFaceBuilder.Build</code> に渡す。指定文字が元フォントに無ければインポートを止める。固定の文字セットは上限の集合なので、元フォントに無い字は件数だけを報告して続ける（README §7.1）。</p>
+<p><code>FontFaceBuilder.Build</code> の手順:</p>
+<ol>
+<li>字が Unicode のスカラー値か確かめる（サロゲートと U+10FFFF を超える値は止める）。</li>
+<li>昇順に並べ、字ごとに cmap でグリフインデックスを引く。無い字は <code>Missing</code> に載せて飛ばす。</li>
+<li>ある字は、輪郭・送り幅（÷ unitsPerEm）・インク境界を読んで、<code>GlyphMetrics</code>・輪郭・<code>EmBox</code> を積む。</li>
+<li>最後に元フォントの glyph 0（.notdef）を足す。輪郭が空なら、0.08〜0.52em × 0〜0.72em の枠（外周と逆向きの内周）を合成し、送り幅を 0.6em 以上にする。</li>
+<li>hhea の縦の値を em にして <code>FontFaceMetrics</code> にする。</li>
+</ol>
+
+<figure class="fig" id="fig-strip">
+<div class="strip"><div class="g"><b>␠</b><span>0</span><span>U+0020</span></div><div class="g"><b>!</b><span>1</span><span>U+0021</span></div><div class="g"><b>&quot;</b><span>2</span><span>U+0022</span></div><span class="gap">…</span><div class="g"><b>~</b><span>94</span><span>U+007E</span></div><div class="g"><b>■</b><span>95</span><span>U+25A0</span></div><div class="g"><b>□</b><span>96</span><span>U+25A1</span></div><div class="g"><b>、</b><span>97</span><span>U+3001</span></div><span class="gap">…</span><div class="g"><b>あ</b><span>101</span><span>U+3042</span></div><div class="g"><b>い</b><span>102</span><span>U+3044</span></div><span class="gap">…</span><div class="g"><b>ー</b><span>175</span><span>U+30FC</span></div><div class="g"><b>一</b><span>176</span><span>U+4E00</span></div><div class="g"><b>三</b><span>177</span><span>U+4E09</span></div><span class="gap">…</span><div class="g"><b>香</b><span>205</span><span>U+9999</span></div><div class="g nd"><b>□</b><span>206</span><span>.notdef</span></div></div>
+<figcaption><span class="fn">図 7</span>見本のタイポグラフィテーブルのグリフインデックスの並び。番号は字の昇順の添字そのもので、.notdef は末尾（番号＝字の数）。元フォントのグリフインデックス（■ は 2375、あ は 2806）とは別の番号になる。</figcaption>
+</figure>
+
+<p>グリフインデックスはタイポグラフィテーブルの配列の添字そのもので、間接の表は無い。実行時は <code>T2FontAsset.Resolve</code> が字を二分探索してグリフインデックスを引き、収録していない字は .notdef の番号を返す（README §3.1・§3.2）。タイポグラフィテーブルはどの表現でも同じリーダーと同じ手順で作るので、表現を替えても送り幅と行は動かない（README §2.3）。</p>
+
+<h2 id="sdf"><span class="num">6</span>SDF アトラスをベイクする</h2>
+<p>同梱の表現 SDF（signed distance field）では、<code>SdfGlyphBaker</code> が <code>SdfAtlasBaker.Bake(face, settings)</code> を呼ぶ。設定のうちベイク仕様で選べるのは emPx・maxPageSize・cellBox（と、テクスチャの形式）だけで、ほかは全フォントで固定。</p>
+<div class="tbl"><table>
+<thead><tr><th>設定（<code>SdfBakeSettings</code>）</th><th>見本の値</th><th>出所</th><th>意味</th></tr></thead>
+<tbody>
+<tr><td class="mono">EmPx</td><td class="mono">48</td><td>ベイク仕様 <code>emPx</code></td><td>アトラス上の 1em の px</td></tr>
+<tr><td class="mono">RangeEm</td><td class="mono">0.1875</td><td>固定（<code>SdfEncoding.RangeEm</code>）</td><td>片側の距離レンジ。emPx 48 で 9 px</td></tr>
+<tr><td class="mono">Supersample</td><td class="mono">8</td><td>固定</td><td>字を emPx × 8 の格子で塗ってから距離を取る</td></tr>
+<tr><td class="mono">CellBox</td><td class="mono">null</td><td>ベイク仕様 <code>cellBox</code></td><td>セルのインク境界。null なら依頼した字のインク境界の和</td></tr>
+<tr><td class="mono">MaxPageWidth／Height</td><td class="mono">8192</td><td>ベイク仕様 <code>maxPageSize</code></td><td>1 ページの最大寸法</td></tr>
+<tr><td class="mono">FlattenTolerance</td><td class="mono">0.1</td><td>固定</td><td>曲線を線分にする許容誤差（スーパーサンプリング後の px）</td></tr>
+<tr><td class="mono">Parallel</td><td class="mono">true</td><td>固定</td><td>字ごとの計算を並列にする（結果は直列と同じ）</td></tr>
+</tbody></table></div>
+
+<h3 id="encoding"><span class="num">6.1</span>距離を 8bit に符号化する</h3>
+<p>SDF のアトラスの texel は、その位置から輪郭までの符号付き距離（インク領域の内側が正）を持つ。描画は値を bilinear で補間して読み、0.5 の等値線を輪郭として塗るので、texel の格子より細かい位置に輪郭を再構成できる。値は次の式で 0〜255 に符号化する。</p>
+<p class="formula">d = 0.5 + 距離(px) / (2 × 距離レンジ(px))　→　round(clamp(d, 0, 1) × 255)</p>
+<figure class="fig" id="fig-encoding">
+<div class="scroll"><svg class="dia " viewBox="0 0 800 300" width="800" height="300" role="img" aria-label="距離を 8bit へ符号化する曲線" xmlns="http://www.w3.org/2000/svg">
+<line class="grid" x1="70" y1="240" x2="630" y2="240"/>
+<text class="lbl-s mono" x="62" y="244" text-anchor="end">0</text>
+<line class="grid" x1="70" y1="187.3" x2="630" y2="187.3"/>
+<text class="lbl-s mono" x="62" y="191.3" text-anchor="end">64</text>
+<line class="grid" x1="70" y1="134.6" x2="630" y2="134.6"/>
+<text class="lbl-s mono" x="62" y="138.6" text-anchor="end">128</text>
+<line class="grid" x1="70" y1="82.7" x2="630" y2="82.7"/>
+<text class="lbl-s mono" x="62" y="86.7" text-anchor="end">191</text>
+<line class="grid" x1="70" y1="30" x2="630" y2="30"/>
+<text class="lbl-s mono" x="62" y="34" text-anchor="end">255</text>
+<line class="tick" x1="70" y1="240" x2="70" y2="245"/>
+<text class="lbl-s mono" x="70" y="259" text-anchor="middle">-14</text>
+<line class="tick" x1="110" y1="240" x2="110" y2="245"/>
+<text class="lbl-s mono" x="110" y="259" text-anchor="middle">-12</text>
+<line class="tick" x1="150" y1="240" x2="150" y2="245"/>
+<text class="lbl-s mono" x="150" y="259" text-anchor="middle">-10</text>
+<line class="tick" x1="190" y1="240" x2="190" y2="245"/>
+<text class="lbl-s mono" x="190" y="259" text-anchor="middle">-8</text>
+<line class="tick" x1="230" y1="240" x2="230" y2="245"/>
+<text class="lbl-s mono" x="230" y="259" text-anchor="middle">-6</text>
+<line class="tick" x1="270" y1="240" x2="270" y2="245"/>
+<text class="lbl-s mono" x="270" y="259" text-anchor="middle">-4</text>
+<line class="tick" x1="310" y1="240" x2="310" y2="245"/>
+<text class="lbl-s mono" x="310" y="259" text-anchor="middle">-2</text>
+<line class="tick" x1="350" y1="240" x2="350" y2="245"/>
+<text class="lbl-s mono" x="350" y="259" text-anchor="middle">0</text>
+<line class="tick" x1="390" y1="240" x2="390" y2="245"/>
+<text class="lbl-s mono" x="390" y="259" text-anchor="middle">+2</text>
+<line class="tick" x1="430" y1="240" x2="430" y2="245"/>
+<text class="lbl-s mono" x="430" y="259" text-anchor="middle">+4</text>
+<line class="tick" x1="470" y1="240" x2="470" y2="245"/>
+<text class="lbl-s mono" x="470" y="259" text-anchor="middle">+6</text>
+<line class="tick" x1="510" y1="240" x2="510" y2="245"/>
+<text class="lbl-s mono" x="510" y="259" text-anchor="middle">+8</text>
+<line class="tick" x1="550" y1="240" x2="550" y2="245"/>
+<text class="lbl-s mono" x="550" y="259" text-anchor="middle">+10</text>
+<line class="tick" x1="590" y1="240" x2="590" y2="245"/>
+<text class="lbl-s mono" x="590" y="259" text-anchor="middle">+12</text>
+<line class="tick" x1="630" y1="240" x2="630" y2="245"/>
+<text class="lbl-s mono" x="630" y="259" text-anchor="middle">+14</text>
+<text class="lbl-s" x="350" y="280" text-anchor="middle">輪郭までの符号付き距離（アトラス px・インク領域の内側が正）</text>
+<text class="lbl-s" x="24" y="18" text-anchor="start">texel の値</text>
+<rect class="band-aa" x="171.7" y="30" width="178.3" height="210"/>
+<rect class="band-ext" x="206" y="30" width="144" height="210"/>
+<line class="base" x1="350" y1="30" x2="350" y2="240"/>
+<path class="enc" d="M70 240 L170 240 L530 30 L630 30"/>
+<circle class="origin" cx="350" cy="135" r="4"/>
+<text class="lbl-s" x="358" y="151" text-anchor="start">輪郭 = 0.5（127.5）</text>
+<text class="lbl-s" x="166" y="232" text-anchor="end">−9 px で 0 に飽和</text>
+<text class="lbl-s" x="630" y="22" text-anchor="end">+9 px で 255 に飽和</text>
+<rect class="band-ext" x="646" y="38" width="14" height="14"/>
+<text class="lbl-s" x="666" y="49" text-anchor="start">エッジスタイルの外延</text>
+<text class="lbl-s mono" x="666" y="65" text-anchor="start">0.15em = 7.2 px</text>
+<rect class="band-aa" x="646" y="80" width="14" height="14"/>
+<text class="lbl-s" x="666" y="91" text-anchor="start">＋14px 表示の</text>
+<text class="lbl-s" x="666" y="107" text-anchor="start">AA の半分</text>
+<text class="lbl-s mono" x="666" y="123" text-anchor="start">= 1.71 px</text>
+<text class="lbl-s mono strong" x="646" y="154" text-anchor="start">計 8.91 px</text>
+<text class="lbl-s mono strong" x="646" y="170" text-anchor="start">≤ 距離レンジ 9 px</text>
+</svg></div>
+<figcaption><span class="fn">図 8</span>emPx 48 の符号化。距離レンジ（0.1875em＝9 px）の外は 0 か 255 に飽和する。縁取りなどのエッジスタイルが外へ広がれる上限 0.15em に、表示 14px での AA の半分を足しても距離レンジに収まる（README §6.2・§9）。</figcaption>
+</figure>
+<p>距離レンジは全フォントで 1 つの値で、ベイク仕様では選べない。エッジスタイルの値は em で書くので、フォントごとに距離レンジが違うと、同じエッジスタイルでもフォントによって縁が描けたり切れたりする。</p>
+
+<h3 id="cell"><span class="num">6.2</span>セルの寸法</h3>
+<p>全字を同じ大きさのセルに入れる。セルの寸法は <code>ComputeCell</code> が、セルのインク境界（既定は依頼した全字のインク境界の和）から決める。</p>
+<ol>
+<li>余白 ＝ ⌈距離レンジ px⌉ ＋ 1 ＝ ⌈9⌉ ＋ 1 ＝ 10 px を四方に取る。＋1 texel はガードで、quad の縁で bilinear が矩形の外を半 texel 読んでも、読むのは同じ字の飽和した値になり、隣のセルの字がにじまない。</li>
+<li>幅 ＝ ⌈箱の幅 × emPx⌉ ＋ 2 × 余白 を 4 の倍数へ切り上げる（高さも同じ）。BC4 の 4×4 のブロックが 2 字にまたがらないようにするため。</li>
+<li>セルの左下からペン原点までの距離 ＝ 余白 − 箱の左端（下端）× emPx。</li>
+</ol>
+<p>見本では、インク境界 (−0.01, −0.23, 0.982, 0.842)em が 47.616 × 51.456 px で、切り上げて 48 × 52、余白を足して 68 × 72 px（どちらも 4 の倍数なのでそのまま）。ペン原点はセルの左下から (10.48, 21.04) px。</p>
+<figure class="fig" id="fig-cell">
+<div class="scroll"><svg class="dia " viewBox="0 0 753.6 460.4" width="753.6" height="460.4" role="img" aria-label="SDF のセルの寸法と原点" xmlns="http://www.w3.org/2000/svg">
+<rect class="cell" x="150" y="26" width="353.6" height="374.4"/>
+<line class="grid" x1="150" y1="400.4" x2="150" y2="26"/>
+<line class="grid" x1="170.8" y1="400.4" x2="170.8" y2="26"/>
+<line class="grid" x1="191.6" y1="400.4" x2="191.6" y2="26"/>
+<line class="grid" x1="212.4" y1="400.4" x2="212.4" y2="26"/>
+<line class="grid" x1="233.2" y1="400.4" x2="233.2" y2="26"/>
+<line class="grid" x1="254" y1="400.4" x2="254" y2="26"/>
+<line class="grid" x1="274.8" y1="400.4" x2="274.8" y2="26"/>
+<line class="grid" x1="295.6" y1="400.4" x2="295.6" y2="26"/>
+<line class="grid" x1="316.4" y1="400.4" x2="316.4" y2="26"/>
+<line class="grid" x1="337.2" y1="400.4" x2="337.2" y2="26"/>
+<line class="grid" x1="358" y1="400.4" x2="358" y2="26"/>
+<line class="grid" x1="378.8" y1="400.4" x2="378.8" y2="26"/>
+<line class="grid" x1="399.6" y1="400.4" x2="399.6" y2="26"/>
+<line class="grid" x1="420.4" y1="400.4" x2="420.4" y2="26"/>
+<line class="grid" x1="441.2" y1="400.4" x2="441.2" y2="26"/>
+<line class="grid" x1="462" y1="400.4" x2="462" y2="26"/>
+<line class="grid" x1="482.8" y1="400.4" x2="482.8" y2="26"/>
+<line class="grid" x1="503.6" y1="400.4" x2="503.6" y2="26"/>
+<line class="grid" x1="150" y1="400.4" x2="503.6" y2="400.4"/>
+<line class="grid" x1="150" y1="379.6" x2="503.6" y2="379.6"/>
+<line class="grid" x1="150" y1="358.8" x2="503.6" y2="358.8"/>
+<line class="grid" x1="150" y1="338" x2="503.6" y2="338"/>
+<line class="grid" x1="150" y1="317.2" x2="503.6" y2="317.2"/>
+<line class="grid" x1="150" y1="296.4" x2="503.6" y2="296.4"/>
+<line class="grid" x1="150" y1="275.6" x2="503.6" y2="275.6"/>
+<line class="grid" x1="150" y1="254.8" x2="503.6" y2="254.8"/>
+<line class="grid" x1="150" y1="234" x2="503.6" y2="234"/>
+<line class="grid" x1="150" y1="213.2" x2="503.6" y2="213.2"/>
+<line class="grid" x1="150" y1="192.4" x2="503.6" y2="192.4"/>
+<line class="grid" x1="150" y1="171.6" x2="503.6" y2="171.6"/>
+<line class="grid" x1="150" y1="150.8" x2="503.6" y2="150.8"/>
+<line class="grid" x1="150" y1="130" x2="503.6" y2="130"/>
+<line class="grid" x1="150" y1="109.2" x2="503.6" y2="109.2"/>
+<line class="grid" x1="150" y1="88.4" x2="503.6" y2="88.4"/>
+<line class="grid" x1="150" y1="67.6" x2="503.6" y2="67.6"/>
+<line class="grid" x1="150" y1="46.8" x2="503.6" y2="46.8"/>
+<line class="grid" x1="150" y1="26" x2="503.6" y2="26"/>
+<rect class="cellink" x="202" y="80.8" width="247.6" height="267.6"/>
+<path class="g-fill g-stroke" d="M353.26 290.24 Q380.46 285 396.06 270.03 Q411.66 255.05 411.66 234.33 Q411.66 201.88 380.21 189.65 Q363.74 237.83 332.42 266.03 Q301.09 294.24 270.14 294.24 Q250.67 294.24 239.69 282.63 Q228.71 271.02 228.71 250.31 Q228.71 224.85 245.31 204.76 Q261.9 184.66 291.11 174.93 L291.11 137.99 L237.69 137.99 L237.69 122.01 L291.11 122.01 L291.11 90.56 L309.33 90.56 L309.33 122.01 L420.9 122.01 L420.9 137.99 L309.33 137.99 L309.33 170.19 Q326.05 166.94 342.52 166.94 Q383.46 166.94 406.67 185.04 Q429.88 203.13 429.88 234.33 Q429.88 262.04 410.67 281.26 Q391.45 300.48 357.75 306.72 L353.26 290.24 L353.26 290.24 Z M363.49 185.16 Q354.01 183.66 342.52 183.66 Q324.8 183.66 309.33 187.41 L309.33 263.29 Q325.8 251.31 340.15 231.21 Q354.51 211.12 363.49 185.16 L363.49 185.16 Z M291.11 193.15 Q270.64 201.64 258.78 216.24 Q246.93 230.84 246.93 248.56 Q246.93 262.54 253.42 270.15 Q259.91 277.76 271.89 277.76 Q281.37 277.76 291.11 273.77 L291.11 193.15 L291.11 193.15 Z"/>
+<rect class="inkbox" x="228.7" y="90.6" width="201.2" height="216.2"/>
+<rect class="glyphrect" x="181.2" y="41.6" width="296.4" height="312"/>
+<line class="base" x1="150" y1="291" x2="503.6" y2="291"/>
+<line class="base" x1="204.5" y1="400.4" x2="204.5" y2="26"/>
+<circle class="origin" cx="204.5" cy="291" r="4.5"/>
+<line class="dim" x1="150" y1="14" x2="503.6" y2="14"/><polygon class="ah-dim" points="503.6,14 497.6,16.7 497.6,11.3"/><polygon class="ah-dim" points="150,14 156,11.3 156,16.7"/>
+<text class="lbl-s mono" x="326.8" y="8" text-anchor="middle">セルの幅 68 px</text>
+<line class="dim" x1="517.6" y1="400.4" x2="517.6" y2="26"/><polygon class="ah-dim" points="517.6,26 520.3,32 514.9,32"/><polygon class="ah-dim" points="517.6,400.4 514.9,394.4 520.3,394.4"/>
+<text class="lbl-s mono" x="523.6" y="213.2" text-anchor="start">高さ 72 px</text>
+<line class="dim" x1="150" y1="317.2" x2="202" y2="317.2"/><polygon class="ah-dim" points="202,317.2 196,319.9 196,314.5"/><polygon class="ah-dim" points="150,317.2 156,314.5 156,319.9"/>
+<text class="lbl-s mono" x="176" y="311.2" text-anchor="middle">10</text>
+<line class="dim" x1="306" y1="400.4" x2="306" y2="348.4"/><polygon class="ah-dim" points="306,348.4 308.7,354.4 303.3,354.4"/><polygon class="ah-dim" points="306,400.4 303.3,394.4 308.7,394.4"/>
+<text class="lbl-s mono" x="311" y="378.4" text-anchor="start">10</text>
+<rect class="cellink" x="563.6" y="46" width="22" height="14"/>
+<text class="lbl-s" x="593.6" y="58" text-anchor="start">セルのインク境界</text>
+<text class="lbl-s" x="593.6" y="73" text-anchor="start">＝依頼した字のインク境界の和</text>
+<rect class="inkbox" x="563.6" y="86" width="22" height="14"/>
+<text class="lbl-s" x="593.6" y="98" text-anchor="start">あ のインク境界</text>
+<rect class="glyphrect" x="563.6" y="126" width="22" height="14"/>
+<text class="lbl-s" x="593.6" y="138" text-anchor="start">あ の矩形</text>
+<text class="lbl-s" x="593.6" y="153" text-anchor="start">（インク境界＋距離レンジ・外向きに丸め）</text>
+<circle class="origin" cx="574.6" cy="173" r="4.5"/>
+<text class="lbl-s" x="593.6" y="178" text-anchor="start">ペン原点（ベースライン上）</text>
+<text class="lbl-s mono" x="593.6" y="193" text-anchor="start">セルの左下から (10.48, 21.04) px</text>
+<text class="lbl-s" x="12" y="295" text-anchor="start">ベースライン</text>
+<text class="lbl-s" x="12" y="404.4" text-anchor="start">セルの下端</text>
+<text class="lbl-s" x="12" y="30" text-anchor="start">セルの上端</text>
+<text class="lbl-s" x="150" y="444.4" text-anchor="start">1 マス＝4 texel。あ の矩形は 57×60 texel（セルの中の [6, 63) × [9, 69)）</text>
+</svg></div>
+<figcaption><span class="fn">図 9</span>見本のセル（68×72 px）に「あ」を置いた図。アトラスにベイクするのは青緑の矩形（インク境界に距離レンジを足し、texel の格子へ外向きに丸めた範囲）だけで、その外はページの初期値 0 のまま。</figcaption>
+</figure>
+<p>cellBox を明示した場合、箱からはみ出す字があればインポートを止め、はみ出した字を（40 字まで）名指す。切って収めると縁が欠けるため。</p>
+
+<h3 id="layout"><span class="num">6.3</span>並べる順とページ</h3>
+<p>インクのあるグリフだけがセルを使う（空白はセルを持たない）。並べる順は「優先クラス」→「字」で、.notdef は字を −1 と数えるのでページ 0 の先頭に来る。</p>
+<div class="tbl"><table>
+<thead><tr><th>優先クラス</th><th>字</th><th class="num">見本のグリフ数</th></tr></thead>
+<tbody>
+<tr><td class="nw"><span class="sw" style="background:var(--atl-0)"></span> 0</td><td>漢字以外（英数・記号・.notdef）</td><td class="num">101</td></tr>
+<tr><td class="nw"><span class="sw" style="background:var(--atl-1)"></span> 1</td><td>かな（ひらがな・カタカナ）</td><td class="num">75</td></tr>
+<tr><td class="nw"><span class="sw" style="background:var(--atl-2)"></span> 2</td><td>JIS X 0208 第 1 水準の漢字</td><td class="num">30</td></tr>
+<tr><td>3</td><td>JIS X 0208 第 2 水準の漢字</td><td class="num">0</td></tr>
+<tr><td>4</td><td>それ以外の漢字</td><td class="num">0</td></tr>
+</tbody></table></div>
+<p><code>AtlasLayout.Plan</code> は並べた順に 0 ページから詰める。1 ページに入るセルの数は「最大幅に入る列数 × 最大高さに入る行数」で、超えたときだけ次のページへ進む。ページの形は正方形にせず、入る字が少なければ正方形に近い列数（<code>⌈√(セル数 × セルの高さ ÷ セルの幅)⌉</code>）、多ければ最大幅まで横に広げ、決まった行数に要る最小の列数へ戻す。寸法は 4 の倍数へ切り上げる。見本は 206 セルで、√(206 × 72 ÷ 68) ≈ 14.8 → 15 列 → 14 行、ページは 15 × 68 ＝ 1020 px × 14 × 72 ＝ 1008 px。</p>
+<figure class="fig dark-plate" id="fig-atlas">
+<svg class="dia atlas" viewBox="0 0 1020 1008" width="1020" height="1008" role="img" aria-label="ベイクしたアトラスのページとセルの区割り" xmlns="http://www.w3.org/2000/svg">
+<image href="02-truetype-to-atlas/atlas-page.png" x="0" y="0" width="1020" height="1008"/>
+<rect class="slot c0" x="69" y="937" width="66" height="70"/>
+<rect class="qrect" x="75" y="942" width="23" height="54"/>
+<rect class="slot c0" x="137" y="937" width="66" height="70"/>
+<rect class="qrect" x="140" y="941" width="32" height="30"/>
+<rect class="slot c0" x="205" y="937" width="66" height="70"/>
+<rect class="qrect" x="207" y="942" width="47" height="54"/>
+<rect class="slot c0" x="273" y="937" width="66" height="70"/>
+<rect class="qrect" x="276" y="938" width="40" height="63"/>
+<rect class="slot c0" x="341" y="937" width="66" height="70"/>
+<rect class="qrect" x="343" y="942" width="54" height="55"/>
+<rect class="slot c0" x="409" y="937" width="66" height="70"/>
+<rect class="qrect" x="412" y="942" width="50" height="55"/>
+<rect class="slot c0" x="477" y="937" width="66" height="70"/>
+<rect class="qrect" x="481" y="941" width="23" height="30"/>
+<rect class="slot c0" x="545" y="937" width="66" height="70"/>
+<rect class="qrect" x="548" y="941" width="32" height="62"/>
+<rect class="slot c0" x="613" y="937" width="66" height="70"/>
+<rect class="qrect" x="615" y="941" width="32" height="62"/>
+<rect class="slot c0" x="681" y="937" width="66" height="70"/>
+<rect class="qrect" x="683" y="941" width="40" height="39"/>
+<rect class="slot c0" x="749" y="937" width="66" height="70"/>
+<rect class="qrect" x="753" y="950" width="46" height="46"/>
+<rect class="slot c0" x="817" y="937" width="66" height="70"/>
+<rect class="qrect" x="820" y="971" width="27" height="31"/>
+<rect class="slot c0" x="885" y="937" width="66" height="70"/>
+<rect class="qrect" x="889" y="962" width="34" height="22"/>
+<rect class="slot c0" x="953" y="937" width="66" height="70"/>
+<rect class="qrect" x="958" y="971" width="23" height="25"/>
+<rect class="slot c0" x="1" y="865" width="66" height="70"/>
+<rect class="qrect" x="3" y="870" width="39" height="56"/>
+<rect class="slot c0" x="69" y="865" width="66" height="70"/>
+<rect class="qrect" x="71" y="870" width="44" height="55"/>
+<rect class="slot c0" x="137" y="865" width="66" height="70"/>
+<rect class="qrect" x="142" y="870" width="33" height="54"/>
+<rect class="slot c0" x="205" y="865" width="66" height="70"/>
+<rect class="qrect" x="209" y="870" width="41" height="54"/>
+<rect class="slot c0" x="273" y="865" width="66" height="70"/>
+<rect class="qrect" x="277" y="870" width="41" height="55"/>
+<rect class="slot c0" x="341" y="865" width="66" height="70"/>
+<rect class="qrect" x="342" y="870" width="45" height="54"/>
+<rect class="slot c0" x="409" y="865" width="66" height="70"/>
+<rect class="qrect" x="414" y="870" width="40" height="55"/>
+<rect class="slot c0" x="477" y="865" width="66" height="70"/>
+<rect class="qrect" x="480" y="870" width="43" height="55"/>
+<rect class="slot c0" x="545" y="865" width="66" height="70"/>
+<rect class="qrect" x="549" y="870" width="41" height="54"/>
+<rect class="slot c0" x="613" y="865" width="66" height="70"/>
+<rect class="qrect" x="615" y="870" width="44" height="55"/>
+<rect class="slot c0" x="681" y="865" width="66" height="70"/>
+<rect class="qrect" x="683" y="870" width="44" height="55"/>
+<rect class="slot c0" x="749" y="865" width="66" height="70"/>
+<rect class="qrect" x="755" y="880" width="24" height="44"/>
+<rect class="slot c0" x="817" y="865" width="66" height="70"/>
+<rect class="qrect" x="821" y="880" width="27" height="50"/>
+<rect class="slot c0" x="885" y="865" width="66" height="70"/>
+<rect class="qrect" x="888" y="878" width="43" height="46"/>
+<rect class="slot c0" x="953" y="865" width="66" height="70"/>
+<rect class="qrect" x="957" y="884" width="47" height="34"/>
+<rect class="slot c0" x="1" y="793" width="66" height="70"/>
+<rect class="qrect" x="6" y="806" width="43" height="46"/>
+<rect class="slot c0" x="69" y="793" width="66" height="70"/>
+<rect class="qrect" x="73" y="798" width="42" height="54"/>
+<rect class="slot c0" x="137" y="793" width="66" height="70"/>
+<rect class="qrect" x="139" y="803" width="55" height="55"/>
+<rect class="slot c0" x="205" y="793" width="66" height="70"/>
+<rect class="qrect" x="206" y="798" width="48" height="54"/>
+<rect class="slot c0" x="273" y="793" width="66" height="70"/>
+<rect class="qrect" x="277" y="798" width="42" height="55"/>
+<rect class="slot c0" x="341" y="793" width="66" height="70"/>
+<rect class="qrect" x="343" y="798" width="43" height="55"/>
+<rect class="slot c0" x="409" y="793" width="66" height="70"/>
+<rect class="qrect" x="413" y="798" width="45" height="55"/>
+<rect class="slot c0" x="477" y="793" width="66" height="70"/>
+<rect class="qrect" x="481" y="798" width="40" height="54"/>
+<rect class="slot c0" x="545" y="793" width="66" height="70"/>
+<rect class="qrect" x="549" y="798" width="39" height="54"/>
+<rect class="slot c0" x="613" y="793" width="66" height="70"/>
+<rect class="qrect" x="615" y="798" width="46" height="55"/>
+<rect class="slot c0" x="681" y="793" width="66" height="70"/>
+<rect class="qrect" x="685" y="798" width="43" height="54"/>
+<rect class="slot c0" x="749" y="793" width="66" height="70"/>
+<rect class="qrect" x="755" y="798" width="23" height="54"/>
+<rect class="slot c0" x="817" y="793" width="66" height="70"/>
+<rect class="qrect" x="819" y="798" width="39" height="55"/>
+<rect class="slot c0" x="885" y="793" width="66" height="70"/>
+<rect class="qrect" x="889" y="798" width="43" height="54"/>
+<rect class="slot c0" x="953" y="793" width="66" height="70"/>
+<rect class="qrect" x="957" y="798" width="40" height="54"/>
+<rect class="slot c0" x="1" y="721" width="66" height="70"/>
+<rect class="qrect" x="5" y="726" width="50" height="54"/>
+<rect class="slot c0" x="69" y="721" width="66" height="70"/>
+<rect class="qrect" x="73" y="726" width="44" height="54"/>
+<rect class="slot c0" x="137" y="721" width="66" height="70"/>
+<rect class="qrect" x="139" y="726" width="49" height="55"/>
+<rect class="slot c0" x="205" y="721" width="66" height="70"/>
+<rect class="qrect" x="209" y="726" width="42" height="54"/>
+<rect class="slot c0" x="273" y="721" width="66" height="70"/>
+<rect class="qrect" x="275" y="726" width="53" height="62"/>
+<rect class="slot c0" x="341" y="721" width="66" height="70"/>
+<rect class="qrect" x="345" y="726" width="43" height="54"/>
+<rect class="slot c0" x="409" y="721" width="66" height="70"/>
+<rect class="qrect" x="412" y="726" width="40" height="55"/>
+<rect class="slot c0" x="477" y="721" width="66" height="70"/>
+<rect class="qrect" x="480" y="726" width="43" height="54"/>
+<rect class="slot c0" x="545" y="721" width="66" height="70"/>
+<rect class="qrect" x="549" y="726" width="43" height="55"/>
+<rect class="slot c0" x="613" y="721" width="66" height="70"/>
+<rect class="qrect" x="614" y="726" width="48" height="54"/>
+<rect class="slot c0" x="681" y="721" width="66" height="70"/>
+<rect class="qrect" x="683" y="726" width="57" height="54"/>
+<rect class="slot c0" x="749" y="721" width="66" height="70"/>
+<rect class="qrect" x="752" y="726" width="45" height="54"/>
+<rect class="slot c0" x="817" y="721" width="66" height="70"/>
+<rect class="qrect" x="818" y="726" width="48" height="54"/>
+<rect class="slot c0" x="885" y="721" width="66" height="70"/>
+<rect class="qrect" x="889" y="726" width="41" height="54"/>
+<rect class="slot c0" x="953" y="721" width="66" height="70"/>
+<rect class="qrect" x="959" y="725" width="31" height="62"/>
+<rect class="slot c0" x="1" y="649" width="66" height="70"/>
+<rect class="qrect" x="3" y="654" width="40" height="56"/>
+<rect class="slot c0" x="69" y="649" width="66" height="70"/>
+<rect class="qrect" x="73" y="653" width="32" height="62"/>
+<rect class="slot c0" x="137" y="649" width="66" height="70"/>
+<rect class="qrect" x="139" y="654" width="45" height="41"/>
+<rect class="slot c0" x="205" y="649" width="66" height="70"/>
+<rect class="qrect" x="205" y="693" width="46" height="22"/>
+<rect class="slot c0" x="273" y="649" width="66" height="70"/>
+<rect class="qrect" x="274" y="651" width="29" height="31"/>
+<rect class="slot c0" x="341" y="649" width="66" height="70"/>
+<rect class="qrect" x="343" y="664" width="39" height="45"/>
+<rect class="slot c0" x="409" y="649" width="66" height="70"/>
+<rect class="qrect" x="413" y="653" width="41" height="56"/>
+<rect class="slot c0" x="477" y="649" width="66" height="70"/>
+<rect class="qrect" x="479" y="664" width="37" height="45"/>
+<rect class="slot c0" x="545" y="649" width="66" height="70"/>
+<rect class="qrect" x="547" y="653" width="41" height="56"/>
+<rect class="slot c0" x="613" y="649" width="66" height="70"/>
+<rect class="qrect" x="615" y="664" width="40" height="45"/>
+<rect class="slot c0" x="681" y="649" width="66" height="70"/>
+<rect class="qrect" x="684" y="654" width="37" height="54"/>
+<rect class="slot c0" x="749" y="649" width="66" height="70"/>
+<rect class="qrect" x="751" y="664" width="40" height="56"/>
+<rect class="slot c0" x="817" y="649" width="66" height="70"/>
+<rect class="qrect" x="821" y="653" width="39" height="55"/>
+<rect class="slot c0" x="885" y="649" width="66" height="70"/>
+<rect class="qrect" x="891" y="653" width="22" height="55"/>
+<rect class="slot c0" x="953" y="649" width="66" height="70"/>
+<rect class="qrect" x="953" y="653" width="30" height="66"/>
+<rect class="slot c0" x="1" y="577" width="66" height="70"/>
+<rect class="qrect" x="5" y="581" width="39" height="55"/>
+<rect class="slot c0" x="69" y="577" width="66" height="70"/>
+<rect class="qrect" x="75" y="581" width="22" height="55"/>
+<rect class="slot c0" x="137" y="577" width="66" height="70"/>
+<rect class="qrect" x="141" y="592" width="49" height="44"/>
+<rect class="slot c0" x="205" y="577" width="66" height="70"/>
+<rect class="qrect" x="209" y="592" width="39" height="44"/>
+<rect class="slot c0" x="273" y="577" width="66" height="70"/>
+<rect class="qrect" x="275" y="592" width="42" height="45"/>
+<rect class="slot c0" x="341" y="577" width="66" height="70"/>
+<rect class="qrect" x="345" y="592" width="40" height="55"/>
+<rect class="slot c0" x="409" y="577" width="66" height="70"/>
+<rect class="qrect" x="411" y="592" width="41" height="55"/>
+<rect class="slot c0" x="477" y="577" width="66" height="70"/>
+<rect class="qrect" x="481" y="593" width="34" height="43"/>
+<rect class="slot c0" x="545" y="577" width="66" height="70"/>
+<rect class="qrect" x="548" y="592" width="37" height="45"/>
+<rect class="slot c0" x="613" y="577" width="66" height="70"/>
+<rect class="qrect" x="615" y="584" width="37" height="53"/>
+<rect class="slot c0" x="681" y="577" width="66" height="70"/>
+<rect class="qrect" x="684" y="593" width="39" height="44"/>
+<rect class="slot c0" x="749" y="577" width="66" height="70"/>
+<rect class="qrect" x="751" y="593" width="42" height="43"/>
+<rect class="slot c0" x="817" y="577" width="66" height="70"/>
+<rect class="qrect" x="819" y="593" width="53" height="43"/>
+<rect class="slot c0" x="885" y="577" width="66" height="70"/>
+<rect class="qrect" x="887" y="593" width="41" height="43"/>
+<rect class="slot c0" x="953" y="577" width="66" height="70"/>
+<rect class="qrect" x="955" y="593" width="42" height="54"/>
+<rect class="slot c0" x="1" y="505" width="66" height="70"/>
+<rect class="qrect" x="5" y="521" width="37" height="43"/>
+<rect class="slot c0" x="69" y="505" width="66" height="70"/>
+<rect class="qrect" x="72" y="509" width="36" height="62"/>
+<rect class="slot c0" x="137" y="505" width="66" height="70"/>
+<rect class="qrect" x="143" y="507" width="23" height="68"/>
+<rect class="slot c0" x="205" y="505" width="66" height="70"/>
+<rect class="qrect" x="209" y="509" width="37" height="62"/>
+<rect class="slot c0" x="273" y="505" width="66" height="70"/>
+<rect class="qrect" x="276" y="527" width="47" height="27"/>
+<rect class="slot c0" x="341" y="505" width="66" height="70"/>
+<rect class="qrect" x="347" y="510" width="54" height="54"/>
+<rect class="slot c0" x="409" y="505" width="66" height="70"/>
+<rect class="qrect" x="415" y="510" width="54" height="54"/>
+<rect class="slot c0" x="477" y="505" width="66" height="70"/>
+<rect class="qrect" x="480" y="535" width="31" height="32"/>
+<rect class="slot c0" x="545" y="505" width="66" height="70"/>
+<rect class="qrect" x="548" y="535" width="34" height="33"/>
+<rect class="slot c0" x="613" y="505" width="66" height="70"/>
+<rect class="qrect" x="639" y="506" width="38" height="55"/>
+<rect class="slot c0" x="681" y="505" width="66" height="70"/>
+<rect class="qrect" x="684" y="514" width="38" height="55"/>
+<rect class="slot c1" x="749" y="505" width="66" height="70"/>
+<rect class="qrect" x="754" y="507" width="57" height="60"/>
+<rect class="slot c1" x="817" y="505" width="66" height="70"/>
+<rect class="qrect" x="823" y="512" width="57" height="54"/>
+<rect class="slot c1" x="885" y="505" width="66" height="70"/>
+<rect class="qrect" x="891" y="509" width="55" height="57"/>
+<rect class="slot c1" x="953" y="505" width="66" height="70"/>
+<rect class="qrect" x="958" y="508" width="58" height="58"/>
+<rect class="slot c1" x="1" y="433" width="66" height="70"/>
+<rect class="qrect" x="5" y="435" width="61" height="60"/>
+<rect class="slot c1" x="69" y="433" width="66" height="70"/>
+<rect class="qrect" x="73" y="435" width="61" height="59"/>
+<rect class="slot c1" x="137" y="433" width="66" height="70"/>
+<rect class="qrect" x="142" y="435" width="57" height="60"/>
+<rect class="slot c1" x="205" y="433" width="66" height="70"/>
+<rect class="qrect" x="213" y="435" width="47" height="61"/>
+<rect class="slot c1" x="273" y="433" width="66" height="70"/>
+<rect class="qrect" x="278" y="436" width="59" height="59"/>
+<rect class="slot c1" x="341" y="433" width="66" height="70"/>
+<rect class="qrect" x="347" y="439" width="54" height="55"/>
+<rect class="slot c1" x="409" y="433" width="66" height="70"/>
+<rect class="qrect" x="414" y="435" width="57" height="59"/>
+<rect class="slot c1" x="477" y="433" width="66" height="70"/>
+<rect class="qrect" x="487" y="436" width="52" height="59"/>
+<rect class="slot c1" x="545" y="433" width="66" height="70"/>
+<rect class="qrect" x="548" y="434" width="60" height="61"/>
+<rect class="slot c1" x="613" y="433" width="66" height="70"/>
+<rect class="qrect" x="616" y="435" width="61" height="59"/>
+<rect class="slot c1" x="681" y="433" width="66" height="70"/>
+<rect class="qrect" x="684" y="437" width="60" height="58"/>
+<rect class="slot c1" x="749" y="433" width="66" height="70"/>
+<rect class="qrect" x="753" y="435" width="58" height="60"/>
+<rect class="slot c1" x="817" y="433" width="66" height="70"/>
+<rect class="qrect" x="822" y="435" width="57" height="59"/>
+<rect class="slot c1" x="885" y="433" width="66" height="70"/>
+<rect class="qrect" x="889" y="441" width="59" height="52"/>
+<rect class="slot c1" x="953" y="433" width="66" height="70"/>
+<rect class="qrect" x="958" y="439" width="58" height="55"/>
+<rect class="slot c1" x="1" y="361" width="66" height="70"/>
+<rect class="qrect" x="8" y="364" width="52" height="58"/>
+<rect class="slot c1" x="69" y="361" width="66" height="70"/>
+<rect class="qrect" x="71" y="362" width="62" height="61"/>
+<rect class="slot c1" x="137" y="361" width="66" height="70"/>
+<rect class="qrect" x="143" y="365" width="56" height="58"/>
+<rect class="slot c1" x="205" y="361" width="66" height="70"/>
+<rect class="qrect" x="209" y="363" width="61" height="59"/>
+<rect class="slot c1" x="273" y="361" width="66" height="70"/>
+<rect class="qrect" x="276" y="364" width="62" height="59"/>
+<rect class="slot c1" x="341" y="361" width="66" height="70"/>
+<rect class="qrect" x="345" y="367" width="59" height="55"/>
+<rect class="slot c1" x="409" y="361" width="66" height="70"/>
+<rect class="qrect" x="414" y="364" width="59" height="59"/>
+<rect class="slot c1" x="477" y="361" width="66" height="70"/>
+<rect class="qrect" x="482" y="366" width="60" height="57"/>
+<rect class="slot c1" x="545" y="361" width="66" height="70"/>
+<rect class="qrect" x="547" y="366" width="63" height="57"/>
+<rect class="slot c1" x="613" y="361" width="66" height="70"/>
+<rect class="qrect" x="615" y="373" width="63" height="44"/>
+<rect class="slot c1" x="681" y="361" width="66" height="70"/>
+<rect class="qrect" x="686" y="365" width="59" height="58"/>
+<rect class="slot c1" x="749" y="361" width="66" height="70"/>
+<rect class="qrect" x="755" y="363" width="55" height="60"/>
+<rect class="slot c1" x="817" y="361" width="66" height="70"/>
+<rect class="qrect" x="820" y="366" width="62" height="57"/>
+<rect class="slot c1" x="885" y="361" width="66" height="70"/>
+<rect class="qrect" x="888" y="363" width="62" height="60"/>
+<rect class="slot c1" x="953" y="361" width="66" height="70"/>
+<rect class="qrect" x="957" y="363" width="59" height="60"/>
+<rect class="slot c1" x="1" y="289" width="66" height="70"/>
+<rect class="qrect" x="6" y="291" width="57" height="60"/>
+<rect class="slot c1" x="69" y="289" width="66" height="70"/>
+<rect class="qrect" x="71" y="291" width="62" height="60"/>
+<rect class="slot c1" x="137" y="289" width="66" height="70"/>
+<rect class="qrect" x="142" y="291" width="58" height="61"/>
+<rect class="slot c1" x="205" y="289" width="66" height="70"/>
+<rect class="qrect" x="211" y="291" width="56" height="60"/>
+<rect class="slot c1" x="273" y="289" width="66" height="70"/>
+<rect class="qrect" x="281" y="293" width="52" height="57"/>
+<rect class="slot c1" x="341" y="289" width="66" height="70"/>
+<rect class="qrect" x="350" y="293" width="50" height="58"/>
+<rect class="slot c1" x="409" y="289" width="66" height="70"/>
+<rect class="qrect" x="414" y="294" width="56" height="57"/>
+<rect class="slot c1" x="477" y="289" width="66" height="70"/>
+<rect class="qrect" x="479" y="291" width="64" height="60"/>
+<rect class="slot c1" x="545" y="289" width="66" height="70"/>
+<rect class="qrect" x="550" y="294" width="56" height="56"/>
+<rect class="slot c1" x="613" y="289" width="66" height="70"/>
+<rect class="qrect" x="616" y="292" width="60" height="59"/>
+<rect class="slot c1" x="681" y="289" width="66" height="70"/>
+<rect class="qrect" x="685" y="293" width="59" height="58"/>
+<rect class="slot c1" x="749" y="289" width="66" height="70"/>
+<rect class="qrect" x="752" y="293" width="61" height="58"/>
+<rect class="slot c1" x="817" y="289" width="66" height="70"/>
+<rect class="qrect" x="821" y="291" width="56" height="59"/>
+<rect class="slot c1" x="885" y="289" width="66" height="70"/>
+<rect class="qrect" x="889" y="292" width="60" height="59"/>
+<rect class="slot c1" x="953" y="289" width="66" height="70"/>
+<rect class="qrect" x="959" y="295" width="57" height="55"/>
+<rect class="slot c1" x="1" y="217" width="66" height="70"/>
+<rect class="qrect" x="6" y="222" width="57" height="57"/>
+<rect class="slot c1" x="69" y="217" width="66" height="70"/>
+<rect class="qrect" x="75" y="219" width="55" height="59"/>
+<rect class="slot c1" x="137" y="217" width="66" height="70"/>
+<rect class="qrect" x="142" y="224" width="57" height="51"/>
+<rect class="slot c1" x="205" y="217" width="66" height="70"/>
+<rect class="qrect" x="210" y="219" width="58" height="58"/>
+<rect class="slot c1" x="273" y="217" width="66" height="70"/>
+<rect class="qrect" x="279" y="219" width="54" height="59"/>
+<rect class="slot c1" x="341" y="217" width="66" height="70"/>
+<rect class="qrect" x="345" y="220" width="59" height="60"/>
+<rect class="slot c1" x="409" y="217" width="66" height="70"/>
+<rect class="qrect" x="414" y="220" width="54" height="58"/>
+<rect class="slot c1" x="477" y="217" width="66" height="70"/>
+<rect class="qrect" x="480" y="220" width="60" height="58"/>
+<rect class="slot c1" x="545" y="217" width="66" height="70"/>
+<rect class="qrect" x="552" y="224" width="53" height="51"/>
+<rect class="slot c1" x="613" y="217" width="66" height="70"/>
+<rect class="qrect" x="616" y="220" width="61" height="58"/>
+<rect class="slot c1" x="681" y="217" width="66" height="70"/>
+<rect class="qrect" x="687" y="221" width="57" height="57"/>
+<rect class="slot c1" x="749" y="217" width="66" height="70"/>
+<rect class="qrect" x="754" y="223" width="57" height="55"/>
+<rect class="slot c1" x="817" y="217" width="66" height="70"/>
+<rect class="qrect" x="820" y="220" width="60" height="57"/>
+<rect class="slot c1" x="885" y="217" width="66" height="70"/>
+<rect class="qrect" x="891" y="222" width="55" height="55"/>
+<rect class="slot c1" x="953" y="217" width="66" height="70"/>
+<rect class="qrect" x="958" y="220" width="55" height="58"/>
+<rect class="slot c1" x="1" y="145" width="66" height="70"/>
+<rect class="qrect" x="5" y="149" width="59" height="58"/>
+<rect class="slot c1" x="69" y="145" width="66" height="70"/>
+<rect class="qrect" x="74" y="151" width="57" height="55"/>
+<rect class="slot c1" x="137" y="145" width="66" height="70"/>
+<rect class="qrect" x="141" y="151" width="59" height="56"/>
+<rect class="slot c1" x="205" y="145" width="66" height="70"/>
+<rect class="qrect" x="217" y="149" width="50" height="58"/>
+<rect class="slot c1" x="273" y="145" width="66" height="70"/>
+<rect class="qrect" x="277" y="148" width="59" height="58"/>
+<rect class="slot c1" x="341" y="145" width="66" height="70"/>
+<rect class="qrect" x="346" y="152" width="57" height="51"/>
+<rect class="slot c1" x="409" y="145" width="66" height="70"/>
+<rect class="qrect" x="414" y="151" width="56" height="55"/>
+<rect class="slot c1" x="477" y="145" width="66" height="70"/>
+<rect class="qrect" x="481" y="147" width="59" height="60"/>
+<rect class="slot c1" x="545" y="145" width="66" height="70"/>
+<rect class="qrect" x="552" y="150" width="51" height="56"/>
+<rect class="slot c1" x="613" y="145" width="66" height="70"/>
+<rect class="qrect" x="634" y="165" width="25" height="26"/>
+<rect class="slot c1" x="681" y="145" width="66" height="70"/>
+<rect class="qrect" x="685" y="166" width="59" height="23"/>
+<rect class="slot c2" x="749" y="145" width="66" height="70"/>
+<rect class="qrect" x="752" y="165" width="61" height="23"/>
+<rect class="slot c2" x="817" y="145" width="66" height="70"/>
+<rect class="qrect" x="820" y="150" width="60" height="55"/>
+<rect class="slot c2" x="885" y="145" width="66" height="70"/>
+<rect class="qrect" x="888" y="152" width="61" height="52"/>
+<rect class="slot c2" x="953" y="145" width="66" height="70"/>
+<rect class="qrect" x="956" y="146" width="61" height="62"/>
+<rect class="slot c2" x="1" y="73" width="66" height="70"/>
+<rect class="qrect" x="3" y="74" width="63" height="62"/>
+<rect class="slot c2" x="69" y="73" width="66" height="70"/>
+<rect class="qrect" x="71" y="76" width="64" height="61"/>
+<rect class="slot c2" x="137" y="73" width="66" height="70"/>
+<rect class="qrect" x="140" y="74" width="61" height="63"/>
+<rect class="slot c2" x="205" y="73" width="66" height="70"/>
+<rect class="qrect" x="207" y="73" width="63" height="63"/>
+<rect class="slot c2" x="273" y="73" width="66" height="70"/>
+<rect class="qrect" x="275" y="74" width="63" height="62"/>
+<rect class="slot c2" x="341" y="73" width="66" height="70"/>
+<rect class="qrect" x="345" y="75" width="59" height="61"/>
+<rect class="slot c2" x="409" y="73" width="66" height="70"/>
+<rect class="qrect" x="412" y="74" width="61" height="63"/>
+<rect class="slot c2" x="477" y="73" width="66" height="70"/>
+<rect class="qrect" x="479" y="75" width="63" height="61"/>
+<rect class="slot c2" x="545" y="73" width="66" height="70"/>
+<rect class="qrect" x="547" y="75" width="63" height="61"/>
+<rect class="slot c2" x="613" y="73" width="66" height="70"/>
+<rect class="qrect" x="615" y="74" width="63" height="62"/>
+<rect class="slot c2" x="681" y="73" width="66" height="70"/>
+<rect class="qrect" x="688" y="76" width="53" height="60"/>
+<rect class="slot c2" x="749" y="73" width="66" height="70"/>
+<rect class="qrect" x="750" y="74" width="63" height="62"/>
+<rect class="slot c2" x="817" y="73" width="66" height="70"/>
+<rect class="qrect" x="819" y="74" width="63" height="63"/>
+<rect class="slot c2" x="885" y="73" width="66" height="70"/>
+<rect class="qrect" x="887" y="74" width="63" height="62"/>
+<rect class="slot c2" x="953" y="73" width="66" height="70"/>
+<rect class="qrect" x="955" y="74" width="63" height="62"/>
+<rect class="slot c2" x="1" y="1" width="66" height="70"/>
+<rect class="qrect" x="2" y="1" width="64" height="63"/>
+<rect class="slot c2" x="69" y="1" width="66" height="70"/>
+<rect class="qrect" x="71" y="4" width="63" height="60"/>
+<rect class="slot c2" x="137" y="1" width="66" height="70"/>
+<rect class="qrect" x="139" y="2" width="64" height="63"/>
+<rect class="slot c2" x="205" y="1" width="66" height="70"/>
+<rect class="qrect" x="207" y="1" width="62" height="63"/>
+<rect class="slot c2" x="273" y="1" width="66" height="70"/>
+<rect class="qrect" x="275" y="1" width="63" height="63"/>
+<rect class="slot c2" x="341" y="1" width="66" height="70"/>
+<rect class="qrect" x="344" y="4" width="60" height="60"/>
+<rect class="slot c2" x="409" y="1" width="66" height="70"/>
+<rect class="qrect" x="412" y="2" width="62" height="63"/>
+<rect class="slot c2" x="477" y="1" width="66" height="70"/>
+<rect class="qrect" x="479" y="1" width="63" height="63"/>
+<rect class="slot c2" x="545" y="1" width="66" height="70"/>
+<rect class="qrect" x="546" y="2" width="64" height="62"/>
+<rect class="slot c2" x="613" y="1" width="66" height="70"/>
+<rect class="qrect" x="615" y="3" width="64" height="62"/>
+<rect class="slot c2" x="681" y="1" width="66" height="70"/>
+<rect class="qrect" x="683" y="3" width="63" height="61"/>
+<rect class="slot c0" x="1" y="937" width="66" height="70"/>
+<rect class="qrect" x="3" y="945" width="31" height="51"/>
+<path class="fillorder" d="M8 1000 L980 1000"/><polygon class="ah-amber" points="990,1000 972,1008.1 972,991.9"/>
+</svg>
+<figcaption><span class="fn">図 10</span>ベイクした見本のページ（R8・1020×1008 px を縮小表示）。色の枠が優先クラス（黄＝0・水色＝1・桃＝2）ごとのセル、白の破線がその字の矩形（quad が覆う範囲）。ページは左下原点で、0 番目のセルは左下。</figcaption>
+</figure>
+
+<h3 id="render"><span class="num">6.4</span>字ごとの工程</h3>
+<p><code>RenderGlyph</code> が 1 字ずつ、字の矩形を決めてから、フラット化する → 塗る → 距離を取る → サンプリングして符号化する、の順に処理する。字の矩形はインク境界に距離レンジを足して texel の格子へ外向きに丸めた範囲（セルの中に収める）で、矩形の外の texel は輪郭から距離レンジより遠い＝符号化すると 0 に飽和するので計算しない。「あ」の矩形は 57 × 60 texel、8 倍のスーパーサンプリングの格子では 456 × 480 になる。</p>
+
+<h4 id="flatten">フラット化する（<code>GlyphOutline.Flatten</code>）</h4>
+<p>輪郭の点をスーパーサンプリングの格子の座標へ写しながら（<code>x × scale + offset</code>。scale ＝ emPx × 8 ÷ unitsPerEm ＝ 0.384 px／単位）、曲線を線分に分ける。2 次ベジエを n 等分した折れ線と曲線のずれは <code>|p0 − 2·p1 + p2| / (4n²)</code> 以下なので、ずれが許容誤差（0.1 px）以下になる最小の n を区間ごとに選ぶ。</p>
+<p class="formula">n = max(1, ⌈√( |p0 − 2·p1 + p2| / (4 × 許容誤差) )⌉)</p>
+<figure class="fig" id="fig-flatten">
+<div class="scroll"><svg class="dia " viewBox="0 0 760 198.8" width="760" height="198.8" role="img" aria-label="o の曲線を線分へフラット化する図" xmlns="http://www.w3.org/2000/svg">
+<text class="lbl-b" x="30" y="24" text-anchor="start">曲線そのもの（制御点 p1）</text>
+<path class="ctrl-poly" d="M268.8 142.8 L128.8 142.8 L50 54"/>
+<path class="curve" d="M268.8 142.8 Q128.8 142.8 50 54"/>
+<text class="lbl-s mono" x="30" y="186.8" text-anchor="start">|p0 − 2·p1 + p2| = 86 単位</text>
+<rect class="pt-on" x="265.2" y="139.2" width="7" height="7"/>
+<text class="lbl-s mono" x="276.8" y="156.8" text-anchor="start">p0</text>
+<circle class="pt-off" cx="128.8" cy="142.8" r="4"/>
+<text class="lbl-s mono" x="136.8" y="136.8" text-anchor="start">p1</text>
+<rect class="pt-on" x="46.5" y="50.5" width="7" height="7"/>
+<text class="lbl-s mono" x="58" y="48" text-anchor="start">p2</text>
+<text class="lbl-b" x="280" y="24" text-anchor="start">許容誤差を大きくした例</text>
+<path class="ctrl-poly" d="M518.8 142.8 L378.8 142.8 L300 54"/>
+<path class="curve" d="M518.8 142.8 Q378.8 142.8 300 54"/>
+<path class="chord" d="M518.8 142.8 L394.1 120.6 L300 54"/>
+<circle class="pt-seg" cx="518.8" cy="142.8" r="3"/>
+<circle class="pt-seg" cx="394.1" cy="120.6" r="3"/>
+<circle class="pt-seg" cx="300" cy="54" r="3"/>
+<text class="lbl-s mono" x="280" y="186.8" text-anchor="start">n = 2（ずれ ≤ 5.4 単位）</text>
+<rect class="pt-on" x="515.2" y="139.2" width="7" height="7"/>
+<text class="lbl-s mono" x="526.8" y="156.8" text-anchor="start">p0</text>
+<circle class="pt-off" cx="378.8" cy="142.8" r="4"/>
+<text class="lbl-s mono" x="386.8" y="136.8" text-anchor="start">p1</text>
+<rect class="pt-on" x="296.5" y="50.5" width="7" height="7"/>
+<text class="lbl-s mono" x="308" y="48" text-anchor="start">p2</text>
+<text class="lbl-b" x="530" y="24" text-anchor="start">許容誤差を小さくした例</text>
+<path class="ctrl-poly" d="M768.8 142.8 L628.8 142.8 L550 54"/>
+<path class="curve" d="M768.8 142.8 Q628.8 142.8 550 54"/>
+<path class="chord" d="M768.8 142.8 L702.6 137.2 L644.1 120.6 L593.2 92.8 L550 54"/>
+<circle class="pt-seg" cx="768.8" cy="142.8" r="3"/>
+<circle class="pt-seg" cx="702.6" cy="137.2" r="3"/>
+<circle class="pt-seg" cx="644.1" cy="120.6" r="3"/>
+<circle class="pt-seg" cx="593.2" cy="92.8" r="3"/>
+<circle class="pt-seg" cx="550" cy="54" r="3"/>
+<text class="lbl-s mono" x="530" y="186.8" text-anchor="start">n = 4（ずれ ≤ 1.3 単位）</text>
+<rect class="pt-on" x="765.2" y="139.2" width="7" height="7"/>
+<text class="lbl-s mono" x="776.8" y="156.8" text-anchor="start">p0</text>
+<circle class="pt-off" cx="628.8" cy="142.8" r="4"/>
+<text class="lbl-s mono" x="636.8" y="136.8" text-anchor="start">p1</text>
+<rect class="pt-on" x="546.5" y="50.5" width="7" height="7"/>
+<text class="lbl-s mono" x="558" y="48" text-anchor="start">p2</text>
+</svg></div>
+<figcaption><span class="fn">図 11</span>「o」の外周で最も曲がりの大きい曲線（フォント単位）。中と右は違いが見えるよう許容誤差を大きくした例。実際のベイク（0.384 px／単位・許容誤差 0.1 px）では、この曲線は 10 本の線分になる。「あ」全体では 191 本。</figcaption>
+</figure>
+
+<h4 id="fill">塗る（<code>ScanlineRasterizer.Fill</code>）</h4>
+<p>線分の集まりを、画素の中心で内外を判定して 2 値に塗る。行 r の中心は y ＝ r ＋ 0.5、列 c の中心は x ＝ c ＋ 0.5。</p>
+<ol>
+<li>線分ごとに、上向きなら +1、下向きなら −1 の巻き数を持たせる。水平な線分は走査線と交わらないので飛ばす。</li>
+<li>中心の y が半開区間 <code>[下端, 上端)</code> に入る行で、走査線との交点の x を記録する（頂点を 2 本の線分で二重に数えない）。</li>
+<li>行ごとに交点を x の順に並べ、左から巻き数を足していく。和が 0 でない区間に中心が入る画素を塗る（非ゼロ巻き数）。</li>
+</ol>
+<figure class="fig" id="fig-rastercrop">
+<div class="scroll"><svg class="dia " viewBox="0 0 760 468" width="760" height="468" role="img" aria-label="あ のスーパーサンプリングの格子を走査線で塗る拡大図" xmlns="http://www.w3.org/2000/svg">
+<clipPath id="crop"><rect x="20" y="20" width="720" height="432"/></clipPath>
+<rect class="px-in" x="434" y="434" width="18" height="18"/>
+<rect class="px-in" x="452" y="434" width="18" height="18"/>
+<rect class="px-in" x="470" y="434" width="18" height="18"/>
+<rect class="px-in" x="488" y="434" width="18" height="18"/>
+<rect class="px-in" x="506" y="434" width="18" height="18"/>
+<rect class="px-in" x="524" y="434" width="18" height="18"/>
+<rect class="px-in" x="542" y="434" width="18" height="18"/>
+<rect class="px-in" x="560" y="434" width="18" height="18"/>
+<rect class="px-in" x="578" y="434" width="18" height="18"/>
+<rect class="px-in" x="596" y="434" width="18" height="18"/>
+<rect class="px-in" x="614" y="434" width="18" height="18"/>
+<rect class="px-in" x="632" y="434" width="18" height="18"/>
+<rect class="px-in" x="650" y="434" width="18" height="18"/>
+<rect class="px-in" x="668" y="434" width="18" height="18"/>
+<rect class="px-in" x="686" y="434" width="18" height="18"/>
+<rect class="px-in" x="704" y="434" width="18" height="18"/>
+<rect class="px-in" x="722" y="434" width="18" height="18"/>
+<rect class="px-in" x="398" y="416" width="18" height="18"/>
+<rect class="px-in" x="416" y="416" width="18" height="18"/>
+<rect class="px-in" x="434" y="416" width="18" height="18"/>
+<rect class="px-in" x="452" y="416" width="18" height="18"/>
+<rect class="px-in" x="470" y="416" width="18" height="18"/>
+<rect class="px-in" x="488" y="416" width="18" height="18"/>
+<rect class="px-in" x="506" y="416" width="18" height="18"/>
+<rect class="px-in" x="524" y="416" width="18" height="18"/>
+<rect class="px-in" x="542" y="416" width="18" height="18"/>
+<rect class="px-in" x="560" y="416" width="18" height="18"/>
+<rect class="px-in" x="578" y="416" width="18" height="18"/>
+<rect class="px-in" x="596" y="416" width="18" height="18"/>
+<rect class="px-in" x="614" y="416" width="18" height="18"/>
+<rect class="px-in" x="632" y="416" width="18" height="18"/>
+<rect class="px-in" x="650" y="416" width="18" height="18"/>
+<rect class="px-in" x="668" y="416" width="18" height="18"/>
+<rect class="px-in" x="686" y="416" width="18" height="18"/>
+<rect class="px-in" x="704" y="416" width="18" height="18"/>
+<rect class="px-in" x="722" y="416" width="18" height="18"/>
+<rect class="px-in" x="380" y="398" width="18" height="18"/>
+<rect class="px-in" x="398" y="398" width="18" height="18"/>
+<rect class="px-in" x="416" y="398" width="18" height="18"/>
+<rect class="px-in" x="434" y="398" width="18" height="18"/>
+<rect class="px-in" x="452" y="398" width="18" height="18"/>
+<rect class="px-in" x="470" y="398" width="18" height="18"/>
+<rect class="px-in" x="488" y="398" width="18" height="18"/>
+<rect class="px-in" x="506" y="398" width="18" height="18"/>
+<rect class="px-in" x="524" y="398" width="18" height="18"/>
+<rect class="px-in" x="542" y="398" width="18" height="18"/>
+<rect class="px-in" x="560" y="398" width="18" height="18"/>
+<rect class="px-in" x="578" y="398" width="18" height="18"/>
+<rect class="px-in" x="596" y="398" width="18" height="18"/>
+<rect class="px-in" x="614" y="398" width="18" height="18"/>
+<rect class="px-in" x="632" y="398" width="18" height="18"/>
+<rect class="px-in" x="650" y="398" width="18" height="18"/>
+<rect class="px-in" x="668" y="398" width="18" height="18"/>
+<rect class="px-in" x="686" y="398" width="18" height="18"/>
+<rect class="px-in" x="704" y="398" width="18" height="18"/>
+<rect class="px-in" x="722" y="398" width="18" height="18"/>
+<rect class="px-in" x="344" y="380" width="18" height="18"/>
+<rect class="px-in" x="362" y="380" width="18" height="18"/>
+<rect class="px-in" x="380" y="380" width="18" height="18"/>
+<rect class="px-in" x="398" y="380" width="18" height="18"/>
+<rect class="px-in" x="416" y="380" width="18" height="18"/>
+<rect class="px-in" x="434" y="380" width="18" height="18"/>
+<rect class="px-in" x="452" y="380" width="18" height="18"/>
+<rect class="px-in" x="470" y="380" width="18" height="18"/>
+<rect class="px-in" x="488" y="380" width="18" height="18"/>
+<rect class="px-in" x="506" y="380" width="18" height="18"/>
+<rect class="px-in" x="524" y="380" width="18" height="18"/>
+<rect class="px-in" x="542" y="380" width="18" height="18"/>
+<rect class="px-in" x="560" y="380" width="18" height="18"/>
+<rect class="px-in" x="578" y="380" width="18" height="18"/>
+<rect class="px-in" x="596" y="380" width="18" height="18"/>
+<rect class="px-in" x="614" y="380" width="18" height="18"/>
+<rect class="px-in" x="632" y="380" width="18" height="18"/>
+<rect class="px-in" x="650" y="380" width="18" height="18"/>
+<rect class="px-in" x="668" y="380" width="18" height="18"/>
+<rect class="px-in" x="686" y="380" width="18" height="18"/>
+<rect class="px-in" x="704" y="380" width="18" height="18"/>
+<rect class="px-in" x="722" y="380" width="18" height="18"/>
+<rect class="px-in" x="326" y="362" width="18" height="18"/>
+<rect class="px-in" x="344" y="362" width="18" height="18"/>
+<rect class="px-in" x="362" y="362" width="18" height="18"/>
+<rect class="px-in" x="380" y="362" width="18" height="18"/>
+<rect class="px-in" x="398" y="362" width="18" height="18"/>
+<rect class="px-in" x="416" y="362" width="18" height="18"/>
+<rect class="px-in" x="434" y="362" width="18" height="18"/>
+<rect class="px-in" x="452" y="362" width="18" height="18"/>
+<rect class="px-in" x="470" y="362" width="18" height="18"/>
+<rect class="px-in" x="488" y="362" width="18" height="18"/>
+<rect class="px-in" x="506" y="362" width="18" height="18"/>
+<rect class="px-in" x="524" y="362" width="18" height="18"/>
+<rect class="px-in" x="542" y="362" width="18" height="18"/>
+<rect class="px-in" x="560" y="362" width="18" height="18"/>
+<rect class="px-in" x="578" y="362" width="18" height="18"/>
+<rect class="px-in" x="596" y="362" width="18" height="18"/>
+<rect class="px-in" x="614" y="362" width="18" height="18"/>
+<rect class="px-in" x="632" y="362" width="18" height="18"/>
+<rect class="px-in" x="650" y="362" width="18" height="18"/>
+<rect class="px-in" x="668" y="362" width="18" height="18"/>
+<rect class="px-in" x="686" y="362" width="18" height="18"/>
+<rect class="px-in" x="704" y="362" width="18" height="18"/>
+<rect class="px-in" x="722" y="362" width="18" height="18"/>
+<rect class="px-in" x="308" y="344" width="18" height="18"/>
+<rect class="px-in" x="326" y="344" width="18" height="18"/>
+<rect class="px-in" x="344" y="344" width="18" height="18"/>
+<rect class="px-in" x="362" y="344" width="18" height="18"/>
+<rect class="px-in" x="380" y="344" width="18" height="18"/>
+<rect class="px-in" x="398" y="344" width="18" height="18"/>
+<rect class="px-in" x="416" y="344" width="18" height="18"/>
+<rect class="px-in" x="434" y="344" width="18" height="18"/>
+<rect class="px-in" x="452" y="344" width="18" height="18"/>
+<rect class="px-in" x="470" y="344" width="18" height="18"/>
+<rect class="px-in" x="488" y="344" width="18" height="18"/>
+<rect class="px-in" x="506" y="344" width="18" height="18"/>
+<rect class="px-in" x="524" y="344" width="18" height="18"/>
+<rect class="px-in" x="542" y="344" width="18" height="18"/>
+<rect class="px-in" x="560" y="344" width="18" height="18"/>
+<rect class="px-in" x="578" y="344" width="18" height="18"/>
+<rect class="px-in" x="596" y="344" width="18" height="18"/>
+<rect class="px-in" x="614" y="344" width="18" height="18"/>
+<rect class="px-in" x="632" y="344" width="18" height="18"/>
+<rect class="px-in" x="650" y="344" width="18" height="18"/>
+<rect class="px-in" x="668" y="344" width="18" height="18"/>
+<rect class="px-in" x="686" y="344" width="18" height="18"/>
+<rect class="px-in" x="704" y="344" width="18" height="18"/>
+<rect class="px-in" x="722" y="344" width="18" height="18"/>
+<rect class="px-in" x="290" y="326" width="18" height="18"/>
+<rect class="px-in" x="308" y="326" width="18" height="18"/>
+<rect class="px-in" x="326" y="326" width="18" height="18"/>
+<rect class="px-in" x="344" y="326" width="18" height="18"/>
+<rect class="px-in" x="362" y="326" width="18" height="18"/>
+<rect class="px-in" x="380" y="326" width="18" height="18"/>
+<rect class="px-in" x="398" y="326" width="18" height="18"/>
+<rect class="px-in" x="416" y="326" width="18" height="18"/>
+<rect class="px-in" x="434" y="326" width="18" height="18"/>
+<rect class="px-in" x="452" y="326" width="18" height="18"/>
+<rect class="px-in" x="470" y="326" width="18" height="18"/>
+<rect class="px-in" x="488" y="326" width="18" height="18"/>
+<rect class="px-in" x="506" y="326" width="18" height="18"/>
+<rect class="px-in" x="524" y="326" width="18" height="18"/>
+<rect class="px-in" x="542" y="326" width="18" height="18"/>
+<rect class="px-in" x="560" y="326" width="18" height="18"/>
+<rect class="px-in" x="578" y="326" width="18" height="18"/>
+<rect class="px-in" x="596" y="326" width="18" height="18"/>
+<rect class="px-in" x="614" y="326" width="18" height="18"/>
+<rect class="px-in" x="632" y="326" width="18" height="18"/>
+<rect class="px-in" x="650" y="326" width="18" height="18"/>
+<rect class="px-in" x="668" y="326" width="18" height="18"/>
+<rect class="px-in" x="686" y="326" width="18" height="18"/>
+<rect class="px-in" x="704" y="326" width="18" height="18"/>
+<rect class="px-in" x="722" y="326" width="18" height="18"/>
+<rect class="px-in" x="272" y="308" width="18" height="18"/>
+<rect class="px-in" x="290" y="308" width="18" height="18"/>
+<rect class="px-in" x="308" y="308" width="18" height="18"/>
+<rect class="px-in" x="326" y="308" width="18" height="18"/>
+<rect class="px-in" x="344" y="308" width="18" height="18"/>
+<rect class="px-in" x="362" y="308" width="18" height="18"/>
+<rect class="px-in" x="380" y="308" width="18" height="18"/>
+<rect class="px-in" x="398" y="308" width="18" height="18"/>
+<rect class="px-in" x="416" y="308" width="18" height="18"/>
+<rect class="px-in" x="434" y="308" width="18" height="18"/>
+<rect class="px-in" x="452" y="308" width="18" height="18"/>
+<rect class="px-in" x="470" y="308" width="18" height="18"/>
+<rect class="px-in" x="488" y="308" width="18" height="18"/>
+<rect class="px-in" x="506" y="308" width="18" height="18"/>
+<rect class="px-in" x="524" y="308" width="18" height="18"/>
+<rect class="px-in" x="542" y="308" width="18" height="18"/>
+<rect class="px-in" x="560" y="308" width="18" height="18"/>
+<rect class="px-in" x="578" y="308" width="18" height="18"/>
+<rect class="px-in" x="596" y="308" width="18" height="18"/>
+<rect class="px-in" x="614" y="308" width="18" height="18"/>
+<rect class="px-in" x="632" y="308" width="18" height="18"/>
+<rect class="px-in" x="650" y="308" width="18" height="18"/>
+<rect class="px-in" x="668" y="308" width="18" height="18"/>
+<rect class="px-in" x="686" y="308" width="18" height="18"/>
+<rect class="px-in" x="704" y="308" width="18" height="18"/>
+<rect class="px-in" x="722" y="308" width="18" height="18"/>
+<rect class="px-in" x="254" y="290" width="18" height="18"/>
+<rect class="px-in" x="272" y="290" width="18" height="18"/>
+<rect class="px-in" x="290" y="290" width="18" height="18"/>
+<rect class="px-in" x="308" y="290" width="18" height="18"/>
+<rect class="px-in" x="326" y="290" width="18" height="18"/>
+<rect class="px-in" x="344" y="290" width="18" height="18"/>
+<rect class="px-in" x="362" y="290" width="18" height="18"/>
+<rect class="px-in" x="380" y="290" width="18" height="18"/>
+<rect class="px-in" x="398" y="290" width="18" height="18"/>
+<rect class="px-in" x="416" y="290" width="18" height="18"/>
+<rect class="px-in" x="434" y="290" width="18" height="18"/>
+<rect class="px-in" x="452" y="290" width="18" height="18"/>
+<rect class="px-in" x="470" y="290" width="18" height="18"/>
+<rect class="px-in" x="488" y="290" width="18" height="18"/>
+<rect class="px-in" x="506" y="290" width="18" height="18"/>
+<rect class="px-in" x="524" y="290" width="18" height="18"/>
+<rect class="px-in" x="542" y="290" width="18" height="18"/>
+<rect class="px-in" x="560" y="290" width="18" height="18"/>
+<rect class="px-in" x="578" y="290" width="18" height="18"/>
+<rect class="px-in" x="596" y="290" width="18" height="18"/>
+<rect class="px-in" x="614" y="290" width="18" height="18"/>
+<rect class="px-in" x="632" y="290" width="18" height="18"/>
+<rect class="px-in" x="650" y="290" width="18" height="18"/>
+<rect class="px-in" x="668" y="290" width="18" height="18"/>
+<rect class="px-in" x="686" y="290" width="18" height="18"/>
+<rect class="px-in" x="704" y="290" width="18" height="18"/>
+<rect class="px-in" x="722" y="290" width="18" height="18"/>
+<rect class="px-in" x="236" y="272" width="18" height="18"/>
+<rect class="px-in" x="254" y="272" width="18" height="18"/>
+<rect class="px-in" x="272" y="272" width="18" height="18"/>
+<rect class="px-in" x="290" y="272" width="18" height="18"/>
+<rect class="px-in" x="308" y="272" width="18" height="18"/>
+<rect class="px-in" x="326" y="272" width="18" height="18"/>
+<rect class="px-in" x="344" y="272" width="18" height="18"/>
+<rect class="px-in" x="362" y="272" width="18" height="18"/>
+<rect class="px-in" x="380" y="272" width="18" height="18"/>
+<rect class="px-in" x="398" y="272" width="18" height="18"/>
+<rect class="px-in" x="416" y="272" width="18" height="18"/>
+<rect class="px-in" x="434" y="272" width="18" height="18"/>
+<rect class="px-in" x="452" y="272" width="18" height="18"/>
+<rect class="px-in" x="470" y="272" width="18" height="18"/>
+<rect class="px-in" x="488" y="272" width="18" height="18"/>
+<rect class="px-in" x="506" y="272" width="18" height="18"/>
+<rect class="px-in" x="524" y="272" width="18" height="18"/>
+<rect class="px-in" x="542" y="272" width="18" height="18"/>
+<rect class="px-in" x="560" y="272" width="18" height="18"/>
+<rect class="px-in" x="578" y="272" width="18" height="18"/>
+<rect class="px-in" x="596" y="272" width="18" height="18"/>
+<rect class="px-in" x="614" y="272" width="18" height="18"/>
+<rect class="px-in" x="632" y="272" width="18" height="18"/>
+<rect class="px-in" x="650" y="272" width="18" height="18"/>
+<rect class="px-in" x="668" y="272" width="18" height="18"/>
+<rect class="px-in" x="686" y="272" width="18" height="18"/>
+<rect class="px-in" x="704" y="272" width="18" height="18"/>
+<rect class="px-in" x="722" y="272" width="18" height="18"/>
+<rect class="px-in" x="218" y="254" width="18" height="18"/>
+<rect class="px-in" x="236" y="254" width="18" height="18"/>
+<rect class="px-in" x="254" y="254" width="18" height="18"/>
+<rect class="px-in" x="272" y="254" width="18" height="18"/>
+<rect class="px-in" x="290" y="254" width="18" height="18"/>
+<rect class="px-in" x="308" y="254" width="18" height="18"/>
+<rect class="px-in" x="326" y="254" width="18" height="18"/>
+<rect class="px-in" x="344" y="254" width="18" height="18"/>
+<rect class="px-in" x="362" y="254" width="18" height="18"/>
+<rect class="px-in" x="380" y="254" width="18" height="18"/>
+<rect class="px-in" x="398" y="254" width="18" height="18"/>
+<rect class="px-in" x="416" y="254" width="18" height="18"/>
+<rect class="px-in" x="434" y="254" width="18" height="18"/>
+<rect class="px-in" x="452" y="254" width="18" height="18"/>
+<rect class="px-in" x="470" y="254" width="18" height="18"/>
+<rect class="px-in" x="488" y="254" width="18" height="18"/>
+<rect class="px-in" x="506" y="254" width="18" height="18"/>
+<rect class="px-in" x="524" y="254" width="18" height="18"/>
+<rect class="px-in" x="542" y="254" width="18" height="18"/>
+<rect class="px-in" x="560" y="254" width="18" height="18"/>
+<rect class="px-in" x="578" y="254" width="18" height="18"/>
+<rect class="px-in" x="596" y="254" width="18" height="18"/>
+<rect class="px-in" x="614" y="254" width="18" height="18"/>
+<rect class="px-in" x="632" y="254" width="18" height="18"/>
+<rect class="px-in" x="650" y="254" width="18" height="18"/>
+<rect class="px-in" x="668" y="254" width="18" height="18"/>
+<rect class="px-in" x="686" y="254" width="18" height="18"/>
+<rect class="px-in" x="704" y="254" width="18" height="18"/>
+<rect class="px-in" x="722" y="254" width="18" height="18"/>
+<rect class="px-in" x="200" y="236" width="18" height="18"/>
+<rect class="px-in" x="218" y="236" width="18" height="18"/>
+<rect class="px-in" x="236" y="236" width="18" height="18"/>
+<rect class="px-in" x="254" y="236" width="18" height="18"/>
+<rect class="px-in" x="272" y="236" width="18" height="18"/>
+<rect class="px-in" x="290" y="236" width="18" height="18"/>
+<rect class="px-in" x="308" y="236" width="18" height="18"/>
+<rect class="px-in" x="326" y="236" width="18" height="18"/>
+<rect class="px-in" x="344" y="236" width="18" height="18"/>
+<rect class="px-in" x="362" y="236" width="18" height="18"/>
+<rect class="px-in" x="380" y="236" width="18" height="18"/>
+<rect class="px-in" x="398" y="236" width="18" height="18"/>
+<rect class="px-in" x="416" y="236" width="18" height="18"/>
+<rect class="px-in" x="434" y="236" width="18" height="18"/>
+<rect class="px-in" x="452" y="236" width="18" height="18"/>
+<rect class="px-in" x="470" y="236" width="18" height="18"/>
+<rect class="px-in" x="488" y="236" width="18" height="18"/>
+<rect class="px-in" x="506" y="236" width="18" height="18"/>
+<rect class="px-in" x="524" y="236" width="18" height="18"/>
+<rect class="px-in" x="542" y="236" width="18" height="18"/>
+<rect class="px-in" x="560" y="236" width="18" height="18"/>
+<rect class="px-in" x="578" y="236" width="18" height="18"/>
+<rect class="px-in" x="596" y="236" width="18" height="18"/>
+<rect class="px-in" x="614" y="236" width="18" height="18"/>
+<rect class="px-in" x="632" y="236" width="18" height="18"/>
+<rect class="px-in" x="650" y="236" width="18" height="18"/>
+<rect class="px-in" x="668" y="236" width="18" height="18"/>
+<rect class="px-in" x="686" y="236" width="18" height="18"/>
+<rect class="px-in" x="704" y="236" width="18" height="18"/>
+<rect class="px-in" x="722" y="236" width="18" height="18"/>
+<rect class="px-in" x="182" y="218" width="18" height="18"/>
+<rect class="px-in" x="200" y="218" width="18" height="18"/>
+<rect class="px-in" x="218" y="218" width="18" height="18"/>
+<rect class="px-in" x="236" y="218" width="18" height="18"/>
+<rect class="px-in" x="254" y="218" width="18" height="18"/>
+<rect class="px-in" x="272" y="218" width="18" height="18"/>
+<rect class="px-in" x="290" y="218" width="18" height="18"/>
+<rect class="px-in" x="308" y="218" width="18" height="18"/>
+<rect class="px-in" x="326" y="218" width="18" height="18"/>
+<rect class="px-in" x="344" y="218" width="18" height="18"/>
+<rect class="px-in" x="362" y="218" width="18" height="18"/>
+<rect class="px-in" x="380" y="218" width="18" height="18"/>
+<rect class="px-in" x="398" y="218" width="18" height="18"/>
+<rect class="px-in" x="416" y="218" width="18" height="18"/>
+<rect class="px-in" x="434" y="218" width="18" height="18"/>
+<rect class="px-in" x="452" y="218" width="18" height="18"/>
+<rect class="px-in" x="470" y="218" width="18" height="18"/>
+<rect class="px-in" x="488" y="218" width="18" height="18"/>
+<rect class="px-in" x="506" y="218" width="18" height="18"/>
+<rect class="px-in" x="524" y="218" width="18" height="18"/>
+<rect class="px-in" x="542" y="218" width="18" height="18"/>
+<rect class="px-in" x="560" y="218" width="18" height="18"/>
+<rect class="px-in" x="578" y="218" width="18" height="18"/>
+<rect class="px-in" x="596" y="218" width="18" height="18"/>
+<rect class="px-in" x="614" y="218" width="18" height="18"/>
+<rect class="px-in" x="632" y="218" width="18" height="18"/>
+<rect class="px-in" x="650" y="218" width="18" height="18"/>
+<rect class="px-in" x="668" y="218" width="18" height="18"/>
+<rect class="px-in" x="686" y="218" width="18" height="18"/>
+<rect class="px-in" x="704" y="218" width="18" height="18"/>
+<rect class="px-in" x="722" y="218" width="18" height="18"/>
+<rect class="px-in" x="164" y="200" width="18" height="18"/>
+<rect class="px-in" x="182" y="200" width="18" height="18"/>
+<rect class="px-in" x="200" y="200" width="18" height="18"/>
+<rect class="px-in" x="218" y="200" width="18" height="18"/>
+<rect class="px-in" x="236" y="200" width="18" height="18"/>
+<rect class="px-in" x="254" y="200" width="18" height="18"/>
+<rect class="px-in" x="272" y="200" width="18" height="18"/>
+<rect class="px-in" x="290" y="200" width="18" height="18"/>
+<rect class="px-in" x="308" y="200" width="18" height="18"/>
+<rect class="px-in" x="326" y="200" width="18" height="18"/>
+<rect class="px-in" x="344" y="200" width="18" height="18"/>
+<rect class="px-in" x="362" y="200" width="18" height="18"/>
+<rect class="px-in" x="380" y="200" width="18" height="18"/>
+<rect class="px-in" x="398" y="200" width="18" height="18"/>
+<rect class="px-in" x="416" y="200" width="18" height="18"/>
+<rect class="px-in" x="434" y="200" width="18" height="18"/>
+<rect class="px-in" x="452" y="200" width="18" height="18"/>
+<rect class="px-in" x="470" y="200" width="18" height="18"/>
+<rect class="px-in" x="488" y="200" width="18" height="18"/>
+<rect class="px-in" x="506" y="200" width="18" height="18"/>
+<rect class="px-in" x="524" y="200" width="18" height="18"/>
+<rect class="px-in" x="542" y="200" width="18" height="18"/>
+<rect class="px-in" x="560" y="200" width="18" height="18"/>
+<rect class="px-in" x="578" y="200" width="18" height="18"/>
+<rect class="px-in" x="596" y="200" width="18" height="18"/>
+<rect class="px-in" x="614" y="200" width="18" height="18"/>
+<rect class="px-in" x="632" y="200" width="18" height="18"/>
+<rect class="px-in" x="650" y="200" width="18" height="18"/>
+<rect class="px-in" x="668" y="200" width="18" height="18"/>
+<rect class="px-in" x="686" y="200" width="18" height="18"/>
+<rect class="px-in" x="704" y="200" width="18" height="18"/>
+<rect class="px-in" x="722" y="200" width="18" height="18"/>
+<rect class="px-in" x="164" y="182" width="18" height="18"/>
+<rect class="px-in" x="182" y="182" width="18" height="18"/>
+<rect class="px-in" x="200" y="182" width="18" height="18"/>
+<rect class="px-in" x="218" y="182" width="18" height="18"/>
+<rect class="px-in" x="236" y="182" width="18" height="18"/>
+<rect class="px-in" x="254" y="182" width="18" height="18"/>
+<rect class="px-in" x="272" y="182" width="18" height="18"/>
+<rect class="px-in" x="290" y="182" width="18" height="18"/>
+<rect class="px-in" x="308" y="182" width="18" height="18"/>
+<rect class="px-in" x="326" y="182" width="18" height="18"/>
+<rect class="px-in" x="344" y="182" width="18" height="18"/>
+<rect class="px-in" x="362" y="182" width="18" height="18"/>
+<rect class="px-in" x="380" y="182" width="18" height="18"/>
+<rect class="px-in" x="398" y="182" width="18" height="18"/>
+<rect class="px-in" x="416" y="182" width="18" height="18"/>
+<rect class="px-in" x="434" y="182" width="18" height="18"/>
+<rect class="px-in" x="452" y="182" width="18" height="18"/>
+<rect class="px-in" x="470" y="182" width="18" height="18"/>
+<rect class="px-in" x="488" y="182" width="18" height="18"/>
+<rect class="px-in" x="506" y="182" width="18" height="18"/>
+<rect class="px-in" x="524" y="182" width="18" height="18"/>
+<rect class="px-in" x="542" y="182" width="18" height="18"/>
+<rect class="px-in" x="560" y="182" width="18" height="18"/>
+<rect class="px-in" x="578" y="182" width="18" height="18"/>
+<rect class="px-in" x="596" y="182" width="18" height="18"/>
+<rect class="px-in" x="614" y="182" width="18" height="18"/>
+<rect class="px-in" x="632" y="182" width="18" height="18"/>
+<rect class="px-in" x="650" y="182" width="18" height="18"/>
+<rect class="px-in" x="668" y="182" width="18" height="18"/>
+<rect class="px-in" x="686" y="182" width="18" height="18"/>
+<rect class="px-in" x="704" y="182" width="18" height="18"/>
+<rect class="px-in" x="722" y="182" width="18" height="18"/>
+<rect class="px-in" x="146" y="164" width="18" height="18"/>
+<rect class="px-in" x="164" y="164" width="18" height="18"/>
+<rect class="px-in" x="182" y="164" width="18" height="18"/>
+<rect class="px-in" x="200" y="164" width="18" height="18"/>
+<rect class="px-in" x="218" y="164" width="18" height="18"/>
+<rect class="px-in" x="236" y="164" width="18" height="18"/>
+<rect class="px-in" x="254" y="164" width="18" height="18"/>
+<rect class="px-in" x="272" y="164" width="18" height="18"/>
+<rect class="px-in" x="290" y="164" width="18" height="18"/>
+<rect class="px-in" x="308" y="164" width="18" height="18"/>
+<rect class="px-in" x="326" y="164" width="18" height="18"/>
+<rect class="px-in" x="344" y="164" width="18" height="18"/>
+<rect class="px-in" x="362" y="164" width="18" height="18"/>
+<rect class="px-in" x="380" y="164" width="18" height="18"/>
+<rect class="px-in" x="398" y="164" width="18" height="18"/>
+<rect class="px-in" x="416" y="164" width="18" height="18"/>
+<rect class="px-in" x="434" y="164" width="18" height="18"/>
+<rect class="px-in" x="452" y="164" width="18" height="18"/>
+<rect class="px-in" x="470" y="164" width="18" height="18"/>
+<rect class="px-in" x="488" y="164" width="18" height="18"/>
+<rect class="px-in" x="506" y="164" width="18" height="18"/>
+<rect class="px-in" x="524" y="164" width="18" height="18"/>
+<rect class="px-in" x="542" y="164" width="18" height="18"/>
+<rect class="px-in" x="560" y="164" width="18" height="18"/>
+<rect class="px-in" x="578" y="164" width="18" height="18"/>
+<rect class="px-in" x="596" y="164" width="18" height="18"/>
+<rect class="px-in" x="614" y="164" width="18" height="18"/>
+<rect class="px-in" x="632" y="164" width="18" height="18"/>
+<rect class="px-in" x="650" y="164" width="18" height="18"/>
+<rect class="px-in" x="668" y="164" width="18" height="18"/>
+<rect class="px-in" x="686" y="164" width="18" height="18"/>
+<rect class="px-in" x="704" y="164" width="18" height="18"/>
+<rect class="px-in" x="722" y="164" width="18" height="18"/>
+<rect class="px-in" x="128" y="146" width="18" height="18"/>
+<rect class="px-in" x="146" y="146" width="18" height="18"/>
+<rect class="px-in" x="164" y="146" width="18" height="18"/>
+<rect class="px-in" x="182" y="146" width="18" height="18"/>
+<rect class="px-in" x="200" y="146" width="18" height="18"/>
+<rect class="px-in" x="218" y="146" width="18" height="18"/>
+<rect class="px-in" x="236" y="146" width="18" height="18"/>
+<rect class="px-in" x="254" y="146" width="18" height="18"/>
+<rect class="px-in" x="272" y="146" width="18" height="18"/>
+<rect class="px-in" x="290" y="146" width="18" height="18"/>
+<rect class="px-in" x="308" y="146" width="18" height="18"/>
+<rect class="px-in" x="326" y="146" width="18" height="18"/>
+<rect class="px-in" x="344" y="146" width="18" height="18"/>
+<rect class="px-in" x="362" y="146" width="18" height="18"/>
+<rect class="px-in" x="380" y="146" width="18" height="18"/>
+<rect class="px-in" x="398" y="146" width="18" height="18"/>
+<rect class="px-in" x="416" y="146" width="18" height="18"/>
+<rect class="px-in" x="434" y="146" width="18" height="18"/>
+<rect class="px-in" x="452" y="146" width="18" height="18"/>
+<rect class="px-in" x="470" y="146" width="18" height="18"/>
+<rect class="px-in" x="488" y="146" width="18" height="18"/>
+<rect class="px-in" x="506" y="146" width="18" height="18"/>
+<rect class="px-in" x="524" y="146" width="18" height="18"/>
+<rect class="px-in" x="542" y="146" width="18" height="18"/>
+<rect class="px-in" x="560" y="146" width="18" height="18"/>
+<rect class="px-in" x="578" y="146" width="18" height="18"/>
+<rect class="px-in" x="596" y="146" width="18" height="18"/>
+<rect class="px-in" x="614" y="146" width="18" height="18"/>
+<rect class="px-in" x="632" y="146" width="18" height="18"/>
+<rect class="px-in" x="650" y="146" width="18" height="18"/>
+<rect class="px-in" x="668" y="146" width="18" height="18"/>
+<rect class="px-in" x="686" y="146" width="18" height="18"/>
+<rect class="px-in" x="704" y="146" width="18" height="18"/>
+<rect class="px-in" x="722" y="146" width="18" height="18"/>
+<rect class="px-in" x="128" y="128" width="18" height="18"/>
+<rect class="px-in" x="146" y="128" width="18" height="18"/>
+<rect class="px-in" x="164" y="128" width="18" height="18"/>
+<rect class="px-in" x="182" y="128" width="18" height="18"/>
+<rect class="px-in" x="200" y="128" width="18" height="18"/>
+<rect class="px-in" x="218" y="128" width="18" height="18"/>
+<rect class="px-in" x="236" y="128" width="18" height="18"/>
+<rect class="px-in" x="254" y="128" width="18" height="18"/>
+<rect class="px-in" x="272" y="128" width="18" height="18"/>
+<rect class="px-in" x="290" y="128" width="18" height="18"/>
+<rect class="px-in" x="308" y="128" width="18" height="18"/>
+<rect class="px-in" x="326" y="128" width="18" height="18"/>
+<rect class="px-in" x="344" y="128" width="18" height="18"/>
+<rect class="px-in" x="362" y="128" width="18" height="18"/>
+<rect class="px-in" x="380" y="128" width="18" height="18"/>
+<rect class="px-in" x="398" y="128" width="18" height="18"/>
+<rect class="px-in" x="416" y="128" width="18" height="18"/>
+<rect class="px-in" x="434" y="128" width="18" height="18"/>
+<rect class="px-in" x="452" y="128" width="18" height="18"/>
+<rect class="px-in" x="470" y="128" width="18" height="18"/>
+<rect class="px-in" x="488" y="128" width="18" height="18"/>
+<rect class="px-in" x="506" y="128" width="18" height="18"/>
+<rect class="px-in" x="524" y="128" width="18" height="18"/>
+<rect class="px-in" x="542" y="128" width="18" height="18"/>
+<rect class="px-in" x="560" y="128" width="18" height="18"/>
+<rect class="px-in" x="578" y="128" width="18" height="18"/>
+<rect class="px-in" x="596" y="128" width="18" height="18"/>
+<rect class="px-in" x="614" y="128" width="18" height="18"/>
+<rect class="px-in" x="632" y="128" width="18" height="18"/>
+<rect class="px-in" x="650" y="128" width="18" height="18"/>
+<rect class="px-in" x="668" y="128" width="18" height="18"/>
+<rect class="px-in" x="686" y="128" width="18" height="18"/>
+<rect class="px-in" x="704" y="128" width="18" height="18"/>
+<rect class="px-in" x="722" y="128" width="18" height="18"/>
+<rect class="px-in" x="110" y="110" width="18" height="18"/>
+<rect class="px-in" x="128" y="110" width="18" height="18"/>
+<rect class="px-in" x="146" y="110" width="18" height="18"/>
+<rect class="px-in" x="164" y="110" width="18" height="18"/>
+<rect class="px-in" x="182" y="110" width="18" height="18"/>
+<rect class="px-in" x="200" y="110" width="18" height="18"/>
+<rect class="px-in" x="218" y="110" width="18" height="18"/>
+<rect class="px-in" x="236" y="110" width="18" height="18"/>
+<rect class="px-in" x="254" y="110" width="18" height="18"/>
+<rect class="px-in" x="272" y="110" width="18" height="18"/>
+<rect class="px-in" x="290" y="110" width="18" height="18"/>
+<rect class="px-in" x="308" y="110" width="18" height="18"/>
+<rect class="px-in" x="326" y="110" width="18" height="18"/>
+<rect class="px-in" x="344" y="110" width="18" height="18"/>
+<rect class="px-in" x="362" y="110" width="18" height="18"/>
+<rect class="px-in" x="380" y="110" width="18" height="18"/>
+<rect class="px-in" x="398" y="110" width="18" height="18"/>
+<rect class="px-in" x="416" y="110" width="18" height="18"/>
+<rect class="px-in" x="434" y="110" width="18" height="18"/>
+<rect class="px-in" x="452" y="110" width="18" height="18"/>
+<rect class="px-in" x="470" y="110" width="18" height="18"/>
+<rect class="px-in" x="488" y="110" width="18" height="18"/>
+<rect class="px-in" x="506" y="110" width="18" height="18"/>
+<rect class="px-in" x="524" y="110" width="18" height="18"/>
+<rect class="px-in" x="542" y="110" width="18" height="18"/>
+<rect class="px-in" x="560" y="110" width="18" height="18"/>
+<rect class="px-in" x="578" y="110" width="18" height="18"/>
+<rect class="px-in" x="596" y="110" width="18" height="18"/>
+<rect class="px-in" x="614" y="110" width="18" height="18"/>
+<rect class="px-in" x="632" y="110" width="18" height="18"/>
+<rect class="px-in" x="650" y="110" width="18" height="18"/>
+<rect class="px-in" x="668" y="110" width="18" height="18"/>
+<rect class="px-in" x="686" y="110" width="18" height="18"/>
+<rect class="px-in" x="704" y="110" width="18" height="18"/>
+<rect class="px-in" x="722" y="110" width="18" height="18"/>
+<rect class="px-in" x="92" y="92" width="18" height="18"/>
+<rect class="px-in" x="110" y="92" width="18" height="18"/>
+<rect class="px-in" x="128" y="92" width="18" height="18"/>
+<rect class="px-in" x="146" y="92" width="18" height="18"/>
+<rect class="px-in" x="164" y="92" width="18" height="18"/>
+<rect class="px-in" x="182" y="92" width="18" height="18"/>
+<rect class="px-in" x="200" y="92" width="18" height="18"/>
+<rect class="px-in" x="218" y="92" width="18" height="18"/>
+<rect class="px-in" x="236" y="92" width="18" height="18"/>
+<rect class="px-in" x="254" y="92" width="18" height="18"/>
+<rect class="px-in" x="272" y="92" width="18" height="18"/>
+<rect class="px-in" x="290" y="92" width="18" height="18"/>
+<rect class="px-in" x="308" y="92" width="18" height="18"/>
+<rect class="px-in" x="326" y="92" width="18" height="18"/>
+<rect class="px-in" x="344" y="92" width="18" height="18"/>
+<rect class="px-in" x="362" y="92" width="18" height="18"/>
+<rect class="px-in" x="380" y="92" width="18" height="18"/>
+<rect class="px-in" x="398" y="92" width="18" height="18"/>
+<rect class="px-in" x="416" y="92" width="18" height="18"/>
+<rect class="px-in" x="434" y="92" width="18" height="18"/>
+<rect class="px-in" x="452" y="92" width="18" height="18"/>
+<rect class="px-in" x="470" y="92" width="18" height="18"/>
+<rect class="px-in" x="488" y="92" width="18" height="18"/>
+<rect class="px-in" x="506" y="92" width="18" height="18"/>
+<rect class="px-in" x="524" y="92" width="18" height="18"/>
+<rect class="px-in" x="542" y="92" width="18" height="18"/>
+<rect class="px-in" x="560" y="92" width="18" height="18"/>
+<rect class="px-in" x="578" y="92" width="18" height="18"/>
+<rect class="px-in" x="596" y="92" width="18" height="18"/>
+<rect class="px-in" x="614" y="92" width="18" height="18"/>
+<rect class="px-in" x="632" y="92" width="18" height="18"/>
+<rect class="px-in" x="650" y="92" width="18" height="18"/>
+<rect class="px-in" x="668" y="92" width="18" height="18"/>
+<rect class="px-in" x="686" y="92" width="18" height="18"/>
+<rect class="px-in" x="704" y="92" width="18" height="18"/>
+<rect class="px-in" x="722" y="92" width="18" height="18"/>
+<rect class="px-in" x="92" y="74" width="18" height="18"/>
+<rect class="px-in" x="110" y="74" width="18" height="18"/>
+<rect class="px-in" x="128" y="74" width="18" height="18"/>
+<rect class="px-in" x="146" y="74" width="18" height="18"/>
+<rect class="px-in" x="164" y="74" width="18" height="18"/>
+<rect class="px-in" x="182" y="74" width="18" height="18"/>
+<rect class="px-in" x="200" y="74" width="18" height="18"/>
+<rect class="px-in" x="218" y="74" width="18" height="18"/>
+<rect class="px-in" x="236" y="74" width="18" height="18"/>
+<rect class="px-in" x="254" y="74" width="18" height="18"/>
+<rect class="px-in" x="272" y="74" width="18" height="18"/>
+<rect class="px-in" x="290" y="74" width="18" height="18"/>
+<rect class="px-in" x="308" y="74" width="18" height="18"/>
+<rect class="px-in" x="326" y="74" width="18" height="18"/>
+<rect class="px-in" x="344" y="74" width="18" height="18"/>
+<rect class="px-in" x="362" y="74" width="18" height="18"/>
+<rect class="px-in" x="380" y="74" width="18" height="18"/>
+<rect class="px-in" x="398" y="74" width="18" height="18"/>
+<rect class="px-in" x="416" y="74" width="18" height="18"/>
+<rect class="px-in" x="434" y="74" width="18" height="18"/>
+<rect class="px-in" x="452" y="74" width="18" height="18"/>
+<rect class="px-in" x="470" y="74" width="18" height="18"/>
+<rect class="px-in" x="488" y="74" width="18" height="18"/>
+<rect class="px-in" x="506" y="74" width="18" height="18"/>
+<rect class="px-in" x="524" y="74" width="18" height="18"/>
+<rect class="px-in" x="542" y="74" width="18" height="18"/>
+<rect class="px-in" x="560" y="74" width="18" height="18"/>
+<rect class="px-in" x="578" y="74" width="18" height="18"/>
+<rect class="px-in" x="596" y="74" width="18" height="18"/>
+<rect class="px-in" x="614" y="74" width="18" height="18"/>
+<rect class="px-in" x="632" y="74" width="18" height="18"/>
+<rect class="px-in" x="650" y="74" width="18" height="18"/>
+<rect class="px-in" x="668" y="74" width="18" height="18"/>
+<rect class="px-in" x="686" y="74" width="18" height="18"/>
+<rect class="px-in" x="704" y="74" width="18" height="18"/>
+<rect class="px-in" x="722" y="74" width="18" height="18"/>
+<rect class="px-in" x="74" y="56" width="18" height="18"/>
+<rect class="px-in" x="92" y="56" width="18" height="18"/>
+<rect class="px-in" x="110" y="56" width="18" height="18"/>
+<rect class="px-in" x="128" y="56" width="18" height="18"/>
+<rect class="px-in" x="146" y="56" width="18" height="18"/>
+<rect class="px-in" x="164" y="56" width="18" height="18"/>
+<rect class="px-in" x="182" y="56" width="18" height="18"/>
+<rect class="px-in" x="200" y="56" width="18" height="18"/>
+<rect class="px-in" x="218" y="56" width="18" height="18"/>
+<rect class="px-in" x="236" y="56" width="18" height="18"/>
+<rect class="px-in" x="254" y="56" width="18" height="18"/>
+<rect class="px-in" x="272" y="56" width="18" height="18"/>
+<rect class="px-in" x="290" y="56" width="18" height="18"/>
+<rect class="px-in" x="308" y="56" width="18" height="18"/>
+<rect class="px-in" x="326" y="56" width="18" height="18"/>
+<rect class="px-in" x="344" y="56" width="18" height="18"/>
+<rect class="px-in" x="362" y="56" width="18" height="18"/>
+<rect class="px-in" x="380" y="56" width="18" height="18"/>
+<rect class="px-in" x="398" y="56" width="18" height="18"/>
+<rect class="px-in" x="416" y="56" width="18" height="18"/>
+<rect class="px-in" x="434" y="56" width="18" height="18"/>
+<rect class="px-in" x="452" y="56" width="18" height="18"/>
+<rect class="px-in" x="470" y="56" width="18" height="18"/>
+<rect class="px-in" x="488" y="56" width="18" height="18"/>
+<rect class="px-in" x="506" y="56" width="18" height="18"/>
+<rect class="px-in" x="524" y="56" width="18" height="18"/>
+<rect class="px-in" x="542" y="56" width="18" height="18"/>
+<rect class="px-in" x="560" y="56" width="18" height="18"/>
+<rect class="px-in" x="578" y="56" width="18" height="18"/>
+<rect class="px-in" x="596" y="56" width="18" height="18"/>
+<rect class="px-in" x="614" y="56" width="18" height="18"/>
+<rect class="px-in" x="632" y="56" width="18" height="18"/>
+<rect class="px-in" x="650" y="56" width="18" height="18"/>
+<rect class="px-in" x="668" y="56" width="18" height="18"/>
+<rect class="px-in" x="686" y="56" width="18" height="18"/>
+<rect class="px-in" x="704" y="56" width="18" height="18"/>
+<rect class="px-in" x="722" y="56" width="18" height="18"/>
+<rect class="px-in" x="74" y="38" width="18" height="18"/>
+<rect class="px-in" x="92" y="38" width="18" height="18"/>
+<rect class="px-in" x="110" y="38" width="18" height="18"/>
+<rect class="px-in" x="128" y="38" width="18" height="18"/>
+<rect class="px-in" x="146" y="38" width="18" height="18"/>
+<rect class="px-in" x="164" y="38" width="18" height="18"/>
+<rect class="px-in" x="182" y="38" width="18" height="18"/>
+<rect class="px-in" x="200" y="38" width="18" height="18"/>
+<rect class="px-in" x="218" y="38" width="18" height="18"/>
+<rect class="px-in" x="236" y="38" width="18" height="18"/>
+<rect class="px-in" x="254" y="38" width="18" height="18"/>
+<rect class="px-in" x="272" y="38" width="18" height="18"/>
+<rect class="px-in" x="290" y="38" width="18" height="18"/>
+<rect class="px-in" x="308" y="38" width="18" height="18"/>
+<rect class="px-in" x="326" y="38" width="18" height="18"/>
+<rect class="px-in" x="344" y="38" width="18" height="18"/>
+<rect class="px-in" x="362" y="38" width="18" height="18"/>
+<rect class="px-in" x="380" y="38" width="18" height="18"/>
+<rect class="px-in" x="398" y="38" width="18" height="18"/>
+<rect class="px-in" x="416" y="38" width="18" height="18"/>
+<rect class="px-in" x="434" y="38" width="18" height="18"/>
+<rect class="px-in" x="452" y="38" width="18" height="18"/>
+<rect class="px-in" x="470" y="38" width="18" height="18"/>
+<rect class="px-in" x="488" y="38" width="18" height="18"/>
+<rect class="px-in" x="506" y="38" width="18" height="18"/>
+<rect class="px-in" x="524" y="38" width="18" height="18"/>
+<rect class="px-in" x="542" y="38" width="18" height="18"/>
+<rect class="px-in" x="560" y="38" width="18" height="18"/>
+<rect class="px-in" x="578" y="38" width="18" height="18"/>
+<rect class="px-in" x="596" y="38" width="18" height="18"/>
+<rect class="px-in" x="614" y="38" width="18" height="18"/>
+<rect class="px-in" x="632" y="38" width="18" height="18"/>
+<rect class="px-in" x="650" y="38" width="18" height="18"/>
+<rect class="px-in" x="668" y="38" width="18" height="18"/>
+<rect class="px-in" x="686" y="38" width="18" height="18"/>
+<rect class="px-in" x="704" y="38" width="18" height="18"/>
+<rect class="px-in" x="722" y="38" width="18" height="18"/>
+<rect class="px-in" x="56" y="20" width="18" height="18"/>
+<rect class="px-in" x="74" y="20" width="18" height="18"/>
+<rect class="px-in" x="92" y="20" width="18" height="18"/>
+<rect class="px-in" x="110" y="20" width="18" height="18"/>
+<rect class="px-in" x="128" y="20" width="18" height="18"/>
+<rect class="px-in" x="146" y="20" width="18" height="18"/>
+<rect class="px-in" x="164" y="20" width="18" height="18"/>
+<rect class="px-in" x="182" y="20" width="18" height="18"/>
+<rect class="px-in" x="200" y="20" width="18" height="18"/>
+<rect class="px-in" x="218" y="20" width="18" height="18"/>
+<rect class="px-in" x="236" y="20" width="18" height="18"/>
+<rect class="px-in" x="254" y="20" width="18" height="18"/>
+<rect class="px-in" x="272" y="20" width="18" height="18"/>
+<rect class="px-in" x="290" y="20" width="18" height="18"/>
+<rect class="px-in" x="308" y="20" width="18" height="18"/>
+<rect class="px-in" x="326" y="20" width="18" height="18"/>
+<rect class="px-in" x="344" y="20" width="18" height="18"/>
+<rect class="px-in" x="362" y="20" width="18" height="18"/>
+<rect class="px-in" x="380" y="20" width="18" height="18"/>
+<rect class="px-in" x="398" y="20" width="18" height="18"/>
+<rect class="px-in" x="416" y="20" width="18" height="18"/>
+<rect class="px-in" x="434" y="20" width="18" height="18"/>
+<rect class="px-in" x="452" y="20" width="18" height="18"/>
+<rect class="px-in" x="470" y="20" width="18" height="18"/>
+<rect class="px-in" x="488" y="20" width="18" height="18"/>
+<rect class="px-in" x="506" y="20" width="18" height="18"/>
+<rect class="px-in" x="524" y="20" width="18" height="18"/>
+<rect class="px-in" x="542" y="20" width="18" height="18"/>
+<rect class="px-in" x="560" y="20" width="18" height="18"/>
+<rect class="px-in" x="578" y="20" width="18" height="18"/>
+<rect class="px-in" x="596" y="20" width="18" height="18"/>
+<rect class="px-in" x="614" y="20" width="18" height="18"/>
+<rect class="px-in" x="632" y="20" width="18" height="18"/>
+<rect class="px-in" x="650" y="20" width="18" height="18"/>
+<rect class="px-in" x="668" y="20" width="18" height="18"/>
+<rect class="px-in" x="686" y="20" width="18" height="18"/>
+<line class="grid" x1="20" y1="20" x2="20" y2="452"/>
+<line class="grid" x1="38" y1="20" x2="38" y2="452"/>
+<line class="grid" x1="56" y1="20" x2="56" y2="452"/>
+<line class="grid" x1="74" y1="20" x2="74" y2="452"/>
+<line class="grid" x1="92" y1="20" x2="92" y2="452"/>
+<line class="grid" x1="110" y1="20" x2="110" y2="452"/>
+<line class="grid" x1="128" y1="20" x2="128" y2="452"/>
+<line class="grid" x1="146" y1="20" x2="146" y2="452"/>
+<line class="grid" x1="164" y1="20" x2="164" y2="452"/>
+<line class="grid" x1="182" y1="20" x2="182" y2="452"/>
+<line class="grid" x1="200" y1="20" x2="200" y2="452"/>
+<line class="grid" x1="218" y1="20" x2="218" y2="452"/>
+<line class="grid" x1="236" y1="20" x2="236" y2="452"/>
+<line class="grid" x1="254" y1="20" x2="254" y2="452"/>
+<line class="grid" x1="272" y1="20" x2="272" y2="452"/>
+<line class="grid" x1="290" y1="20" x2="290" y2="452"/>
+<line class="grid" x1="308" y1="20" x2="308" y2="452"/>
+<line class="grid" x1="326" y1="20" x2="326" y2="452"/>
+<line class="grid" x1="344" y1="20" x2="344" y2="452"/>
+<line class="grid" x1="362" y1="20" x2="362" y2="452"/>
+<line class="grid" x1="380" y1="20" x2="380" y2="452"/>
+<line class="grid" x1="398" y1="20" x2="398" y2="452"/>
+<line class="grid" x1="416" y1="20" x2="416" y2="452"/>
+<line class="grid" x1="434" y1="20" x2="434" y2="452"/>
+<line class="grid" x1="452" y1="20" x2="452" y2="452"/>
+<line class="grid" x1="470" y1="20" x2="470" y2="452"/>
+<line class="grid" x1="488" y1="20" x2="488" y2="452"/>
+<line class="grid" x1="506" y1="20" x2="506" y2="452"/>
+<line class="grid" x1="524" y1="20" x2="524" y2="452"/>
+<line class="grid" x1="542" y1="20" x2="542" y2="452"/>
+<line class="grid" x1="560" y1="20" x2="560" y2="452"/>
+<line class="grid" x1="578" y1="20" x2="578" y2="452"/>
+<line class="grid" x1="596" y1="20" x2="596" y2="452"/>
+<line class="grid" x1="614" y1="20" x2="614" y2="452"/>
+<line class="grid" x1="632" y1="20" x2="632" y2="452"/>
+<line class="grid" x1="650" y1="20" x2="650" y2="452"/>
+<line class="grid" x1="668" y1="20" x2="668" y2="452"/>
+<line class="grid" x1="686" y1="20" x2="686" y2="452"/>
+<line class="grid" x1="704" y1="20" x2="704" y2="452"/>
+<line class="grid" x1="722" y1="20" x2="722" y2="452"/>
+<line class="grid" x1="740" y1="20" x2="740" y2="452"/>
+<line class="grid" x1="20" y1="20" x2="740" y2="20"/>
+<line class="grid" x1="20" y1="38" x2="740" y2="38"/>
+<line class="grid" x1="20" y1="56" x2="740" y2="56"/>
+<line class="grid" x1="20" y1="74" x2="740" y2="74"/>
+<line class="grid" x1="20" y1="92" x2="740" y2="92"/>
+<line class="grid" x1="20" y1="110" x2="740" y2="110"/>
+<line class="grid" x1="20" y1="128" x2="740" y2="128"/>
+<line class="grid" x1="20" y1="146" x2="740" y2="146"/>
+<line class="grid" x1="20" y1="164" x2="740" y2="164"/>
+<line class="grid" x1="20" y1="182" x2="740" y2="182"/>
+<line class="grid" x1="20" y1="200" x2="740" y2="200"/>
+<line class="grid" x1="20" y1="218" x2="740" y2="218"/>
+<line class="grid" x1="20" y1="236" x2="740" y2="236"/>
+<line class="grid" x1="20" y1="254" x2="740" y2="254"/>
+<line class="grid" x1="20" y1="272" x2="740" y2="272"/>
+<line class="grid" x1="20" y1="290" x2="740" y2="290"/>
+<line class="grid" x1="20" y1="308" x2="740" y2="308"/>
+<line class="grid" x1="20" y1="326" x2="740" y2="326"/>
+<line class="grid" x1="20" y1="344" x2="740" y2="344"/>
+<line class="grid" x1="20" y1="362" x2="740" y2="362"/>
+<line class="grid" x1="20" y1="380" x2="740" y2="380"/>
+<line class="grid" x1="20" y1="398" x2="740" y2="398"/>
+<line class="grid" x1="20" y1="416" x2="740" y2="416"/>
+<line class="grid" x1="20" y1="434" x2="740" y2="434"/>
+<line class="grid" x1="20" y1="452" x2="740" y2="452"/>
+<line class="scan" x1="20" y1="227" x2="740" y2="227"/>
+<circle class="pc-out" cx="29" cy="227" r="2.6"/>
+<circle class="pc-out" cx="47" cy="227" r="2.6"/>
+<circle class="pc-out" cx="65" cy="227" r="2.6"/>
+<circle class="pc-out" cx="83" cy="227" r="2.6"/>
+<circle class="pc-out" cx="101" cy="227" r="2.6"/>
+<circle class="pc-out" cx="119" cy="227" r="2.6"/>
+<circle class="pc-out" cx="137" cy="227" r="2.6"/>
+<circle class="pc-out" cx="155" cy="227" r="2.6"/>
+<circle class="pc-out" cx="173" cy="227" r="2.6"/>
+<circle class="pc-in" cx="191" cy="227" r="2.6"/>
+<circle class="pc-in" cx="209" cy="227" r="2.6"/>
+<circle class="pc-in" cx="227" cy="227" r="2.6"/>
+<circle class="pc-in" cx="245" cy="227" r="2.6"/>
+<circle class="pc-in" cx="263" cy="227" r="2.6"/>
+<circle class="pc-in" cx="281" cy="227" r="2.6"/>
+<circle class="pc-in" cx="299" cy="227" r="2.6"/>
+<circle class="pc-in" cx="317" cy="227" r="2.6"/>
+<circle class="pc-in" cx="335" cy="227" r="2.6"/>
+<circle class="pc-in" cx="353" cy="227" r="2.6"/>
+<circle class="pc-in" cx="371" cy="227" r="2.6"/>
+<circle class="pc-in" cx="389" cy="227" r="2.6"/>
+<circle class="pc-in" cx="407" cy="227" r="2.6"/>
+<circle class="pc-in" cx="425" cy="227" r="2.6"/>
+<circle class="pc-in" cx="443" cy="227" r="2.6"/>
+<circle class="pc-in" cx="461" cy="227" r="2.6"/>
+<circle class="pc-in" cx="479" cy="227" r="2.6"/>
+<circle class="pc-in" cx="497" cy="227" r="2.6"/>
+<circle class="pc-in" cx="515" cy="227" r="2.6"/>
+<circle class="pc-in" cx="533" cy="227" r="2.6"/>
+<circle class="pc-in" cx="551" cy="227" r="2.6"/>
+<circle class="pc-in" cx="569" cy="227" r="2.6"/>
+<circle class="pc-in" cx="587" cy="227" r="2.6"/>
+<circle class="pc-in" cx="605" cy="227" r="2.6"/>
+<circle class="pc-in" cx="623" cy="227" r="2.6"/>
+<circle class="pc-in" cx="641" cy="227" r="2.6"/>
+<circle class="pc-in" cx="659" cy="227" r="2.6"/>
+<circle class="pc-in" cx="677" cy="227" r="2.6"/>
+<circle class="pc-in" cx="695" cy="227" r="2.6"/>
+<circle class="pc-in" cx="713" cy="227" r="2.6"/>
+<circle class="pc-in" cx="731" cy="227" r="2.6"/>
+<path class="edge" clip-path="url(#crop)" d="M3380.67 497.5 L3564 457 M3564 457 L3737.29 408.08 M3737.29 408.08 L3900.53 350.73 M3900.53 350.73 L4053.73 284.96 M4053.73 284.96 L4196.88 210.76 M4196.88 210.76 L4329.99 128.14 M4329.99 128.14 L4453.06 37.1 M4453.06 37.1 L4566.08 -62.37 M4566.08 -62.37 L4667.33 -168.53 M4667.33 -168.53 L4755.08 -279.66 M4755.08 -279.66 L4829.33 -395.76 M4829.33 -395.76 L4890.08 -516.83 M4890.08 -516.83 L4937.33 -642.87 M4937.33 -642.87 L4971.08 -773.87 M4971.08 -773.87 L4991.33 -909.84 M4991.33 -909.84 L4998.08 -1050.78 M4998.08 -1050.78 L4992.03 -1196.66 M4992.03 -1196.66 L4973.89 -1334.75 M4973.89 -1334.75 L4943.65 -1465.07 M4943.65 -1465.07 L4901.31 -1587.62 M4901.31 -1587.62 L4846.88 -1702.38 M4846.88 -1702.38 L4780.35 -1809.38 M4780.35 -1809.38 L4701.73 -1908.59 M4701.73 -1908.59 L4611.01 -2000.03 M4611.01 -2000.03 L4508.19 -2083.7 M4508.19 -2083.7 L4393.28 -2159.58 M4393.28 -2159.58 L4266.27 -2227.7 M4266.27 -2227.7 L4127.17 -2288.03 M4127.17 -2288.03 L4031.82 -2026.76 M4031.82 -2026.76 L3928.24 -1776.54 M3928.24 -1776.54 L3816.44 -1537.39 M3816.44 -1537.39 L3696.41 -1309.29 M3696.41 -1309.29 L3568.16 -1092.26 M3568.16 -1092.26 L3431.68 -886.28 M3431.68 -886.28 L3286.98 -691.36 M3286.98 -691.36 L3134.05 -507.5 M3134.05 -507.5 L2972.9 -334.7 M2972.9 -334.7 L2803.52 -172.96 M2803.52 -172.96 L2645.89 -37.4 M2645.89 -37.4 L2488.42 85.24 M2488.42 85.24 L2331.13 194.98 M2331.13 194.98 L2174.01 291.8 M2174.01 291.8 L2017.07 375.72 M2017.07 375.72 L1860.29 446.72 M1860.29 446.72 L1703.68 504.82 M1703.68 504.82 L1547.25 550 M1547.25 550 L1390.99 582.28 M1390.99 582.28 L1234.9 601.64 M1234.9 601.64 L1078.98 608.1 M1078.98 608.1 L947.86 603.07 M947.86 603.07 L824.1 588.01 M824.1 588.01 L707.67 562.9 M707.67 562.9 L598.59 527.74 M598.59 527.74 L496.86 482.55 M496.86 482.55 L402.46 427.3 M402.46 427.3 L315.42 362.02 M315.42 362.02 L235.71 286.69 M235.71 286.69 L164.43 202.39 M164.43 202.39 L102.66 110.22 M102.66 110.22 L50.38 10.15 M50.38 10.15 L7.62 -97.79 M7.62 -97.79 L-25.65 -213.62 M-25.65 -213.62 L-49.41 -337.34 M-49.41 -337.34 L-63.66 -468.93 M-63.66 -468.93 L-68.42 -608.42 M-68.42 -608.42 L-62.74 -763.25 M-62.74 -763.25 L-45.72 -914.42 M-45.72 -914.42 L-17.34 -1061.92 M-17.34 -1061.92 L22.38 -1205.75 M22.38 -1205.75 L73.45 -1345.91 M73.45 -1345.91 L135.87 -1482.4 M135.87 -1482.4 L209.64 -1615.22 M209.64 -1615.22 L294.76 -1744.37 M294.76 -1744.37 L391.23 -1869.86 M391.23 -1869.86 L511.6 -2004.48 M511.6 -2004.48 L642.87 -2130.14 M642.87 -2130.14 L785.05 -2246.83 M785.05 -2246.83 L938.14 -2354.56 M938.14 -2354.56 L1102.14 -2453.33 M1102.14 -2453.33 L1277.05 -2543.13 M1277.05 -2543.13 L1462.86 -2623.97 M1462.86 -2623.97 L1659.58 -2695.84 M1659.58 -2695.84 L1659.58 -3718.82 M1659.58 -3718.82 L180.42 -3718.82 M180.42 -3718.82 L180.42 -4161.18 M180.42 -4161.18 L1659.58 -4161.18 M1659.58 -4161.18 L1659.58 -5032.1 M1659.58 -5032.1 L2164.16 -5032.1 M2164.16 -5032.1 L2164.16 -4161.18 M2164.16 -4161.18 L5253.82 -4161.18 M5253.82 -4161.18 L5253.82 -3718.82 M5253.82 -3718.82 L2164.16 -3718.82 M2164.16 -3718.82 L2164.16 -2827.17 M2164.16 -2827.17 L2395.28 -2866.48 M2395.28 -2866.48 L2625.54 -2894.56 M2625.54 -2894.56 L2854.93 -2911.41 M2854.93 -2911.41 L3083.46 -2917.02 M3083.46 -2917.02 L3305.26 -2912.01 M3305.26 -2912.01 L3517.25 -2896.98 M3517.25 -2896.98 L3719.43 -2871.92 M3719.43 -2871.92 L3911.79 -2836.84 M3911.79 -2836.84 L4094.34 -2791.74 M4094.34 -2791.74 L4267.07 -2736.62 M4267.07 -2736.62 L4429.98 -2671.48 M4429.98 -2671.48 L4583.08 -2596.31 M4583.08 -2596.31 L4726.37 -2511.12 M4726.37 -2511.12 L4859.84 -2415.9 M4859.84 -2415.9 L4971.4 -2321.79 M4971.4 -2321.79 L5072.34 -2221.68 M5072.34 -2221.68 L5162.65 -2115.57 M5162.65 -2115.57 L5242.34 -2003.47 M5242.34 -2003.47 L5311.4 -1885.37 M5311.4 -1885.37 L5369.84 -1761.26 M5369.84 -1761.26 L5417.66 -1631.16 M5417.66 -1631.16 L5454.84 -1495.07 M5454.84 -1495.07 L5481.41 -1352.97 M5481.41 -1352.97 L5497.34 -1204.88 M5497.34 -1204.88 L5502.66 -1050.78 M5502.66 -1050.78 L5496.09 -883.19 M5496.09 -883.19 L5476.37 -721.4 M5476.37 -721.4 L5443.52 -565.41 M5443.52 -565.41 L5397.53 -415.22 M5397.53 -415.22 L5338.39 -270.84 M5338.39 -270.84 L5266.11 -132.26 M5266.11 -132.26 L5180.69 0.52 M5180.69 0.52 L5082.13 127.5 M5082.13 127.5 L4970.43 248.67 M4970.43 248.67 L4847.21 362.51 M4847.21 362.51 L4714.09 467.47 M4714.09 467.47 L4571.07 563.55 M4571.07 563.55 L4418.15 650.76 M4418.15 650.76 L4255.34 729.1 M4255.34 729.1 L4082.62 798.56 M4082.62 798.56 L3900.01 859.15 M3900.01 859.15 L3707.5 910.86 M3707.5 910.86 L3505.09 953.7 M3505.09 953.7 L3380.67 497.5 M3664.06 -2412.45 L3529.28 -2430.59 M3529.28 -2430.59 L3387.58 -2443.55 M3387.58 -2443.55 L3238.98 -2451.33 M3238.98 -2451.33 L3083.46 -2453.92 M3083.46 -2453.92 L2889.64 -2449.77 M2889.64 -2449.77 L2700.81 -2437.33 M2700.81 -2437.33 L2516.95 -2416.6 M2516.95 -2416.6 L2338.07 -2387.56 M2338.07 -2387.56 L2164.16 -2350.24 M2164.16 -2350.24 L2164.16 -248.99 M2164.16 -248.99 L2314.59 -365.82 M2314.59 -365.82 L2461.76 -495.14 M2461.76 -495.14 L2605.66 -636.93 M2605.66 -636.93 L2746.3 -791.2 M2746.3 -791.2 L2883.68 -957.95 M2883.68 -957.95 L3017.79 -1137.18 M3017.79 -1137.18 L3146.14 -1327.17 M3146.14 -1327.17 L3266.24 -1526.18 M3266.24 -1526.18 L3378.08 -1734.21 M3378.08 -1734.21 L3481.66 -1951.26 M3481.66 -1951.26 L3576.99 -2177.34 M3576.99 -2177.34 L3664.06 -2412.45 M1659.58 -2191.26 L1502.51 -2120.66 M1502.51 -2120.66 L1355.17 -2043.15 M1355.17 -2043.15 L1217.57 -1958.72 M1217.57 -1958.72 L1089.7 -1867.39 M1089.7 -1867.39 L971.56 -1769.14 M971.56 -1769.14 L863.15 -1663.98 M863.15 -1663.98 L764.48 -1551.9 M764.48 -1551.9 L677.37 -1434.61 M677.37 -1434.61 L603.67 -1313.79 M603.67 -1313.79 L543.37 -1189.45 M543.37 -1189.45 L496.46 -1061.58 M496.46 -1061.58 L462.96 -930.18 M462.96 -930.18 L442.86 -795.25 M442.86 -795.25 L436.16 -656.8 M436.16 -656.8 L441.15 -532.67 M441.15 -532.67 L456.13 -418.34 M456.13 -418.34 L481.09 -313.79 M481.09 -313.79 L516.03 -219.04 M516.03 -219.04 L560.96 -134.08 M560.96 -134.08 L615.87 -58.91 M615.87 -58.91 L670.32 -2.98 M670.32 -2.98 L730.98 44.34 M730.98 44.34 L797.84 83.07 M797.84 83.07 L870.91 113.18 M870.91 113.18 L950.19 134.69 M950.19 134.69 L1035.67 147.6 M1035.67 147.6 L1127.36 151.9 M1127.36 151.9 L1259.12 144.99 M1259.12 144.99 L1391.74 124.26 M1391.74 124.26 L1525.23 89.7 M1525.23 89.7 L1659.58 41.31 M1659.58 41.31 L1659.58 -2191.26"/>
+<circle class="xing" cx="185.24" cy="227" r="4.5"/>
+<text class="lbl-s mono strong" x="185.2" y="218" text-anchor="middle">+1</text>
+</svg></div>
+<figcaption><span class="fn">図 12</span>「あ」の輪郭の一部を、スーパーサンプリングの格子（1 マス＝1/8 texel）の 40×24 マスの窓で拡大した実データ。桃の折れ線がフラット化した輪郭、色の付いたマスが塗った画素。黄の線は行 112 の走査線（中心 y＝112.5）で、交点（◯）から右の画素の中心（•）が和 +1 の区間に入るので塗られる。</figcaption>
+</figure>
+<figure class="fig" id="fig-winding">
+<div class="scroll"><svg class="dia " viewBox="0 0 760 320" width="760" height="320" role="img" aria-label="非ゼロ巻き数の数え方と偶奇規則との違い" xmlns="http://www.w3.org/2000/svg">
+<text class="lbl-b" x="20" y="24" text-anchor="start">A　o の走査線 1 本</text>
+<path class="g-fill g-stroke" d="M161.2 50 Q206 50 231.4 78.4 Q256.8 106.8 256.8 158 Q256.8 209.2 231.4 237.6 Q206 266 161.2 266 Q116.4 266 91.2 237.6 Q66 209.2 66 158 Q66 106.8 91.2 78.4 Q116.4 50 161.2 50 Z M161.2 242 Q225.2 242 225.2 158 Q225.2 74 161.2 74 Q97.2 74 97.2 158 Q97.2 242 161.2 242 Z"/>
+<polygon class="ah-guide" points="201.2,57.1 191.3,57.5 194.3,50"/>
+<polygon class="ah-guide" points="250.5,203.5 249.3,193.7 257,196.2"/>
+<polygon class="ah-guide" points="121.3,258.9 131.2,258.5 128.1,266"/>
+<polygon class="ah-guide" points="72.3,112.5 73.4,122.3 65.7,119.9"/>
+<polygon class="ah-guide" points="209.2,221 207,230.6 200.5,225.7"/>
+<polygon class="ah-guide" points="209.2,95 217.9,99.7 211.4,104.6"/>
+<polygon class="ah-guide" points="113.2,95 115.4,85.4 121.9,90.3"/>
+<polygon class="ah-guide" points="113.2,221 104.5,216.3 111,211.4"/>
+<line class="scan" x1="18" y1="158" x2="306" y2="158"/>
+<text class="wnum" x="42" y="150" text-anchor="middle">0</text>
+<circle class="xing" cx="66" cy="158" r="4"/>
+<text class="lbl-s mono" x="66" y="178" text-anchor="middle">+1</text>
+<text class="wnum" x="81.6" y="150" text-anchor="middle">1</text>
+<circle class="xing" cx="97.2" cy="158" r="4"/>
+<text class="lbl-s mono" x="97.2" y="178" text-anchor="middle">−1</text>
+<text class="wnum" x="161.2" y="150" text-anchor="middle">0</text>
+<circle class="xing" cx="225.2" cy="158" r="4"/>
+<text class="lbl-s mono" x="225.2" y="178" text-anchor="middle">+1</text>
+<text class="wnum" x="241" y="150" text-anchor="middle">1</text>
+<circle class="xing" cx="256.8" cy="158" r="4"/>
+<text class="lbl-s mono" x="256.8" y="178" text-anchor="middle">−1</text>
+<text class="wnum" x="281.4" y="150" text-anchor="middle">0</text>
+<text class="lbl-s" x="20" y="292" text-anchor="start">外周は時計回り、内周は反時計回りに巡る。</text>
+<text class="lbl-s" x="20" y="308" text-anchor="start">巻き数の和が 0 の区間は塗らない</text>
+<text class="lbl-b" x="395" y="24" text-anchor="start">B　重なった 2 本の画</text>
+<path class="g-fill g-stroke" d="M472.5 224.5 L472.5 52 L507 52 L507 224.5 Z"/>
+<path class="g-fill g-stroke" d="M415 155.5 L415 121 L564.5 121 L564.5 155.5 Z"/>
+<line class="scan" x1="401.2" y1="138.2" x2="578.3" y2="138.2"/>
+<text class="wnum" x="408.1" y="130.2" text-anchor="middle">0</text>
+<circle class="xing" cx="415" cy="138.2" r="4"/>
+<text class="lbl-s mono" x="408" y="171.5" text-anchor="middle">+1</text>
+<text class="wnum" x="443.8" y="130.2" text-anchor="middle">1</text>
+<circle class="xing" cx="472.5" cy="138.2" r="4"/>
+<text class="lbl-s mono" x="465.5" y="171.5" text-anchor="middle">+1</text>
+<text class="wnum" x="489.8" y="130.2" text-anchor="middle">2</text>
+<circle class="xing" cx="507" cy="138.2" r="4"/>
+<text class="lbl-s mono" x="514" y="171.5" text-anchor="middle">−1</text>
+<text class="wnum" x="535.8" y="130.2" text-anchor="middle">1</text>
+<circle class="xing" cx="564.5" cy="138.2" r="4"/>
+<text class="lbl-s mono" x="571.5" y="171.5" text-anchor="middle">−1</text>
+<text class="wnum" x="571.4" y="130.2" text-anchor="middle">0</text>
+<text class="lbl-s" x="395" y="300" text-anchor="start">交差の区間は和が 2 になる</text>
+<path class="g-solid" fill-rule="nonzero" d="M661 140.8 L661 77.8 L673.6 77.8 L673.6 140.8 Z M640 115.6 L640 103 L694.6 103 L694.6 115.6 Z"/>
+<text class="lbl-s strong" x="667" y="164" text-anchor="middle">非ゼロ巻き数</text>
+<path class="g-solid" fill-rule="evenodd" d="M661 260.8 L661 197.8 L673.6 197.8 L673.6 260.8 Z M640 235.6 L640 223 L694.6 223 L694.6 235.6 Z"/>
+<text class="lbl-s" x="667" y="284" text-anchor="middle">偶奇規則</text>
+<text class="lbl-b" x="667" y="24" text-anchor="middle">塗った結果</text>
+<text class="lbl-s" x="667" y="300" text-anchor="middle">偶奇では交差が抜ける</text>
+</svg></div>
+<figcaption><span class="fn">図 13</span>非ゼロ巻き数の数え方。A は「o」の実際の輪郭で、内周が逆向きなので穴の区間の和が 0 に戻る。B は画の交差を別の輪郭で重ねたまま描いた場合（説明用の図）。</figcaption>
+</figure>
+<p>非ゼロ巻き数で塗るのは輪郭の重なりのため。和文フォントには画の交差を別の輪郭で描き、重ねたまま出荷したものがある。偶奇規則で塗ると重なりが抜け、輪郭から直接距離を測る方式では重なりの内側の辺が縁に化ける。塗ってから距離を取る方式は、重なりがここで解消されるので影響を受けない（README §5 S8）。見本の M+ 1c は重なりを解消済みで、図の字に和が 2 になる画素は無い。</p>
+
+<h4 id="distance">距離を取る（<code>DistanceTransform</code>）</h4>
+<p>2 値の格子の各画素から、最も近い「目標」の画素の中心までの距離を厳密に求める（Felzenszwalb と Huttenlocher の方法・画素数に比例する手間）。ユークリッド距離の 2 乗は x と y の成分の和なので、列ごとに縦方向の 1 次元の変換をしてから、その結果に行ごとの横方向の変換を重ねれば 2 次元の答えになる。1 次元の変換は、目標ごとの放物線の下包絡を 1 回の走査で組み立てて解く。</p>
+<figure class="fig" id="fig-parabola">
+<div class="scroll"><svg class="dia " viewBox="0 0 760 330" width="760" height="330" role="img" aria-label="1 次元の距離変換を放物線の下包絡で解く図" xmlns="http://www.w3.org/2000/svg">
+<line class="grid" x1="50" y1="230" x2="710" y2="230"/>
+<text class="lbl-s mono" x="42" y="234" text-anchor="end">0</text>
+<line class="grid" x1="50" y1="202" x2="710" y2="202"/>
+<text class="lbl-s mono" x="42" y="206" text-anchor="end">4</text>
+<line class="grid" x1="50" y1="167" x2="710" y2="167"/>
+<text class="lbl-s mono" x="42" y="171" text-anchor="end">9</text>
+<line class="grid" x1="50" y1="118" x2="710" y2="118"/>
+<text class="lbl-s mono" x="42" y="122" text-anchor="end">16</text>
+<line class="grid" x1="50" y1="55" x2="710" y2="55"/>
+<text class="lbl-s mono" x="42" y="59" text-anchor="end">25</text>
+<text class="lbl-s mono" x="42" y="30.5" text-anchor="end">d²</text>
+<path class="para" d="M29 40.7 L32 47.9 L35 55 L38 61.9 L41 68.7 L44 75.4 L47 81.9 L50 88.3 L53 94.5 L56 100.6 L59 106.5 L62 112.3 L65 118 L68 123.5 L71 128.9 L74 134.2 L77 139.3 L80 144.3 L83 149.1 L86 153.8 L89 158.3 L92 162.7 L95 167 L98 171.1 L101 175.1 L104 179 L107 182.7 L110 186.3 L113 189.7 L116 193 L119 196.1 L122 199.1 L125 202 L128 204.7 L131 207.3 L134 209.8 L137 212.1 L140 214.3 L143 216.3 L146 218.2 L149 219.9 L152 221.5 L155 223 L158 224.3 L161 225.5 L164 226.6 L167 227.5 L170 228.3 L173 228.9 L176 229.4 L179 229.7 L182 229.9 L185 230 L188 229.9 L191 229.7 L194 229.4 L197 228.9 L200 228.2 L203 227.5 L206 226.6 L209 225.5 L212 224.3 L215 223 L218 221.5 L221 219.9 L224 218.2 L227 216.3 L230 214.3 L233 212.1 L236 209.8 L239 207.3 L242 204.7 L245 202 L248 199.1 L251 196.1 L254 193 L257 189.7 L260 186.3 L263 182.7 L266 179 L269 175.1 L272 171.1 L275 167 L278 162.7 L281 158.3 L284 153.8 L287 149.1 L290 144.3 L293 139.3 L296 134.2 L299 128.9 L302 123.5 L305 118 L308 112.3 L311 106.5 L314 100.6 L317 94.5 L320 88.3 L323 81.9 L326 75.4 L329 68.7 L332 61.9 L335 55 L338 47.9 L341 40.7"/>
+<path class="para" d="M59 40.7 L62 47.9 L65 55 L68 61.9 L71 68.7 L74 75.4 L77 81.9 L80 88.2 L83 94.5 L86 100.6 L89 106.5 L92 112.3 L95 118 L98 123.5 L101 128.9 L104 134.2 L107 139.3 L110 144.2 L113 149.1 L116 153.8 L119 158.3 L122 162.7 L125 167 L128 171.1 L131 175.1 L134 179 L137 182.7 L140 186.3 L143 189.7 L146 193 L149 196.1 L152 199.1 L155 202 L158 204.7 L161 207.3 L164 209.8 L167 212.1 L170 214.3 L173 216.3 L176 218.2 L179 219.9 L182 221.5 L185 223 L188 224.3 L191 225.5 L194 226.6 L197 227.5 L200 228.2 L203 228.9 L206 229.4 L209 229.7 L212 229.9 L215 230 L218 229.9 L221 229.7 L224 229.4 L227 228.9 L230 228.3 L233 227.5 L236 226.6 L239 225.5 L242 224.3 L245 223 L248 221.5 L251 219.9 L254 218.2 L257 216.3 L260 214.3 L263 212.1 L266 209.8 L269 207.3 L272 204.7 L275 202 L278 199.1 L281 196.1 L284 193 L287 189.7 L290 186.3 L293 182.7 L296 179 L299 175.1 L302 171.1 L305 167 L308 162.7 L311 158.3 L314 153.8 L317 149.1 L320 144.3 L323 139.3 L326 134.2 L329 128.9 L332 123.5 L335 118 L338 112.3 L341 106.5 L344 100.6 L347 94.5 L350 88.3 L353 81.9 L356 75.4 L359 68.7 L362 61.9 L365 55 L368 47.9 L371 40.7"/>
+<path class="para" d="M359 40.7 L362 47.9 L365 55 L368 61.9 L371 68.7 L374 75.4 L377 81.9 L380 88.2 L383 94.5 L386 100.6 L389 106.5 L392 112.3 L395 118 L398 123.5 L401 128.9 L404 134.2 L407 139.3 L410 144.2 L413 149.1 L416 153.8 L419 158.3 L422 162.7 L425 167 L428 171.1 L431 175.1 L434 179 L437 182.7 L440 186.2 L443 189.7 L446 193 L449 196.1 L452 199.1 L455 202 L458 204.7 L461 207.3 L464 209.8 L467 212.1 L470 214.2 L473 216.3 L476 218.2 L479 219.9 L482 221.5 L485 223 L488 224.3 L491 225.5 L494 226.6 L497 227.5 L500 228.2 L503 228.9 L506 229.4 L509 229.7 L512 229.9 L515 230 L518 229.9 L521 229.7 L524 229.4 L527 228.9 L530 228.3 L533 227.5 L536 226.6 L539 225.5 L542 224.3 L545 223 L548 221.5 L551 219.9 L554 218.2 L557 216.3 L560 214.3 L563 212.1 L566 209.8 L569 207.3 L572 204.7 L575 202 L578 199.1 L581 196.1 L584 193 L587 189.7 L590 186.3 L593 182.7 L596 179 L599 175.1 L602 171.1 L605 167 L608 162.7 L611 158.3 L614 153.8 L617 149.1 L620 144.2 L623 139.3 L626 134.2 L629 128.9 L632 123.5 L635 118 L638 112.3 L641 106.5 L644 100.6 L647 94.5 L650 88.2 L653 81.9 L656 75.4 L659 68.7 L662 61.9 L665 55 L668 47.9 L671 40.7"/>
+<path class="env" d="M50 88.2 L51.5 91.4 L53 94.5 L54.5 97.5 L56 100.6 L57.5 103.6 L59 106.5 L60.5 109.4 L62 112.3 L63.5 115.2 L65 118 L66.5 120.8 L68 123.5 L69.5 126.2 L71 128.9 L72.5 131.6 L74 134.2 L75.5 136.7 L77 139.3 L78.5 141.8 L80 144.2 L81.5 146.7 L83 149.1 L84.5 151.4 L86 153.8 L87.5 156.1 L89 158.3 L90.5 160.5 L92 162.7 L93.5 164.9 L95 167 L96.5 169.1 L98 171.1 L99.5 173.1 L101 175.1 L102.5 177.1 L104 179 L105.5 180.8 L107 182.7 L108.5 184.5 L110 186.3 L111.5 188 L113 189.7 L114.5 191.3 L116 193 L117.5 194.6 L119 196.1 L120.5 197.6 L122 199.1 L123.5 200.6 L125 202 L126.5 203.4 L128 204.7 L129.5 206 L131 207.3 L132.5 208.6 L134 209.8 L135.5 210.9 L137 212.1 L138.5 213.2 L140 214.2 L141.5 215.3 L143 216.3 L144.5 217.2 L146 218.2 L147.5 219.1 L149 219.9 L150.5 220.7 L152 221.5 L153.5 222.3 L155 223 L156.5 223.7 L158 224.3 L159.5 224.9 L161 225.5 L162.5 226.1 L164 226.6 L165.5 227 L167 227.5 L168.5 227.9 L170 228.2 L171.5 228.6 L173 228.9 L174.5 229.1 L176 229.4 L177.5 229.6 L179 229.7 L180.5 229.8 L182 229.9 L183.5 230 L185 230 L186.5 230 L188 229.9 L189.5 229.8 L191 229.7 L192.5 229.6 L194 229.4 L195.5 229.1 L197 228.9 L198.5 228.6 L200 228.3 L201.5 228.6 L203 228.9 L204.5 229.1 L206 229.4 L207.5 229.6 L209 229.7 L210.5 229.8 L212 229.9 L213.5 230 L215 230 L216.5 230 L218 229.9 L219.5 229.8 L221 229.7 L222.5 229.6 L224 229.4 L225.5 229.1 L227 228.9 L228.5 228.6 L230 228.3 L231.5 227.9 L233 227.5 L234.5 227 L236 226.6 L237.5 226.1 L239 225.5 L240.5 224.9 L242 224.3 L243.5 223.7 L245 223 L246.5 222.3 L248 221.5 L249.5 220.7 L251 219.9 L252.5 219.1 L254 218.2 L255.5 217.2 L257 216.3 L258.5 215.3 L260 214.3 L261.5 213.2 L263 212.1 L264.5 210.9 L266 209.8 L267.5 208.6 L269 207.3 L270.5 206 L272 204.7 L273.5 203.4 L275 202 L276.5 200.6 L278 199.1 L279.5 197.6 L281 196.1 L282.5 194.6 L284 193 L285.5 191.3 L287 189.7 L288.5 188 L290 186.3 L291.5 184.5 L293 182.7 L294.5 180.8 L296 179 L297.5 177.1 L299 175.1 L300.5 173.1 L302 171.1 L303.5 169.1 L305 167 L306.5 164.9 L308 162.7 L309.5 160.5 L311 158.3 L312.5 156.1 L314 153.8 L315.5 151.4 L317 149.1 L318.5 146.7 L320 144.3 L321.5 141.8 L323 139.3 L324.5 136.7 L326 134.2 L327.5 131.6 L329 128.9 L330.5 126.2 L332 123.5 L333.5 120.8 L335 118 L336.5 115.2 L338 112.3 L339.5 109.4 L341 106.5 L342.5 103.6 L344 100.6 L345.5 97.5 L347 94.5 L348.5 91.4 L350 88.2 L351.5 85.1 L353 81.9 L354.5 78.6 L356 75.4 L357.5 72.1 L359 68.7 L360.5 65.3 L362 61.9 L363.5 58.5 L365 55 L366.5 58.5 L368 61.9 L369.5 65.3 L371 68.7 L372.5 72.1 L374 75.4 L375.5 78.6 L377 81.9 L378.5 85.1 L380 88.3 L381.5 91.4 L383 94.5 L384.5 97.5 L386 100.6 L387.5 103.6 L389 106.5 L390.5 109.4 L392 112.3 L393.5 115.2 L395 118 L396.5 120.8 L398 123.5 L399.5 126.2 L401 128.9 L402.5 131.6 L404 134.2 L405.5 136.7 L407 139.3 L408.5 141.8 L410 144.3 L411.5 146.7 L413 149.1 L414.5 151.4 L416 153.8 L417.5 156.1 L419 158.3 L420.5 160.5 L422 162.7 L423.5 164.9 L425 167 L426.5 169.1 L428 171.1 L429.5 173.1 L431 175.1 L432.5 177.1 L434 179 L435.5 180.8 L437 182.7 L438.5 184.5 L440 186.3 L441.5 188 L443 189.7 L444.5 191.3 L446 193 L447.5 194.6 L449 196.1 L450.5 197.6 L452 199.1 L453.5 200.6 L455 202 L456.5 203.4 L458 204.7 L459.5 206 L461 207.3 L462.5 208.6 L464 209.8 L465.5 210.9 L467 212.1 L468.5 213.2 L470 214.3 L471.5 215.3 L473 216.3 L474.5 217.2 L476 218.2 L477.5 219.1 L479 219.9 L480.5 220.7 L482 221.5 L483.5 222.3 L485 223 L486.5 223.7 L488 224.3 L489.5 224.9 L491 225.5 L492.5 226.1 L494 226.6 L495.5 227 L497 227.5 L498.5 227.9 L500 228.3 L501.5 228.6 L503 228.9 L504.5 229.1 L506 229.4 L507.5 229.6 L509 229.7 L510.5 229.8 L512 229.9 L513.5 230 L515 230 L516.5 230 L518 229.9 L519.5 229.8 L521 229.7 L522.5 229.6 L524 229.4 L525.5 229.1 L527 228.9 L528.5 228.6 L530 228.2 L531.5 227.9 L533 227.5 L534.5 227 L536 226.6 L537.5 226.1 L539 225.5 L540.5 224.9 L542 224.3 L543.5 223.7 L545 223 L546.5 222.3 L548 221.5 L549.5 220.7 L551 219.9 L552.5 219.1 L554 218.2 L555.5 217.2 L557 216.3 L558.5 215.3 L560 214.2 L561.5 213.2 L563 212.1 L564.5 210.9 L566 209.8 L567.5 208.6 L569 207.3 L570.5 206 L572 204.7 L573.5 203.4 L575 202 L576.5 200.6 L578 199.1 L579.5 197.6 L581 196.1 L582.5 194.6 L584 193 L585.5 191.3 L587 189.7 L588.5 188 L590 186.2 L591.5 184.5 L593 182.7 L594.5 180.8 L596 179 L597.5 177.1 L599 175.1 L600.5 173.1 L602 171.1 L603.5 169.1 L605 167 L606.5 164.9 L608 162.7 L609.5 160.5 L611 158.3 L612.5 156.1 L614 153.8 L615.5 151.4 L617 149.1 L618.5 146.7 L620 144.2 L621.5 141.8 L623 139.3 L624.5 136.7 L626 134.2 L627.5 131.6 L629 128.9 L630.5 126.2 L632 123.5 L633.5 120.8 L635 118 L636.5 115.2 L638 112.3 L639.5 109.4 L641 106.5 L642.5 103.6 L644 100.6 L645.5 97.5 L647 94.5 L648.5 91.4 L650 88.2 L651.5 85.1 L653 81.9 L654.5 78.6 L656 75.4 L657.5 72.1 L659 68.7 L660.5 65.3 L662 61.9 L663.5 58.5 L665 55 L666.5 51.5 L668 47.9 L669.5 44.3 L671 40.7 L672.5 37.1"/>
+<line class="dim" x1="365" y1="230" x2="365" y2="55"/>
+<text class="lbl-s" x="371" y="48" text-anchor="start">放物線の交点 s</text>
+<rect class="cellbox" x="51" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="65" y="272" text-anchor="middle">4</text>
+<rect class="cellbox" x="81" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="95" y="272" text-anchor="middle">3</text>
+<rect class="cellbox" x="111" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="125" y="272" text-anchor="middle">2</text>
+<rect class="cellbox" x="141" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="155" y="272" text-anchor="middle">1</text>
+<rect class="cellbox hl" x="171" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="185" y="272" text-anchor="middle">0</text>
+<rect class="cellbox hl" x="201" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="215" y="272" text-anchor="middle">0</text>
+<rect class="cellbox" x="231" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="245" y="272" text-anchor="middle">1</text>
+<rect class="cellbox" x="261" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="275" y="272" text-anchor="middle">2</text>
+<rect class="cellbox" x="291" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="305" y="272" text-anchor="middle">3</text>
+<rect class="cellbox" x="321" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="335" y="272" text-anchor="middle">4</text>
+<rect class="cellbox" x="351" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="365" y="272" text-anchor="middle">5</text>
+<rect class="cellbox" x="381" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="395" y="272" text-anchor="middle">4</text>
+<rect class="cellbox" x="411" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="425" y="272" text-anchor="middle">3</text>
+<rect class="cellbox" x="441" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="455" y="272" text-anchor="middle">2</text>
+<rect class="cellbox" x="471" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="485" y="272" text-anchor="middle">1</text>
+<rect class="cellbox hl" x="501" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="515" y="272" text-anchor="middle">0</text>
+<rect class="cellbox" x="531" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="545" y="272" text-anchor="middle">1</text>
+<rect class="cellbox" x="561" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="575" y="272" text-anchor="middle">2</text>
+<rect class="cellbox" x="591" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="605" y="272" text-anchor="middle">3</text>
+<rect class="cellbox" x="621" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="635" y="272" text-anchor="middle">4</text>
+<rect class="cellbox" x="651" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="665" y="272" text-anchor="middle">5</text>
+<rect class="cellbox" x="681" y="254" width="28" height="26"/>
+<text class="lbl-s mono" x="695" y="272" text-anchor="middle">6</text>
+<text class="lbl-s" x="50" y="300" text-anchor="start">各画素の値＝最寄りの目標（色の画素）までの距離。目標ごとの放物線 (x − q)² ＋ f(q) の下包絡を 1 回の走査で求める</text>
+<text class="lbl-s" x="50" y="318" text-anchor="start">2 次元は「列ごと」→「行ごと」の 2 回に分けて解く（距離の 2 乗が軸ごとに足し算になるため）</text>
+</svg></div>
+<figcaption><span class="fn">図 14</span>1 次元の距離変換（説明用の 22 画素の行）。各目標 q に放物線 (x − q)² を立て、その下包絡を左から積み上げる。包絡の値が距離の 2 乗になる。</figcaption>
+</figure>
+<p>ベイカーは全画素を解く <code>Compute</code> ではなく <code>ComputeAt</code> を使う。SDF に要るのは texel の中心を挟むサンプルの行と列の交点だけなので、縦方向は「列の中で最寄りの目標」を上向きと下向きの 2 回の走査で求めて選んだ行だけ残し（2 値の格子では包絡が要らない）、横方向は選んだ行だけを包絡で解いて、選んだ列でだけ平方根を取る。値は全画素を解いた場合と同じ（どちらも厳密）。目標を替えて 2 回呼ぶ: インク部の外のサンプルには「最寄りのインク部の画素まで」、インク部の中のサンプルには「最寄りの背景の画素まで」。</p>
+
+<h4 id="sample">サンプリングして符号化する</h4>
+<p>texel 1 つはスーパーサンプリングの 8 × 8 画素に当たる。その中央の 2 × 2 のサンプル（3 番目と 4 番目の行・列）の平均を、texel の中心での距離とする。ブロック全体の平均は取らない。角の近くの非線形な距離場をならして角を丸めてしまうため。</p>
+<figure class="fig" id="fig-taps">
+<div class="scroll"><svg class="dia " viewBox="0 0 760 260" width="760" height="260" role="img" aria-label="スーパーサンプリングの格子から texel の中心でサンプリングする図" xmlns="http://www.w3.org/2000/svg">
+<rect class="texel" x="40" y="30" width="176" height="176"/>
+<rect class="texel mid" x="216" y="30" width="176" height="176"/>
+<rect class="texel" x="392" y="30" width="176" height="176"/>
+<line class="grid-t" x1="40" y1="30" x2="40" y2="206"/>
+<line class="grid" x1="62" y1="30" x2="62" y2="206"/>
+<line class="grid" x1="84" y1="30" x2="84" y2="206"/>
+<line class="grid" x1="106" y1="30" x2="106" y2="206"/>
+<line class="grid" x1="128" y1="30" x2="128" y2="206"/>
+<line class="grid" x1="150" y1="30" x2="150" y2="206"/>
+<line class="grid" x1="172" y1="30" x2="172" y2="206"/>
+<line class="grid" x1="194" y1="30" x2="194" y2="206"/>
+<line class="grid-t" x1="216" y1="30" x2="216" y2="206"/>
+<line class="grid" x1="238" y1="30" x2="238" y2="206"/>
+<line class="grid" x1="260" y1="30" x2="260" y2="206"/>
+<line class="grid" x1="282" y1="30" x2="282" y2="206"/>
+<line class="grid" x1="304" y1="30" x2="304" y2="206"/>
+<line class="grid" x1="326" y1="30" x2="326" y2="206"/>
+<line class="grid" x1="348" y1="30" x2="348" y2="206"/>
+<line class="grid" x1="370" y1="30" x2="370" y2="206"/>
+<line class="grid-t" x1="392" y1="30" x2="392" y2="206"/>
+<line class="grid" x1="414" y1="30" x2="414" y2="206"/>
+<line class="grid" x1="436" y1="30" x2="436" y2="206"/>
+<line class="grid" x1="458" y1="30" x2="458" y2="206"/>
+<line class="grid" x1="480" y1="30" x2="480" y2="206"/>
+<line class="grid" x1="502" y1="30" x2="502" y2="206"/>
+<line class="grid" x1="524" y1="30" x2="524" y2="206"/>
+<line class="grid" x1="546" y1="30" x2="546" y2="206"/>
+<line class="grid-t" x1="568" y1="30" x2="568" y2="206"/>
+<line class="grid-t" x1="40" y1="30" x2="568" y2="30"/>
+<line class="grid" x1="40" y1="52" x2="568" y2="52"/>
+<line class="grid" x1="40" y1="74" x2="568" y2="74"/>
+<line class="grid" x1="40" y1="96" x2="568" y2="96"/>
+<line class="grid" x1="40" y1="118" x2="568" y2="118"/>
+<line class="grid" x1="40" y1="140" x2="568" y2="140"/>
+<line class="grid" x1="40" y1="162" x2="568" y2="162"/>
+<line class="grid" x1="40" y1="184" x2="568" y2="184"/>
+<line class="grid-t" x1="40" y1="206" x2="568" y2="206"/>
+<rect class="tap" x="108" y="98" width="18" height="18"/>
+<rect class="tap" x="108" y="120" width="18" height="18"/>
+<rect class="tap" x="130" y="98" width="18" height="18"/>
+<rect class="tap" x="130" y="120" width="18" height="18"/>
+<circle class="texc" cx="128" cy="118" r="4"/>
+<rect class="tap" x="284" y="98" width="18" height="18"/>
+<rect class="tap" x="284" y="120" width="18" height="18"/>
+<rect class="tap" x="306" y="98" width="18" height="18"/>
+<rect class="tap" x="306" y="120" width="18" height="18"/>
+<circle class="texc" cx="304" cy="118" r="4"/>
+<rect class="tap" x="460" y="98" width="18" height="18"/>
+<rect class="tap" x="460" y="120" width="18" height="18"/>
+<rect class="tap" x="482" y="98" width="18" height="18"/>
+<rect class="tap" x="482" y="120" width="18" height="18"/>
+<circle class="texc" cx="480" cy="118" r="4"/>
+<text class="lbl-s" x="304" y="232" text-anchor="middle">中央の 2×2 のサンプル（3 番目と 4 番目の行・列）の平均 ＝ texel の中心（•）での距離</text>
+<text class="lbl-s mono" x="128" y="20" text-anchor="middle">texel t − 1</text>
+<text class="lbl-s mono" x="304" y="20" text-anchor="middle">texel t</text>
+<text class="lbl-s mono" x="480" y="20" text-anchor="middle">texel t + 1</text>
+<text class="lbl-s" x="580" y="122" text-anchor="start">スーパーサンプリング 8 倍</text>
+<text class="lbl-s" x="580" y="138" text-anchor="start">1 texel ＝ 8×8</text>
+</svg></div>
+<figcaption><span class="fn">図 15</span>サンプルの取り方。倍率が偶数なら中央の 2 × 2、奇数なら中央の 1 つを使う。</figcaption>
+</figure>
+<p>画素の中心どうしの距離から、輪郭までの距離へ直す。輪郭は隣り合う中心の中間にあるので 0.5 画素を引き、インク部の中を正にする。</p>
+<p class="formula">サンプルの距離 ＝ インク部の中なら (背景までの距離 − 0.5)、インク部の外なら −(インク部までの距離 − 0.5)<br>距離(px) ＝ 4 サンプルの平均 ÷ 8　→　d ＝ 0.5 ＋ 距離 ÷ (2 × 9)</p>
+<p>符号化した値は、ページの「セルの置き場 ＋ 字の矩形の中の位置」へ直接書く。最後にグリフのセルの記録 <code>SdfGlyphCell</code> を返す。</p>
+
+<div class="quad" id="fig-stages">
+<figure><img class="inv" src="02-truetype-to-atlas/a-supersampled.png" width="456" height="480" alt="あ を 8 倍の格子で 2 値に塗った画像"><figcaption>① 塗った 2 値（456×480）</figcaption></figure>
+<figure><img src="02-truetype-to-atlas/a-signed-distance.png" width="456" height="480" alt="あ の符号付き距離を色で表した画像"><figcaption>② 符号付き距離（青緑＝中・桃＝外。白線 3 texel ごと、黄線＝距離レンジ ±9、黒線＝輪郭）</figcaption></figure>
+<figure><img class="pixel" src="02-truetype-to-atlas/a-encoded.png" width="342" height="360" alt="あ の 57×60 texel の符号化した値"><figcaption>③ 符号化した texel（57×60・6 倍に拡大）</figcaption></figure>
+<figure><img class="inv" src="02-truetype-to-atlas/a-reconstructed.png" width="273" height="287" alt="符号化した値から 200px で再構成した あ"><figcaption>④ ③ を bilinear で読み、0.5 を輪郭として 200px で描いたもの</figcaption></figure>
+</div>
+<p style="margin-top:14px">セルの記録は同じ矩形を 2 つの座標系で持つ。<code>atlas*</code> はページの px（左下原点・右と上は含まない）、<code>plane*</code> は em（ペン原点とベースライン基準）で、<code>atlas ＝ 原点 ＋ plane × emPx</code> が厳密に成り立つ。「あ」は atlas [754, 811) × [441, 501)、plane (−0.0933, −0.2508)–(1.0942, 0.9992)em。描画は plane を quad にし、atlas から UV を作るので、配置の方式を知らなくてよい。</p>
+
+<h3 id="parallel"><span class="num">6.5</span>並列と決定性</h3>
+<p>字ごとの計算は <code>Parallel.For</code> で並列に回す。スレッドごとに作業領域（<code>GlyphWorkspace</code>: 線分の並び・ラスタライザ・距離変換・スーパーサンプリングしたセルの大きさの配列）を 1 つ持って使い回す。各字はページの自分の矩形にしか書かないので、並列でも直列でも同じバイト列になる。</p>
+<p><code>SdfAtlas.ComputeContentHash</code> は距離レンジ・全セル・全ページの画素の SHA-256 で、外部 NUnit はこれで「同じ入力から出る出力が変わったのにバージョンを上げていない」ことを検出する（README §7.5）。</p>
+
+<h2 id="texture"><span class="num">7</span>テクスチャとアセットにする</h2>
+<p><code>SdfGlyphBaker.Bake</code>（Editor）は、ページの形式を決め、シェーダ <code>T2Font/SDF</code> を読み、<code>SdfAtlasBaker.Bake</code> を呼んでから、ページを 1 枚ずつ <code>BuildPage</code> でテクスチャにする。R8 はどのビルドターゲットでも使え、BC4 はデスクトップ向けのターゲットでだけ使える（BC4 を選んだときだけターゲットを読むので、ターゲットを切り替えると再インポートする依存が張られる）。</p>
+<div class="tbl"><table>
+<thead><tr><th>BuildPage の設定</th><th>値</th><th>理由</th></tr></thead>
+<tbody>
+<tr><td>textureType</td><td class="mono">SingleChannel（Red）</td><td>距離は 1 チャネル。シェーダは <code>.r</code> を読む</td></tr>
+<tr><td>sRGBTexture</td><td class="mono">false</td><td>値は色ではなく距離（linear のまま）</td></tr>
+<tr><td>mipmapEnabled</td><td class="mono">false</td><td>縮小は AA の幅で扱う</td></tr>
+<tr><td>wrapMode・filterMode</td><td class="mono">Clamp・Bilinear</td><td>補間した距離から輪郭を再構成する</td></tr>
+<tr><td>npotScale</td><td class="mono">None</td><td>2 の冪へ縮めない（1020×1008 のまま）</td></tr>
+<tr><td>maxTextureSize</td><td class="mono">16384</td><td>既定の 2048 では大きいページが黙って縮む</td></tr>
+<tr><td>format</td><td class="mono">R8（非圧縮）／BC4（CompressedHQ・品質 100）</td><td>ベイク仕様の <code>format</code></td></tr>
+<tr><td>readable</td><td class="mono">false</td><td>実行時に CPU で読まない</td></tr>
+</tbody></table></div>
+<p>8bit の値 v は <code>Color32(v, v, v, v)</code> にして <code>TextureGenerator.GenerateTexture</code> へ渡す（どの成分を取り出しても同じ値になるように）。出来たテクスチャの形式・寸法・ミップの数・Readable が期待と違えばインポートを止める。インポートで黙って圧縮・縮小されると距離の値が壊れるため（README §4.4）。</p>
+<p>ベイカーは <code>SdfRepresentation.Create(shader, effects, emPx, cells, pages)</code> で表現を作って返す。インポーターは、表現の種類の名前と描ける効果が種類の記述子の宣言と一致するかを確かめ、<code>T2FontAsset.Create</code> でタイポグラフィテーブルと表現をまとめて、アセットとして登録する。</p>
+<div class="tbl"><table>
+<thead><tr><th>識別子（AddObjectToAsset）</th><th>物</th></tr></thead>
+<tbody>
+<tr><td class="mono">font</td><td><code>T2FontAsset</code>（メインアセット・<code>SetMainObject</code>）</td></tr>
+<tr><td class="mono">representation</td><td><code>SdfRepresentation</code>（セルの配列・emPx・シェーダ・ページの参照）</td></tr>
+<tr><td class="mono">representation/page0 …</td><td>ページの <code>Texture2D</code></td></tr>
+</tbody></table></div>
+<p>インポートが終わると、コンソールに次の形の報告が出る（見本の値・秒数は環境で変わる）。</p>
+<pre><code>[T2Font] Assets/Content/Fonts/mplus-1c-sdf.t2font: 206 字・グリフ 207・sdf・1 ページ（1020×1008・R8）・セル 68×72（インク境界 (-0.01, -0.23, 0.982, 0.842)）・… 秒</code></pre>
+<p>アセットの <code>sourceHash</code> は、タイポグラフィテーブルの生成のバージョン・表現の種類とそのバージョン・ベイク仕様の本文・元フォントのバイト列の SHA-256 で、どの入力から作ったアセットかを追える。ベイク仕様・元フォント・表現のシェーダ・表現の種類のバージョン（カスタム依存 <code>info.someiyoshino.t2font/representation/sdf</code>）のどれかが変われば Unity が再インポートする（README §7.5）。</p>
+
+<h2 id="use"><span class="num">8</span>ベイクした結果を描く</h2>
+<p>実行時、<code>SdfRepresentation.WriteGeometry</code> はグリフのセルの plane（em）を quad にし、atlas の矩形をページの寸法で割って UV0.xy にする。シェーダは <code>(tex.r − 0.5) × 2 × _RangeEm</code> で em の距離に戻し、UV0.zw（頂点の em 座標）の微分から 1 表示 px が何 em かを得て、AA の幅を常に画面の 1px にする（README §5 S3）。補間した距離から輪郭を作り直すので、1 枚のアトラス（emPx 48）から小さい字も大きい字も描ける。</p>
+<figure class="fig render-plate" id="fig-render">
+<img src="02-truetype-to-atlas/render-sizes.png" width="740" height="456" alt="同じアトラスから 14・24・48・96 px と縁取り付き 64 px で描いた 字形表現あいう">
+<figcaption><span class="fn">図 16</span>見本のアトラスから 14・24・48・96 px で描き、最後の行は 64px に縁取り 0.08em とずらし 0.02em を足した例。シェーダと同じ式（bilinear で読んだ値・1 表示 px の AA・面と縁取りの入れ子の合成）を CPU で計算した画像。</figcaption>
+</figure>
+
+<h2 id="terms"><span class="num">9</span>用語</h2>
+<p>T2font では、一般的でない訳語を避け、カタカナ英語かカタカナ英語＋「する」を使う（訳語の正典はリポジトリの <code>docs/reference/terminology.md</code>）。本書に出る主な用語と英語の対応は次のとおり。</p>
+<dl class="defs">
+<dt>タイポグラフィテーブル</dt><dd>typography table。縦メトリクス・字・グリフごとの送り幅とインク境界。表現によらず同じ</dd>
+<dt>表現</dt><dd>glyph representation。インクの描き方（SDF・曲線・ビットマップなど）とそのデータ</dd>
+<dt>ベイクする・ベイカー</dt><dd>bake・baker。元フォントから生成物を作ること・作るコード</dd>
+<dt>ベイク仕様</dt><dd>bake spec（<code>.t2font</code>）。何をどうベイクするかを書いた JSON</dd>
+<dt>インポートする・インポーター</dt><dd>import・importer。ベイク仕様を Unity のアセットにすること・する <code>T2FontImporter</code></dd>
+<dt>リーダー</dt><dd>reader。TrueType のリーダー <code>TrueTypeFont</code>。読む行為は「読み取り」</dd>
+<dt>アセット・サブアセット</dt><dd>asset・sub-asset。<code>T2FontAsset</code> がメインアセットで、表現とページはそのサブアセット</dd>
+<dt>グリフ・グリフインデックス</dt><dd>glyph・glyph index。T2Font のグリフインデックスはタイポグラフィテーブルの配列の添字（元フォントの番号とは別）</dd>
+<dt>インク・インク部・インク領域</dt><dd>ink。グリフが実際に塗る部分（部分を指すときはインク部、範囲を指すときはインク領域）</dd>
+<dt>インク境界</dt><dd>ink bounds。インクの境界ボックスで、描くための余白を含まない</dd>
+<dt>グリフ境界ボックス</dt><dd>glyph bounding box（略してグリフ境界）。glyf のヘッダの xMin…yMax。T2Font は読まず、点から取り直す</dd>
+<dt>送り幅</dt><dd>advance width</dd>
+<dt>ペン原点</dt><dd>pen origin。字を置く基準点（ベースライン上）</dd>
+<dt>em</dt><dd>字の大きさを 1 とする単位。フォント単位 ÷ unitsPerEm</dd>
+<dt>on-curve／off-curve 点</dt><dd>輪郭の上の点／2 次ベジエの制御点</dd>
+<dt>フラット化する</dt><dd>flatten。曲線を線分の並びに直すこと</dd>
+<dt>非ゼロ巻き数</dt><dd>nonzero winding rule。巻き数の和が 0 でない所を内側とする塗りの規則</dd>
+<dt>スーパーサンプリング</dt><dd>supersampling。目標の解像度より細かい格子で計算してから縮めること。格子の 1 点の値はサンプル</dd>
+<dt>距離レンジ</dt><dd>distance range（spread）。SDF が値を持つ輪郭からの片側の距離</dd>
+<dt>文字セット・指定文字</dt><dd>character set（<code>charsets</code>）・ベイク仕様で名前を挙げて足す字（<code>characters</code>）</dd>
+<dt>セル・ページ</dt><dd>アトラスの中の 1 字の区画・アトラスのテクスチャ 1 枚</dd>
+<dt>優先クラス</dt><dd>priority class。アトラスに並べる順を決める字の分類（漢字以外・かな・第 1 水準・第 2 水準・その他）</dd>
+<dt>エッジスタイル</dt><dd>edge style。面のずらし・ぼかし・縁取り（README §6）</dd>
+<dt>バージョン</dt><dd>version。ベイカーの出力が変わったら上げる値（README §7.5）</dd>
+</dl>
+
+<h2 id="method"><span class="num">10</span>図の作り方</h2>
+<p>本書の実データの図は、パッケージの <code>Core/</code> と <code>Bake/</code> のソースをそのままリンクした .NET 8 のコンソールプログラムで、インポーターと同じ <code>FontBakeSpec.Parse</code> → <code>FontSpecBaker.BuildFace</code> → <code>SdfAtlasBaker.Bake</code> を見本に対して走らせ、セル・ページ・輪郭を書き出して描いた。スーパーサンプリングの 2 値の格子は、同じ規則を Python で独立に組み直したものと画素単位で一致することを確かめてある。ファイルの表の目録と ■ のバイト列は、元フォントのバイト列を直接読んだもの。</p>
+<p>図を作ったときの見本のアトラスの <code>ComputeContentHash</code> は <code class="mono">593ec06922b6d9a89ea658d2044a2526a8ce46017c4e2197cb2485b6f926a6fc</code>。ベイカーの出力が変われば値が変わるので、図が古くなったかの目安になる。</p>
+<p>流れ図・サンプルの取り方の図は模式図で、巻き数の図の B と放物線の図は説明用に作った値。ほかの図の数値と画像は見本の実データ。</p>
+
+<footer>
+<p>T2Font アーキテクチャ解説 02。契約の正典はパッケージの README（<code>Packages/info.someiyoshino.t2font/README.md</code>）、アセンブリの構成は 01 章（<code>docs/architecture/01-assemblies-and-tests.md</code>）。</p>
+</footer>
+</main>
+</div>
+</body>
+</html>

@@ -7,7 +7,7 @@ using UnityEngine;
 namespace info.someiyoshino.T2Font
 {
     /// <summary>
-    /// 表現が字形の幾何を書き込む器（README §4.2）。ホストが 1 つを持ち回し、字形ごとに <see cref="Clear"/> して使う（割り当て無し）。
+    /// 表現がグリフの幾何を書き込む器（README §4.2）。ホストが 1 つを持ち回し、グリフごとに <see cref="Clear"/> して使う（割り当て無し）。
     ///
     /// <para>
     /// 位置は em で受け取り、<see cref="CopyTo"/> で表示サイズを掛けて <c>Mesh</c> へ詰める。UV0 は <c>(u, v, emX, emY)</c>——zw は

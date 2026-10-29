@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace info.someiyoshino.T2Font.Bake
 {
-    /// <summary>生成器の固定字集合（README §7.2）。</summary>
+    /// <summary>生成器の固定の文字セット（README §7.2）。</summary>
     [Flags]
     public enum FontCharsetKind
     {
@@ -41,7 +41,7 @@ namespace info.someiyoshino.T2Font.Bake
     }
 
     /// <summary>
-    /// 字集合の組み立てと、アトラスのページへ並べる順（優先の級）を決める。
+    /// 文字セットの組み立てと、アトラスのページへ並べる順（優先クラス）を決める。
     /// </summary>
     public static class FontCharsets
     {
@@ -67,7 +67,7 @@ namespace info.someiyoshino.T2Font.Bake
             (0xFF00, 0xFFEF),   // 半角／全角形
         };
 
-        // 記号のブロックの中の書式文字（描く字形が無い）。
+        // 記号のブロックの中の書式文字（描くグリフが無い）。
         private static readonly (int First, int Last)[] SymbolExclusions =
         {
             (0x200B, 0x200F),   // ゼロ幅・方向の印
@@ -78,7 +78,7 @@ namespace info.someiyoshino.T2Font.Bake
         private static readonly Lazy<HashSet<int>> Level1Set = new Lazy<HashSet<int>>(() => ToSet(JisX0208Table.Level1));
         private static readonly Lazy<HashSet<int>> Level2Set = new Lazy<HashSet<int>>(() => ToSet(JisX0208Table.Level2));
 
-        /// <summary><paramref name="kinds"/> が指す固定字集合のコードポイント（昇順・重複なし）。</summary>
+        /// <summary><paramref name="kinds"/> が指す固定の文字セットのコードポイント（昇順・重複なし）。</summary>
         public static SortedSet<int> Build(FontCharsetKind kinds)
         {
             var set = new SortedSet<int>();
@@ -133,8 +133,8 @@ namespace info.someiyoshino.T2Font.Bake
         }
 
         /// <summary>
-        /// アトラスのページへ並べる優先の級（小さいほど先＝0 ページに入る）。本文の大半が 0 ページだけで描けるように
-        /// する（ページが変わると uGUI のバッチが割れる）。級の中はコードポイント順。
+        /// アトラスのページへ並べる優先クラス（小さいほど先＝0 ページに入る）。本文の大半が 0 ページだけで描けるように
+        /// する（ページが変わると uGUI のバッチが割れる）。クラスの中はコードポイント順。
         /// 0＝漢字以外（ASCII・記号・全角英数・ギリシャ・キリル・罫線ほか）／1＝かな／2＝JIS 第 1 水準漢字／
         /// 3＝JIS 第 2 水準漢字／4＝それ以外の漢字。
         /// </summary>

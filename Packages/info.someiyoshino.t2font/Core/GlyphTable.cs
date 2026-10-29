@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace info.someiyoshino.T2Font
 {
     /// <summary>
-    /// 字（コードポイント）の昇順の配列を引く（README §3.2）。添字がそのまま字形番号になる。辞書を組まず二分探索で引く
+    /// 字（コードポイント）の昇順の配列を引く（README §3.2）。添字がそのままグリフインデックスになる。辞書を組まず二分探索で引く
     /// ——約 7,000 字でも比較は 13 回で、ロード時の構築も割り当ても要らない。
     /// </summary>
     public static class GlyphTable
@@ -42,7 +42,7 @@ namespace info.someiyoshino.T2Font
         }
 
         /// <summary>
-        /// <paramref name="codepoints"/> が狭義昇順か（重複が無いか）。生成器の出力と、読み込んだ資産の健全性の検査に使う。
+        /// <paramref name="codepoints"/> が狭義昇順か（重複が無いか）。生成器の出力と、読み込んだアセットの健全性の検査に使う。
         /// </summary>
         public static bool IsStrictlyAscending(IReadOnlyList<int> codepoints)
         {
