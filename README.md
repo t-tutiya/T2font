@@ -12,7 +12,7 @@ Unity uGUI の文字描画のためのパッケージ。フォントアセット
 Unity Package Manager →「+」→「Add package from git URL…」:
 
 ```
-https://github.com/t-tutiya/T2font.git?path=/Packages/info.someiyoshino.t2font#v0.1.0
+https://github.com/t-tutiya/T2font.git?path=/Packages/info.someiyoshino.t2font#v0.2.0
 ```
 
 `#` の後ろは版のタグ。パッケージのフォルダを利用側の `Packages/` へ写して使うこともできる（使い分けはパッケージの README §11）。

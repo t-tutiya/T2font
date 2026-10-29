@@ -146,6 +146,10 @@ Core と Bake は UnityEngine を参照しない純 C# なので、Unity を起�
 | S6 | `Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha`（rgb は straight α・α は over） | 透明にクリアした RenderTexture へ描くと α が二乗されて下層が漏れる |
 | S7 | 実行時に切り替えるキーワードは `multi_compile`（`#pragma multi_compile __ UNITY_UI_CLIP_RECT`） | マテリアルが実行時生成なので、`shader_feature` の変種はビルドで落ちる |
 | S8 | 被覆は**非ゼロ巻き数**で決める | 和文フォントは輪郭が重なる。偶奇規則では重なりが抜ける |
+| S9 | 面の色は **linear** で使う。uniform `_UIVertexColorAlwaysGammaSpace`（int・Properties に置かない）が真で、Linear のプロジェクトなら、頂点色の rgb を `UIGammaToLinear`（`UnityUI.cginc`）で linear に直す（α は直さない） | Canvas の Vertex Color Always in Gamma Color Space（`Canvas.vertexColorAlwaysGammaSpace`）を有効にすると、Canvas は頂点色を gamma のまま渡し、この uniform を立てる。直さないと面の色が明るくずれる（sRGB の 128 が 188 に出る） |
+
+S9 は組み込みの UI シェーダと同じ関数で直すので、同じ色を指定した `Image` などと面の色が揃う。既定（設定が無効）では Canvas が頂点色を linear に直して
+渡し、uniform は立たない。Canvas を通らない描画（§10 の適合検査など）でも立たないので、ホストは頂点色を linear で渡す。
 
 ## 6. エッジスタイルの契約
 
@@ -272,7 +276,8 @@ JSON。`//` のコメントを書ける。**未知のキー・重複したキー
   - `CheckGeometry(font)`: 全グリフの幾何——インクの無いグリフは何も書かない・UV0.zw＝頂点の em 座標（§4.2）・頂点の境界ボックスがインク境界を描ける効果の
     外延（`OuterExtentEm`）だけ広げた範囲を覆う（§4.3）。描画装置は要らない。
   - `CheckRendering(font, codepoint)`: 実際に描いた画素で §5 の S2（面の色とフェード）・S3（1px の AA を 24px と 200px で）・S4（縁取りの幅と色）・
-    S6（透明の上で α が 1 回だけ掛かる）と矩形クリップを確かめる。字には「■」のような、インク部が中央の列を上下の水平な縁で横切る塗りつぶしの字を渡す。
+    S6（透明の上で α が 1 回だけ掛かる）・S9（uniform が立てば灰色の頂点色を linear に直し、立たなければ直さない）と矩形クリップを確かめる。
+    字には「■」のような、インク部が中央の列を上下の水平な縁で横切る塗りつぶしの字を渡す。
     描画装置が要る（`CanRender`）。Canvas もカメラも使わず RenderTexture へ直接描くので、描画パイプラインに依らない。
 
 ## 11. 導入と写しの運用
@@ -285,7 +290,7 @@ JSON。`//` のコメントを書ける。**未知のキー・重複したキー
 | **写す** | パッケージのソースを Unity の外（外部の NUnit など）からも読む | フォルダごと（`.meta` と `LICENSE.md` を含めて）利用側の `Packages/` へ写す |
 
 ```
-https://github.com/t-tutiya/T2font.git?path=/Packages/info.someiyoshino.t2font#v0.1.0
+https://github.com/t-tutiya/T2font.git?path=/Packages/info.someiyoshino.t2font#v0.2.0
 ```
 
 - `#` の後ろは版のタグ（CHANGELOG の版に `v` を付けたもの）。付けないと既定のブランチの先端が入り、どの版を使っているかが決まらない。

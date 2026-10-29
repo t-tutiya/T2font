@@ -1,6 +1,6 @@
 {
   "name": "info.someiyoshino.t2font",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "displayName": "T2Font",
   "description": "Glyph representation API for Unity uGUI text: a font asset split into a typography table and a pluggable glyph representation (SDF included), a pure C# TrueType reader and baker, a .t2font importer, a viewer and a conformance suite.",
   "unity": "6000.3",

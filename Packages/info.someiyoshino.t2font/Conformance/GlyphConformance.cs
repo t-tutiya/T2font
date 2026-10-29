@@ -15,13 +15,14 @@ namespace info.someiyoshino.T2Font.Conformance
     ///
     /// <list type="bullet">
     /// <item><see cref="CheckGeometry"/>: 全グリフの幾何（README §4.2・§4.3）。描画装置は要らない。</item>
-    /// <item><see cref="CheckRendering"/>: シェーダの契約（README §5 の S2・S3・S4・S6 と矩形クリップ）を、実際に描いた画素で確かめる。
+    /// <item><see cref="CheckRendering"/>: シェーダの契約（README §5 の S2・S3・S4・S6・S9 と矩形クリップ）を、実際に描いた画素で確かめる。
     /// 描画装置が要る（<see cref="CanRender"/>）。</item>
     /// </list>
     ///
     /// <para>
     /// 描画は <c>CommandBuffer</c> で透明にクリアした RenderTexture へ直接描く（Canvas もカメラも使わない）ので、描画パイプラインに依らない。
-    /// 矩形クリップは Canvas と同じくキーワード <c>UNITY_UI_CLIP_RECT</c> と <c>_ClipRect</c> を渡して試す。画素の判定は列の数え方だけで行い、
+    /// 矩形クリップは Canvas と同じくキーワード <c>UNITY_UI_CLIP_RECT</c> と <c>_ClipRect</c> を、頂点色の色空間は Canvas と同じく
+    /// <c>_UIVertexColorAlwaysGammaSpace</c> を渡して試す。画素の判定は列の数え方だけで行い、
     /// 上下の向き（プラットフォームによって RenderTexture の y が反転する）に依らない。
     /// </para>
     /// </summary>
@@ -32,6 +33,7 @@ namespace info.someiyoshino.T2Font.Conformance
 
         private static readonly int MainTexId = Shader.PropertyToID("_MainTex");
         private static readonly int ClipRectId = Shader.PropertyToID("_ClipRect");
+        private static readonly int VertexColorAlwaysGammaSpaceId = Shader.PropertyToID("_UIVertexColorAlwaysGammaSpace");
 
         /// <summary>描画の検査を回せるか（描画装置の無い batchmode では回せない）。</summary>
         public static bool CanRender => SystemInfo.graphicsDeviceType != GraphicsDeviceType.Null;
@@ -91,6 +93,7 @@ namespace info.someiyoshino.T2Font.Conformance
         /// <item>S2・S6: 面の色は頂点色の rgb、フェードは頂点色の α で、透明にクリアした先へ描いても α は 1 回だけ掛かる。</item>
         /// <item>S4・S2: 縁取りが宣言どおりの幅で縁の色に塗られ、フェードが縁取りにも同じだけ掛かる（表現が縁取りを描けるときだけ）。</item>
         /// <item>S3: AA の幅が表示サイズによらず画面の約 1px。</item>
+        /// <item>S9: <c>_UIVertexColorAlwaysGammaSpace</c> が立てば、Linear のプロジェクトでは頂点色の rgb を linear に直し、立たなければ直さない。</item>
         /// <item>矩形クリップ: <c>UNITY_UI_CLIP_RECT</c> と <c>_ClipRect</c> で矩形の外が透明になる。</item>
         /// </list>
         /// </summary>
@@ -121,7 +124,7 @@ namespace info.someiyoshino.T2Font.Conformance
                 var plain = materials.Get(representation, GlyphEdgeStyle.None);
 
                 // S2・S6: 頂点色 (1, 0, 0, 0.5)。透明の上へ描いた画素は premultiplied の (0.5, 0, 0, 0.5) になる。
-                var faded = Render(representation, glyph, metrics, plain, 128f, new Color(1f, 0f, 0f, 0.5f), null);
+                var faded = Render(representation, glyph, metrics, plain, 128f, new Color(1f, 0f, 0f, 0.5f), null, false);
                 var peak = faded.Peak();
                 if (Math.Abs(peak.a - 0.5f) > 0.02f)
                 {
@@ -134,14 +137,15 @@ namespace info.someiyoshino.T2Font.Conformance
 
                 CheckOutline(problems, representation, glyph, metrics, materials);
                 CheckAntialiasing(problems, representation, glyph, metrics, plain);
+                CheckVertexColorSpace(problems, representation, glyph, metrics, plain);
 
                 // 矩形クリップ: 矩形が字から遠ければ何も描かれず、字を覆えば描かれる。
-                var outside = Render(representation, glyph, metrics, plain, 128f, Color.white, new Rect(1e5f, 1e5f, 1f, 1f));
+                var outside = Render(representation, glyph, metrics, plain, 128f, Color.white, new Rect(1e5f, 1e5f, 1f, 1f), false);
                 if (outside.Peak().a > 1f / 255f)
                 {
                     problems.Add("UNITY_UI_CLIP_RECT: 矩形の外の画素が描かれています。");
                 }
-                var inside = Render(representation, glyph, metrics, plain, 128f, Color.white, new Rect(-1e5f, -1e5f, 2e5f, 2e5f));
+                var inside = Render(representation, glyph, metrics, plain, 128f, Color.white, new Rect(-1e5f, -1e5f, 2e5f, 2e5f), false);
                 if (inside.Peak().a < 0.99f)
                 {
                     problems.Add("UNITY_UI_CLIP_RECT: 字を覆う矩形でクリップすると、面が描かれません。");
@@ -209,7 +213,7 @@ namespace info.someiyoshino.T2Font.Conformance
             const float size = 200f;
             var style = new GlyphEdgeStyle(0f, 1f, 0f, 1f, 0f, 0f, GlyphEdgeStyle.OutlineWidthMax, 0f);
             var material = materials.Get(representation, style);
-            var image = Render(representation, glyph, metrics, material, size, new Color(1f, 0f, 0f, 1f), null);
+            var image = Render(representation, glyph, metrics, material, size, new Color(1f, 0f, 0f, 1f), null, false);
             var green = 0;
             var red = 0;
             foreach (var c in image.CenterColumn())
@@ -231,7 +235,7 @@ namespace info.someiyoshino.T2Font.Conformance
                 problems.Add("S4: 縁取りを付けると面（頂点色）が描かれません。");
             }
 
-            var faded = Render(representation, glyph, metrics, material, size, new Color(1f, 0f, 0f, 0.5f), null);
+            var faded = Render(representation, glyph, metrics, material, size, new Color(1f, 0f, 0f, 0.5f), null, false);
             if (Math.Abs(faded.Peak().a - 0.5f) > 0.02f)
             {
                 problems.Add(Invariant($"S2: 頂点色の α 0.5 で描いた縁取り付きの字の α が {faded.Peak().a:0.000} です（フェードは面と縁取りに 1 回だけ掛かる）。"));
@@ -244,7 +248,7 @@ namespace info.someiyoshino.T2Font.Conformance
         {
             foreach (var size in new[] { 24f, 200f })
             {
-                var image = Render(representation, glyph, metrics, material, size, Color.white, null);
+                var image = Render(representation, glyph, metrics, material, size, Color.white, null, false);
                 var partial = 0;
                 var solid = 0;
                 foreach (var c in image.CenterColumn())
@@ -269,8 +273,36 @@ namespace info.someiyoshino.T2Font.Conformance
             }
         }
 
+        // S9: 灰色の頂点色は、_UIVertexColorAlwaysGammaSpace が立たなければそのまま、立てば（Linear のプロジェクトなら）linear に直して面に塗られる。
+        // 0 と 1 は変換で動かないので、S2 の (1, 0, 0) では確かめられない。許容差は UIGammaToLinear の近似と 8bit の読み戻しを吸収する
+        // （直す・直さないを取り違えると 0.29 離れる）。
+        private static void CheckVertexColorSpace(
+            List<string> problems, GlyphRepresentation representation, int glyph, in GlyphMetrics metrics, Material material)
+        {
+            const float gray = 0.5f;
+            var vertexColor = new Color(gray, gray, gray, 1f);
+
+            var asIs = Straight(Render(representation, glyph, metrics, material, 128f, vertexColor, null, false).Peak());
+            if (!Near(asIs, vertexColor, 0.02f))
+            {
+                problems.Add(Invariant(
+                    $"S9: _UIVertexColorAlwaysGammaSpace が 0 のとき、頂点色 {Describe(vertexColor)} で描いた面の色が {Describe(asIs)} です（頂点色のまま使う）。"));
+            }
+
+            var linear = QualitySettings.activeColorSpace == ColorSpace.Linear ? Mathf.GammaToLinearSpace(gray) : gray;
+            var expected = new Color(linear, linear, linear);
+            var converted = Straight(Render(representation, glyph, metrics, material, 128f, vertexColor, null, true).Peak());
+            if (!Near(converted, expected, 0.02f))
+            {
+                problems.Add(Invariant(
+                    $"S9: _UIVertexColorAlwaysGammaSpace が 1 のとき、頂点色 {Describe(vertexColor)} で描いた面の色が {Describe(converted)} です")
+                    + Invariant($"（期待 {Describe(expected)}。Linear のプロジェクトでは gamma のまま来た頂点色を linear に直す）。"));
+            }
+        }
+
         private static RenderedImage Render(
-            GlyphRepresentation representation, int glyph, in GlyphMetrics metrics, Material material, float size, Color vertexColor, Rect? clip)
+            GlyphRepresentation representation, int glyph, in GlyphMetrics metrics, Material material, float size, Color vertexColor, Rect? clip,
+            bool vertexColorInGamma)
         {
             var geometry = new GlyphGeometry();
             representation.WriteGeometry(glyph, metrics, geometry);
@@ -297,6 +329,8 @@ namespace info.someiyoshino.T2Font.Conformance
             var command = new CommandBuffer { name = "T2Font conformance" };
             var properties = new MaterialPropertyBlock();
             properties.SetTexture(MainTexId, representation.GetTexture(glyph));
+            // Canvas が Vertex Color Always in Gamma Color Space のバッチに入れるのと同じ値。
+            properties.SetInteger(VertexColorAlwaysGammaSpaceId, vertexColorInGamma ? 1 : 0);
             var readback = new Texture2D(width, height, TextureFormat.RGBA32, false, true);
             var previous = RenderTexture.active;
             try
