@@ -1,0 +1,1297 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>アトラスから画面へ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&amp;family=M+PLUS+1+Code:wght@400;600&amp;family=Shippori+Mincho+B1:wght@600;800&amp;display=swap">
+<style>
+/* レイアウト: 本文は 1 列（約 44 字）、図版と表は本文より広い列。1100px 以上では左に目次の列を足す。 */
+:root {
+  --paper: #f2f4f3;
+  --surface: #fbfcfb;
+  --sunken: #e6eae9;
+  --ink: #15191b;
+  --muted: #56626a;
+  --rule: #d2d9d8;
+  --rule-strong: #a7b2b4;
+  --guide: #0a7280;
+  --ctrl: #b0136b;
+  --amber: #a85f00;
+  --tint-guide: rgba(10, 114, 128, 0.10);
+  --tint-guide-strong: rgba(10, 114, 128, 0.30);
+  --tint-ctrl: rgba(176, 19, 107, 0.12);
+  --tint-amber: rgba(168, 95, 0, 0.15);
+  --glyph-fill: rgba(21, 25, 27, 0.09);
+  --invert: 0;
+  --atl-0: #ffc247;
+  --atl-1: #3fd0db;
+  --atl-2: #ff72c2;
+  --atl-q: rgba(255, 255, 255, 0.55);
+  --atl-bg: #050607;
+  --atl-cap: #c3cdd0;
+  --font-display: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  --font-body: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic UI", "Meiryo", "Noto Sans JP", sans-serif;
+  --font-mono: "M PLUS 1 Code", "SFMono-Regular", Menlo, Consolas, "Noto Sans Mono CJK JP", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1213;
+    --surface: #151a1c;
+    --sunken: #1d2427;
+    --ink: #e1e6e7;
+    --muted: #97a3a8;
+    --rule: #283134;
+    --rule-strong: #485559;
+    --guide: #46c1cc;
+    --ctrl: #ef68b4;
+    --amber: #e5a23b;
+    --tint-guide: rgba(70, 193, 204, 0.12);
+    --tint-guide-strong: rgba(70, 193, 204, 0.34);
+    --tint-ctrl: rgba(239, 104, 180, 0.16);
+    --tint-amber: rgba(229, 162, 59, 0.18);
+    --glyph-fill: rgba(225, 230, 231, 0.10);
+    --invert: 1;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1213;
+  --surface: #151a1c;
+  --sunken: #1d2427;
+  --ink: #e1e6e7;
+  --muted: #97a3a8;
+  --rule: #283134;
+  --rule-strong: #485559;
+  --guide: #46c1cc;
+  --ctrl: #ef68b4;
+  --amber: #e5a23b;
+  --tint-guide: rgba(70, 193, 204, 0.12);
+  --tint-guide-strong: rgba(70, 193, 204, 0.34);
+  --tint-ctrl: rgba(239, 104, 180, 0.16);
+  --tint-amber: rgba(229, 162, 59, 0.18);
+  --glyph-fill: rgba(225, 230, 231, 0.10);
+  --invert: 1;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.85;
+  -webkit-text-size-adjust: 100%;
+}
+.wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 96px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 56px;
+}
+.masthead, .toc, main { min-width: 0; }
+
+/* 見出しと本文 */
+.masthead { grid-column: 1 / -1; padding-bottom: 28px; border-bottom: 1px solid var(--rule); margin-bottom: 8px; }
+.eyebrow { margin: 0 0 10px; font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.06em; color: var(--guide); }
+h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.1rem, 1.5rem + 2.6vw, 3.4rem);
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-wrap: balance;
+}
+.lede { max-width: 40em; margin: 18px 0 0; font-size: 1.08rem; }
+.specimen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px 28px;
+  margin: 26px 0 0;
+  max-width: 960px;
+}
+.specimen div { min-width: 0; border-top: 2px solid var(--ink); padding-top: 8px; }
+.specimen dt { font-size: 0.78rem; letter-spacing: 0.08em; color: var(--muted); }
+.specimen dd { margin: 2px 0 0; font-size: 0.92rem; line-height: 1.6; overflow-wrap: anywhere; }
+.masthead .note { margin-top: 22px; }
+
+h2 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.45rem, 1.2rem + 0.9vw, 1.9rem);
+  line-height: 1.35;
+  margin: 72px 0 18px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rule);
+  text-wrap: balance;
+  max-width: 920px;
+}
+h2 .num { display: inline-block; min-width: 1.6em; font-family: var(--font-mono); font-weight: 600; color: var(--guide); }
+h3 { font-size: 1.14rem; line-height: 1.5; margin: 44px 0 10px; text-wrap: balance; max-width: 44em; }
+h3 .num { font-family: var(--font-mono); font-weight: 600; color: var(--guide); margin-right: 0.5em; }
+h4 { font-size: 1rem; margin: 30px 0 6px; max-width: 44em; }
+p, ul, ol, dl.defs { max-width: 44em; }
+p { margin: 0 0 14px; }
+ul, ol { padding-left: 1.4em; margin: 0 0 14px; }
+li { margin-bottom: 4px; }
+a { color: var(--guide); text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--guide); outline-offset: 2px; border-radius: 2px; }
+code, .mono { font-family: var(--font-mono); }
+code { font-size: 0.86em; background: var(--sunken); padding: 0.05em 0.35em; border-radius: 3px; overflow-wrap: anywhere; }
+pre {
+  max-width: 920px;
+  overflow-x: auto;
+  background: var(--sunken);
+  padding: 14px 16px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  line-height: 1.7;
+}
+pre code { background: none; padding: 0; font-size: inherit; }
+.note {
+  max-width: 44em;
+  padding: 10px 14px;
+  border-left: 3px solid var(--guide);
+  background: var(--tint-guide);
+  font-size: 0.94rem;
+}
+.note.warn { border-left-color: var(--amber); background: var(--tint-amber); }
+.formula {
+  max-width: 44em;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+/* 目次 */
+.toc { font-size: 0.9rem; margin: 24px 0 8px; }
+.toc h2 { all: unset; display: block; font-size: 0.78rem; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px; }
+.toc ol { list-style: none; padding: 0; margin: 0; max-width: none; columns: 2 15em; column-gap: 28px; }
+.toc li { margin: 0 0 4px; break-inside: avoid; line-height: 1.5; }
+.toc li li { padding-left: 1.6em; font-size: 0.86rem; }
+.toc ol ol { columns: auto; margin-top: 4px; }
+.toc a { text-decoration: none; color: var(--ink); }
+.toc a:hover { color: var(--guide); }
+.toc .n { font-family: var(--font-mono); color: var(--guide); display: inline-block; min-width: 1.6em; }
+@media (min-width: 1100px) {
+  .wrap { grid-template-columns: 210px minmax(0, 1fr); }
+  .toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; margin-top: 60px; }
+  .toc ol { columns: auto; }
+}
+
+/* 図版 */
+figure.fig {
+  margin: 26px 0 30px;
+  max-width: 920px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 16px;
+}
+figure.fig.dark-plate { background: var(--atl-bg); border-color: var(--atl-bg); }
+figure.fig.dark-plate figcaption { color: var(--atl-cap); }
+figure.fig.dark-plate .fn { color: var(--atl-1); }
+figcaption { margin-top: 12px; font-size: 0.88rem; line-height: 1.7; color: var(--muted); max-width: 52em; }
+figcaption .fn { font-family: var(--font-mono); color: var(--guide); margin-right: 0.6em; font-weight: 600; }
+.scroll { overflow-x: auto; }
+svg.dia { display: block; width: 100%; height: auto; min-width: 600px; }
+svg.dia.narrow { min-width: 0; max-width: 300px; margin: 0 auto; }
+svg.dia.atlas { min-width: 0; }
+svg.dia text { font-family: var(--font-body); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 10px 0 0; padding: 0; list-style: none; font-size: 0.84rem; color: var(--muted); max-width: none; }
+.legend li { display: flex; align-items: center; gap: 6px; margin: 0; }
+.legend svg { flex: none; }
+.sw { display: inline-block; width: 14px; height: 14px; border-radius: 2px; flex: none; }
+
+.quad { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+.quad figure { margin: 0; min-width: 0; }
+.quad img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); background: var(--surface); }
+.quad figcaption { margin-top: 6px; font-size: 0.82rem; }
+img.pixel { image-rendering: pixelated; }
+.inv { filter: invert(var(--invert)); }
+.render-plate img { display: block; max-width: 100%; height: auto; border-radius: 2px; }
+
+.split { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (min-width: 760px) { .split { grid-template-columns: minmax(0, 1fr) 300px; } }
+
+/* 表 */
+.tbl { max-width: 920px; overflow-x: auto; margin: 16px 0 22px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; line-height: 1.6; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; vertical-align: top; padding: 7px 10px; border-bottom: 1px solid var(--rule); }
+th { font-weight: 700; font-size: 0.8rem; letter-spacing: 0.04em; color: var(--muted); background: var(--sunken); white-space: nowrap; }
+td.num, th.num { text-align: right; }
+td.mono, td .mono { font-family: var(--font-mono); font-size: 0.86rem; }
+tr.read td { background: var(--tint-guide); }
+tr.read td:first-child { box-shadow: inset 3px 0 0 var(--guide); }
+tr.pick td { background: var(--tint-ctrl); }
+.yes { color: var(--guide); font-weight: 700; }
+td.nw { white-space: nowrap; }
+.nb { display: inline-block; }
+.bytes { font-family: var(--font-mono); white-space: nowrap; }
+.chip { display: inline-block; padding: 0 0.4em; border-radius: 3px; font-family: var(--font-mono); font-size: 0.85rem; }
+.f-hdr { background: var(--sunken); }
+.f-pts { background: var(--tint-amber); }
+.f-ins { background: var(--sunken); }
+.f-flg { background: var(--tint-ctrl); }
+.f-x { background: var(--tint-guide-strong); }
+.f-y { background: var(--tint-guide); }
+.f-pad { background: transparent; color: var(--muted); }
+
+/* グリフインデックスの並び */
+.strip { display: flex; gap: 4px; overflow-x: auto; padding: 4px 0 8px; max-width: 920px; }
+.strip .g { flex: none; min-width: 56px; padding: 6px 6px 4px; border: 1px solid var(--rule); background: var(--surface); border-radius: 3px; text-align: center; }
+.strip .g b { display: block; font-size: 1.35rem; line-height: 1.3; font-weight: 400; min-height: 1.3em; }
+.strip .g span { display: block; font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); line-height: 1.4; }
+.strip .gap { flex: none; align-self: center; color: var(--muted); padding: 0 4px; }
+.strip .g.nd { border-color: var(--ctrl); }
+
+dl.defs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 18px; }
+@media (min-width: 640px) { dl.defs { grid-template-columns: 11em minmax(0, 1fr); } }
+dl.defs dt { font-weight: 700; }
+dl.defs dd { margin: 0 0 8px; }
+
+footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 0.84rem; color: var(--muted); max-width: 920px; }
+
+/* SVG の部品（色はすべて上のトークンから） */
+.lbl { font-size: 13px; fill: var(--ink); }
+.lbl-s { font-size: 11.5px; fill: var(--muted); }
+.lbl-b { font-size: 13px; font-weight: 700; fill: var(--ink); }
+.dia .mono { font-family: var(--font-mono); }
+.dia .strong { fill: var(--ink); font-weight: 700; }
+.dia .ctrl { fill: var(--ctrl); }
+.node { fill: var(--surface); stroke: var(--rule-strong); stroke-width: 1.2; }
+.node.in { fill: var(--tint-guide); stroke: var(--guide); }
+.node.host { fill: var(--sunken); stroke: var(--rule-strong); }
+.node.sdf { stroke: var(--ctrl); stroke-width: 1.6; }
+.node-t { font-size: 14px; font-weight: 700; fill: var(--ink); }
+.node-s { font-size: 12px; fill: var(--muted); font-family: var(--font-mono); }
+.asm { font-size: 11px; fill: var(--guide); font-family: var(--font-mono); letter-spacing: 0.04em; }
+.flow { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+.ah-flow, .ah-dim { fill: var(--muted); }
+.ah-guide { fill: var(--guide); }
+.ah-ink { fill: var(--ink); }
+.ah-ctrl { fill: var(--ctrl); }
+.ah-amber { fill: var(--atl-0); }
+.map-bg { fill: var(--sunken); }
+.map-hdr { fill: var(--amber); }
+.map-read { fill: var(--guide); }
+.map-other { fill: var(--rule-strong); }
+.leader { stroke: var(--muted); stroke-width: 1; }
+.leader-c { stroke: var(--ctrl); stroke-width: 1.4; fill: none; }
+.cellbox { fill: var(--surface); stroke: var(--rule-strong); }
+.cellbox.hl { fill: var(--tint-ctrl); stroke: var(--ctrl); }
+.glyfblk { fill: var(--sunken); stroke: var(--rule-strong); }
+.glyfblk.hl { fill: var(--tint-ctrl); stroke: var(--ctrl); stroke-width: 1.5; }
+.base { stroke: var(--guide); stroke-width: 1.2; }
+.vguide { stroke: var(--guide); stroke-width: 1; stroke-dasharray: 5 4; }
+.vguide.faint { opacity: 0.5; }
+.g-fill { fill: var(--glyph-fill); }
+.g-stroke { stroke: var(--ink); stroke-width: 1.3; stroke-linejoin: round; }
+.g-solid { fill: var(--ink); }
+.pt-on { fill: var(--ink); }
+.pt-off { fill: var(--surface); stroke: var(--ctrl); stroke-width: 1.6; }
+.pt-implied { fill: var(--amber); }
+.ctrl-poly { fill: none; stroke: var(--ctrl); stroke-width: 0.9; stroke-dasharray: 3 3; opacity: 0.85; }
+.dim { stroke: var(--muted); stroke-width: 1; }
+.dim-g { stroke: var(--guide); stroke-width: 1.2; }
+.tick { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 3; }
+.gapband { fill: var(--tint-amber); }
+.emsq { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 4; }
+.inkbox { fill: none; stroke: var(--ctrl); stroke-width: 1.2; stroke-dasharray: 5 3; }
+.origin { fill: var(--guide); stroke: var(--surface); stroke-width: 1.5; }
+.curve { fill: none; stroke: var(--ink); stroke-width: 1.4; }
+.chord { fill: none; stroke: var(--guide); stroke-width: 2.2; stroke-linejoin: round; }
+.pt-seg { fill: var(--guide); }
+.scan { stroke: var(--amber); stroke-width: 1.6; }
+.xing { fill: var(--surface); stroke: var(--amber); stroke-width: 2; }
+.wnum { font-family: var(--font-mono); font-size: 13px; font-weight: 600; fill: var(--guide); }
+.px-in { fill: var(--tint-guide-strong); }
+.grid { stroke: var(--rule); stroke-width: 0.6; }
+.grid-t { stroke: var(--rule-strong); stroke-width: 1.6; }
+.pc-in { fill: var(--ink); }
+.pc-out { fill: var(--rule-strong); }
+.edge { stroke: var(--ctrl); stroke-width: 1.6; fill: none; }
+.texel { fill: var(--surface); }
+.texel.mid { fill: var(--sunken); }
+.tap { fill: var(--tint-ctrl); stroke: var(--ctrl); stroke-width: 1.2; }
+.texc { fill: var(--guide); }
+.para { fill: none; stroke: var(--rule-strong); stroke-width: 1.2; }
+.env { fill: none; stroke: var(--guide); stroke-width: 2.6; }
+.enc { fill: none; stroke: var(--guide); stroke-width: 2.6; stroke-linejoin: round; }
+.band-ext { fill: var(--tint-ctrl); }
+.band-aa { fill: var(--tint-amber); }
+.cell { fill: var(--surface); stroke: var(--ink); stroke-width: 1.4; }
+.cellink { fill: var(--tint-amber); stroke: var(--amber); stroke-width: 1.2; }
+.glyphrect { fill: none; stroke: var(--guide); stroke-width: 2; }
+.slot { stroke-width: 2; fill-opacity: 0.14; }
+.slot.c0 { fill: var(--atl-0); stroke: var(--atl-0); }
+.slot.c1 { fill: var(--atl-1); stroke: var(--atl-1); }
+.slot.c2 { fill: var(--atl-2); stroke: var(--atl-2); }
+.qrect { fill: none; stroke: var(--atl-q); stroke-width: 1.2; stroke-dasharray: 4 3; }
+.fillorder { stroke: var(--atl-0); stroke-width: 3; }
+.atl { font-size: 22px; fill: var(--atl-0); font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+html { scroll-behavior: smooth; }
+h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
+.quad svg.dia.narrow { max-width: none; }
+.on-plate { fill: var(--atl-cap); }
+.tbl table { min-width: 640px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="masthead">
+<p class="eyebrow">T2Font アーキテクチャ解説 03 ／ パッケージ info.someiyoshino.t2font</p>
+<h1><span class="nb">アトラスから</span><span class="nb">画面へ</span></h1>
+<p class="lede">インポートした <code>T2FontAsset</code> を C# のコードが読み、字ごとに幾何・マテリアル・テクスチャ・色を用意して uGUI へ渡し、シェーダ <code>T2Font/SDF</code> がレンダーターゲットへグリフを描き、それが画面に出るまでを、コードの順に追う。</p>
+<dl class="specimen">
+<div><dt>見本のフォント</dt><dd><code>Assets/Content/Fonts/mplus-1c-sdf.t2font</code><br>グリフ 207・1 ページ 1020×1008 px（R8）・emPx 48</dd></div>
+<div><dt>見本のホスト</dt><dd>検証ビュー <code>T2FontText</code>（Viewer）<br>文字列「T2Font 永あア」・fontSize 48</dd></div>
+<div><dt>見本の描画</dt><dd>URP 17.3・色空間 Linear<br>Canvas は Screen Space - Overlay（比較の場面と同じ）</dd></div>
+</dl>
+<p class="note">契約（何を守るか）の正典はパッケージの README で、本書は動作（どう動いているか）を図で補う。アトラスができるまでは 02 章（<a href="02-truetype-to-atlas.html">TrueType からアトラスへ</a>）。実データの図は、記述時点のパッケージのコードを上の見本に対して実際に走らせ、シェーダの式を CPU で同じに計算して作った（作り方は<a href="#method">末尾</a>）。</p>
+</header>
+
+<nav class="toc" aria-label="目次">
+<h2>目次</h2>
+<ol>
+<li><a href="#overview"><span class="n">1</span>全体の流れ</a></li>
+<li><a href="#load"><span class="n">2</span>アセットを読み込む</a></li>
+<li><a href="#place"><span class="n">3</span>字を並べる</a>
+<ol>
+<li><a href="#resolve">字からグリフインデックスへ</a></li>
+<li><a href="#pen">ペンを進める</a></li>
+</ol></li>
+<li><a href="#geometry"><span class="n">4</span>幾何を書く</a>
+<ol>
+<li><a href="#glyphgeometry">GlyphGeometry</a></li>
+<li><a href="#quad">SDF の quad と UV</a></li>
+<li><a href="#mesh">Mesh へ詰める</a></li>
+</ol></li>
+<li><a href="#material"><span class="n">5</span>マテリアルとテクスチャ</a></li>
+<li><a href="#renderer"><span class="n">6</span>CanvasRenderer へ渡す</a></li>
+<li><a href="#batch"><span class="n">7</span>Canvas がバッチにまとめる</a></li>
+<li><a href="#gpu"><span class="n">8</span>GPU で描く</a>
+<ol>
+<li><a href="#state">描画の設定</a></li>
+<li><a href="#vert">頂点シェーダ</a></li>
+<li><a href="#raster">ラスタライズ</a></li>
+<li><a href="#frag">フラグメントシェーダ</a></li>
+<li><a href="#clip">クリップ</a></li>
+<li><a href="#blend">ブレンド</a></li>
+</ol></li>
+<li><a href="#screen"><span class="n">9</span>レンダーターゲットから画面へ</a>
+<ol>
+<li><a href="#modes">Canvas の描画モード</a></li>
+<li><a href="#colorspace">色空間</a></li>
+<li><a href="#present">画面へ出す</a></li>
+<li><a href="#direct">Canvas を通らない経路</a></li>
+</ol></li>
+<li><a href="#frame"><span class="n">10</span>1 フレームの中の順序</a></li>
+<li><a href="#terms"><span class="n">11</span>用語</a></li>
+<li><a href="#method"><span class="n">12</span>図の作り方</a></li>
+</ol>
+</nav>
+
+<main>
+
+<h2 id="overview"><span class="num">1</span>全体の流れ</h2>
+<p>パッケージは字を画面へ置く側（ホスト）と、インクの描き方（表現）を分ける（README §4.1）。ホストは表現の具体型を知らず、グリフインデックスを渡して幾何とテクスチャを受け取り、マテリアルを <code>GlyphMaterialCache</code> から引いて、uGUI の <code>CanvasRenderer</code> へ渡すだけ。本書のホストは検証ビュー <code>T2FontText</code> で、文字列 1 本を字ごとに 1 つの <code>CanvasRenderer</code> で描く（README §10）。利用側のテキスト描画も、①〜④を自分のコードで行えば同じ流れになる。</p>
+
+<figure class="fig" id="fig-pipeline">
+<!-- gen:FIG_PIPELINE -->
+<div class="scroll"><svg class="dia" viewBox="0 0 760 792" width="760" height="792" role="img" aria-label="グリフを描く 7 段の流れ図" xmlns="http://www.w3.org/2000/svg">
+<rect class="node in" x="40" y="16" width="680" height="62" rx="6"/><text class="node-t" x="54" y="40" text-anchor="start">T2FontAsset（.t2font をインポートしたアセット）</text><text class="node-s" x="54" y="60" text-anchor="start">face・codepoints・glyphs・notdef ＋ 表現 SdfRepresentation（emPx・cells・pages・shader）</text><text class="asm" x="708" y="40" text-anchor="end">Runtime の型</text>
+<line class="flow" x1="380" y1="78" x2="380" y2="96"/><polygon class="ah-flow" points="380,98 376.4,90 383.6,90"/>
+<rect class="node host" x="40" y="100" width="680" height="44" rx="6"/><text class="node-t" x="54" y="124" text-anchor="start">ホスト T2FontText.Rebuild（LateUpdate・値が変わったときだけ）</text><text class="asm" x="708" y="124" text-anchor="end">Viewer</text>
+<line class="flow" x1="380" y1="144" x2="380" y2="162"/><polygon class="ah-flow" points="380,164 376.4,156 383.6,156"/>
+<rect class="node step" x="40" y="166" width="680" height="61" rx="6"/><text class="node-t" x="54" y="190" text-anchor="start">① 字をグリフインデックスにする</text><text class="node-s" x="54" y="210" text-anchor="start">TextCodepoints.Read → T2FontAsset.Resolve（二分探索・無い字は notdef）</text><text class="asm" x="708" y="190" text-anchor="end">Core＋Runtime</text>
+<line class="flow" x1="380" y1="227" x2="380" y2="245"/><polygon class="ah-flow" points="380,247 376.4,239 383.6,239"/>
+<rect class="node step" x="40" y="249" width="680" height="78" rx="6"/><text class="node-t" x="54" y="273" text-anchor="start">② 字を置き、幾何を書く</text><text class="node-s" x="54" y="293" text-anchor="start">Metrics → ペンを送り幅で進める</text><text class="node-s" x="54" y="310" text-anchor="start">RepresentationOf → SdfRepresentation.WriteGeometry → GlyphGeometry（em・UV0）</text><text class="asm" x="708" y="273" text-anchor="end">Runtime</text>
+<line class="flow" x1="380" y1="327" x2="380" y2="345"/><polygon class="ah-flow" points="380,347 376.4,339 383.6,339"/>
+<rect class="node step" x="40" y="349" width="680" height="78" rx="6"/><text class="node-t" x="54" y="373" text-anchor="start">③ マテリアルとテクスチャを用意する</text><text class="node-s" x="54" y="393" text-anchor="start">GlyphMaterialCache.Get（_RangeEm・エッジスタイルの uniform）</text><text class="node-s" x="54" y="410" text-anchor="start">SdfRepresentation.GetTexture → ページの Texture2D</text><text class="asm" x="708" y="373" text-anchor="end">Runtime</text>
+<line class="flow" x1="380" y1="427" x2="380" y2="445"/><polygon class="ah-flow" points="380,447 376.4,439 383.6,439"/>
+<rect class="node step" x="40" y="449" width="680" height="61" rx="6"/><text class="node-t" x="54" y="473" text-anchor="start">④ CanvasRenderer へ渡す</text><text class="node-s" x="54" y="493" text-anchor="start">GlyphGeometry.CopyTo(mesh, fontSize)・SetMaterial・SetTexture・SetColor・SetMesh</text><text class="asm" x="708" y="473" text-anchor="end">Viewer</text>
+<line class="flow" x1="380" y1="510" x2="380" y2="528"/><polygon class="ah-flow" points="380,530 376.4,522 383.6,522"/>
+<rect class="node step" x="40" y="532" width="680" height="61" rx="6"/><text class="node-t" x="54" y="556" text-anchor="start">⑤ Canvas がバッチにまとめる</text><text class="node-s" x="54" y="576" text-anchor="start">同じマテリアル × テクスチャの字を 1 回の描画にする・頂点をルートの Canvas の空間へ</text><text class="asm" x="708" y="556" text-anchor="end">uGUI</text>
+<line class="flow" x1="380" y1="593" x2="380" y2="611"/><polygon class="ah-flow" points="380,613 376.4,605 383.6,605"/>
+<rect class="node sdf" x="40" y="615" width="680" height="78" rx="6"/><text class="node-t" x="54" y="639" text-anchor="start">⑥ GPU で描く（シェーダ T2Font/SDF）</text><text class="node-s" x="54" y="659" text-anchor="start">頂点シェーダ → ラスタライズ → フラグメントシェーダ（距離 → 被覆率 → 色）</text><text class="node-s" x="54" y="676" text-anchor="start">→ ブレンドしてレンダーターゲットへ書く</text><text class="asm" x="708" y="639" text-anchor="end">GPU</text>
+<line class="flow" x1="380" y1="693" x2="380" y2="711"/><polygon class="ah-flow" points="380,713 376.4,705 383.6,705"/>
+<rect class="node step" x="40" y="715" width="680" height="61" rx="6"/><text class="node-t" x="54" y="739" text-anchor="start">⑦ 画面へ出す</text><text class="node-s" x="54" y="759" text-anchor="start">レンダーターゲット（バックバッファ・カメラのカラーテクスチャ・RenderTexture）→ Present</text><text class="asm" x="708" y="739" text-anchor="end">URP＋Unity</text>
+</svg></div>
+<!-- /gen -->
+<figcaption><span class="fn">図 1</span>グリフを描く流れ。右肩はその段のコードの持ち主（アセンブリ・uGUI・GPU）。①〜④は値が変わったときだけ C# で回り、⑤〜⑦は毎フレーム回る（<a href="#frame">§10</a>）。表現（ここでは SDF）ごとに替わるのは②の <code>WriteGeometry</code>・③の中身・⑥のシェーダだけ。</figcaption>
+</figure>
+
+<div class="tbl"><table>
+<thead><tr><th>段</th><th>主な型・メソッド</th><th>ファイル（パッケージ内）</th><th>出力</th></tr></thead>
+<tbody>
+<tr><td>① 字をグリフインデックスにする</td><td><code>TextCodepoints.Read</code>・<code>T2FontAsset.Resolve</code></td><td class="mono">Core/TextCodepoints.cs<br>Runtime/T2FontAsset.cs</td><td>グリフインデックス</td></tr>
+<tr><td>② 字を置き、幾何を書く</td><td><code>T2FontAsset.Metrics</code>・<code>SdfRepresentation.WriteGeometry</code>・<code>GlyphGeometry</code></td><td class="mono">Runtime/SdfRepresentation.cs<br>Runtime/GlyphGeometry.cs</td><td>ペン原点・em の quad と UV0</td></tr>
+<tr><td>③ マテリアルとテクスチャを用意する</td><td><code>GlyphMaterialCache.Get</code>・<code>ConfigureMaterial</code>・<code>GetTexture</code></td><td class="mono">Runtime/GlyphMaterialCache.cs</td><td><code>Material</code>・ページの <code>Texture2D</code></td></tr>
+<tr><td>④ CanvasRenderer へ渡す</td><td><code>T2FontText.CreateGlyph</code>・<code>GlyphGeometry.CopyTo</code></td><td class="mono">Viewer/T2FontText.cs</td><td>字ごとの <code>Mesh</code> と <code>CanvasRenderer</code></td></tr>
+<tr><td>⑤ バッチにまとめる</td><td>uGUI の <code>Canvas</code></td><td class="mono">（Unity）</td><td>描画の呼び出し</td></tr>
+<tr><td>⑥ GPU で描く</td><td>シェーダ <code>T2Font/SDF</code> の <code>vert</code>・<code>frag</code></td><td class="mono">Shaders/T2Font-SDF.shader</td><td>レンダーターゲットの画素</td></tr>
+<tr><td>⑦ 画面へ出す</td><td>URP・Unity</td><td class="mono">（Unity）</td><td>ディスプレイ</td></tr>
+</tbody></table></div>
+
+<h2 id="load"><span class="num">2</span>アセットを読み込む</h2>
+<p>ロードの単位は <code>T2FontAsset</code>（ScriptableObject）。インポーターがメインアセットとして登録し、表現 <code>SdfRepresentation</code> とページの <code>Texture2D</code> をそのサブアセットにしてある（02 章 §7）。ほかのアセットを指すのは表現のシェーダの参照だけなので、<code>T2FontAsset</code> を参照すれば（シリアライズしたフィールド・<code>AssetDatabase.LoadAssetAtPath</code>・利用側のロードの仕組み）、描くのに要る物が一度にそろう。検証ビューはフィールド <code>font</code> で参照する。</p>
+<div class="tbl"><table>
+<thead><tr><th>欄</th><th>型</th><th>見本の値</th><th>描画で使う所</th></tr></thead>
+<tbody>
+<tr><td class="mono">face</td><td><code>FontFaceMetrics</code></td><td class="mono">ascender 1.075・descender −0.32・lineGap 0.09（em）</td><td>行の位置と行送り（§3.2）</td></tr>
+<tr><td class="mono">codepoints</td><td><code>int[]</code>（昇順）</td><td class="mono">206 字</td><td>字 → グリフインデックス（§3.1）</td></tr>
+<tr><td class="mono">glyphs</td><td><code>GlyphMetrics[]</code></td><td class="mono">207（206 字 ＋ .notdef）</td><td>送り幅（§3.2）・インク境界</td></tr>
+<tr><td class="mono">notdef</td><td><code>int</code></td><td class="mono">206</td><td>無い字の代わり（§3.1）</td></tr>
+<tr><td class="mono">representation</td><td><code>SdfRepresentation</code></td><td class="mono">emPx 48・cells 207・pages 1・Effects All</td><td>幾何・テクスチャ・マテリアル（§4・§5）</td></tr>
+<tr><td class="mono">　└ pages[0]</td><td><code>Texture2D</code></td><td class="mono">1020×1008・R8・linear・ミップ無し・bilinear・clamp</td><td><code>_MainTex</code>（§8.4）</td></tr>
+<tr><td class="mono">　└ shader</td><td><code>Shader</code></td><td class="mono">T2Font/SDF</td><td>マテリアルを作る（§5）</td></tr>
+</tbody></table></div>
+<p>ページは Read/Write を無効にしてあるので（02 章 §7）、Unity は GPU へ上げた後に CPU 側の写しを持たない。読み込みの時点では計算は何もしない。マテリアルはまだ無く、ホストが <code>GlyphMaterialCache</code> で作る（§5）。作る時点はフォントを読んだ時点がよい（<code>Prewarm</code>・README §4.5）——描画中に作るとヒッチになる。検証ビューは最初の <code>Rebuild</code> で作る。</p>
+<p><code>T2FontAsset</code> には実行時の状態が 1 つだけある。無い字を報告済みかの記録で、直列化せず、再生の開始ごと（<code>RuntimeInitializeLoadType.SubsystemRegistration</code>）に捨てる（§3.1）。</p>
+
+<h2 id="place"><span class="num">3</span>字を並べる</h2>
+<p><code>T2FontText.Rebuild</code> は、文字列を頭から 1 字ずつ読み、グリフインデックスを引き、ペンを進めながら字ごとに §4〜§6 を回す。行送りは改行（U+000A）だけで、折り返し・カーニング・縦書きは持たない（README §10）。</p>
+
+<h3 id="resolve"><span class="num">3.1</span>字からグリフインデックスへ</h3>
+<p><code>TextCodepoints.Read</code> は文字列を UTF-16 の符号単位ではなく字（コードポイント）で読む。サロゲートペアは 1 字になり、片割れのサロゲートはその値のまま 1 字として返す——フォントに無い字として代替グリフで見え、誤りが黙って消えない（README §2.1）。</p>
+<p><code>T2FontAsset.Resolve</code> は昇順の <code>codepoints</code> を二分探索し、見つかった添字をそのままグリフインデックスにする（README §3.2）。間接の表は無く、割り当ても無い。無い字は <code>notdef</code> を返し、コードポイントごとに 1 回 <code>LogError</code> を出す。見本の文字列では全部の字が見つかる。</p>
+<figure class="fig" id="fig-resolve">
+<!-- gen:STRIP -->
+<div class="strip" role="list" aria-label="字とグリフインデックス">
+<div class="g" role="listitem"><b>T</b><span>U+0054</span><span>→ 52</span></div>
+<div class="g" role="listitem"><b>2</b><span>U+0032</span><span>→ 18</span></div>
+<div class="g" role="listitem"><b>F</b><span>U+0046</span><span>→ 38</span></div>
+<div class="g" role="listitem"><b>o</b><span>U+006F</span><span>→ 79</span></div>
+<div class="g" role="listitem"><b>n</b><span>U+006E</span><span>→ 78</span></div>
+<div class="g" role="listitem"><b>t</b><span>U+0074</span><span>→ 84</span></div>
+<div class="g" role="listitem"><b>␠</b><span>U+0020</span><span>→ 0</span></div>
+<div class="g" role="listitem"><b>永</b><span>U+6C38</span><span>→ 193</span></div>
+<div class="g" role="listitem"><b>あ</b><span>U+3042</span><span>→ 101</span></div>
+<div class="g" role="listitem"><b>ア</b><span>U+30A2</span><span>→ 149</span></div>
+</div>
+<!-- /gen -->
+<figcaption><span class="fn">図 2</span>見本の文字列の字と、引いたグリフインデックス。グリフインデックスは <code>codepoints</code> の添字で、元フォントのグリフの番号とは別。空白 U+0020 は Ascii の最初の字なので 0、.notdef は cmap を持つグリフの後ろの 206。</figcaption>
+</figure>
+
+<h3 id="pen"><span class="num">3.2</span>ペンを進める</h3>
+<p>ペン原点は RectTransform の矩形の左上から 1 行目のアセンダぶん下、<code>(rect.xMin, rect.yMax − ascender × fontSize)</code> から始まる。字ごとに <code>Metrics(glyph).advance × fontSize</code> だけ右へ進め、改行では x を <code>rect.xMin</code> へ戻して y を <code>(ascender − descender + lineGap) × fontSize</code> だけ下げる。値はすべて em なので、表示サイズは最後に掛けるだけ（README §3.3）。</p>
+<figure class="fig" id="fig-layout">
+<!-- gen:FIG_LAYOUT -->
+<div class="scroll"><svg class="dia" viewBox="0 0 809.02 301.76" width="809.02" height="301.76" role="img" aria-label="文字列 T2Font 永あア を 48px で置いた図。ペン原点と送り幅と quad" xmlns="http://www.w3.org/2000/svg">
+<line class="vguide" x1="104" y1="36" x2="761.02" y2="36"/>
+<line class="vguide faint" x1="104" y1="169.92" x2="761.02" y2="169.92"/>
+<line class="base" x1="104" y1="139.2" x2="761.02" y2="139.2"/>
+<line class="base" x1="104" y1="281.76" x2="761.02" y2="281.76" opacity="0.45"/>
+<line class="vguide faint" x1="104" y1="26" x2="104" y2="295.76"/>
+<text class="lbl-s mono" x="96" y="40" text-anchor="end">rect.yMax</text>
+<text class="lbl-s" x="92" y="143.2" text-anchor="end">ベースライン</text>
+<text class="lbl-s" x="96" y="173.92" text-anchor="end">ディセンダ</text>
+<text class="lbl-s" x="96" y="285.76" text-anchor="end">次の行</text>
+<text class="lbl-s mono" x="104" y="22" text-anchor="middle">rect.xMin</text>
+<rect class="glyphrect" x="91.04" y="49.28" width="86" height="108" stroke-dasharray="4 3" opacity="0.8"/>
+<path class="g-fill g-stroke" fill-rule="nonzero" d="M109.76 69.12L159.01 69.12L159.01 75.65L138.27 75.65L138.27 139.20L130.59 139.20L130.59 75.65L109.76 75.65Z"/>
+<rect class="glyphrect" x="153.81" y="49.28" width="82" height="108" stroke-dasharray="4 3" opacity="0.8"/>
+<path class="g-fill g-stroke" fill-rule="nonzero" d="M194.05 68.16Q204.32 68.16 209.98 73.39Q215.65 78.62 215.65 88.03Q215.65 97.44 208.83 107.04Q202.02 116.64 183.30 132.58L183.30 132.77L215.94 132.77L215.94 139.20L172.74 139.20L172.74 132.77Q193.18 115.87 200.43 106.42Q207.68 96.96 207.68 88.61Q207.68 81.79 203.98 78.24Q200.29 74.69 193.09 74.69Q183.87 74.69 174.18 80.26L174.18 72.77Q183.10 68.16 194.05 68.16Z"/>
+<rect class="glyphrect" x="213.33" y="49.28" width="78" height="108" stroke-dasharray="4 3" opacity="0.8"/>
+<path class="g-fill g-stroke" fill-rule="nonzero" d="M272.48 75.55L240.13 75.55L240.13 99.36L270.56 99.36L270.56 105.50L240.13 105.50L240.13 139.20L232.45 139.20L232.45 69.12L272.48 69.12Z"/>
+<rect class="glyphrect" x="264.24" y="69.28" width="84" height="90" stroke-dasharray="4 3" opacity="0.8"/>
+<path class="g-fill g-stroke" fill-rule="nonzero" d="M305.89 88.32Q316.64 88.32 322.74 95.14Q328.83 101.95 328.83 114.24Q328.83 126.53 322.74 133.34Q316.64 140.16 305.89 140.16Q295.14 140.16 289.09 133.34Q283.04 126.53 283.04 114.24Q283.04 101.95 289.09 95.14Q295.14 88.32 305.89 88.32Z M305.89 134.40Q321.25 134.40 321.25 114.24Q321.25 94.08 305.89 94.08Q290.53 94.08 290.53 114.24Q290.53 134.40 305.89 134.40Z"/>
+<rect class="glyphrect" x="321.71" y="69.28" width="78" height="88" stroke-dasharray="4 3" opacity="0.8"/>
+<path class="g-fill g-stroke" fill-rule="nonzero" d="M346.78 89.28L346.88 96.77L347.07 96.77Q353.98 88.32 363.58 88.32Q372.32 88.32 376.26 93.22Q380.19 98.11 380.19 109.44L380.19 139.20L372.99 139.20L372.99 110.40Q372.99 100.90 370.40 97.49Q367.81 94.08 361.66 94.08Q356.67 94.08 351.97 98.74Q347.26 103.39 347.26 108.29L347.26 139.20L339.87 139.20L339.87 89.28Z"/>
+<rect class="glyphrect" x="371.95" y="53.28" width="74" height="106" stroke-dasharray="4 3" opacity="0.8"/>
+<path class="g-fill g-stroke" fill-rule="nonzero" d="M409.76 72.96L409.76 91.20L427.90 91.20L427.90 96.96L409.76 96.96L409.76 123.17Q409.76 130.08 411.58 132.24Q413.41 134.40 418.59 134.40Q422.91 134.40 426.56 133.06L426.56 139.01Q422.05 140.16 417.34 140.16Q408.90 140.16 405.68 136.66Q402.46 133.15 402.46 123.84L402.46 96.96L391.71 96.96L391.71 91.20L402.46 91.20L402.46 72.96Z"/>
+
+<rect class="glyphrect" x="446.06" y="41.28" width="126" height="124" stroke-dasharray="4 3" opacity="0.8"/>
+<path class="g-fill g-stroke" fill-rule="nonzero" d="M486.56 66.82L488.29 60.48Q507.87 63.17 527.94 69.60L525.63 75.94Q506.34 69.70 486.56 66.82Z M506.34 134.88L506.34 85.73L479.74 85.73L479.74 79.39L513.82 79.39Q517.38 90.24 523.33 100.13Q534.75 91.49 545.12 78.14L550.59 82.37Q540.03 96.48 527.07 105.98Q538.78 123.07 553.86 133.92L549.06 139.68Q538.11 131.52 528.99 120.05Q519.87 108.58 513.82 95.42L513.82 134.69Q513.82 142.75 511.90 144.82Q509.98 146.88 502.50 146.88Q498.75 146.88 488.00 146.40L487.81 139.97Q497.89 140.45 501.06 140.45Q504.80 140.45 505.57 139.63Q506.34 138.82 506.34 134.88Z M467.07 102.24L467.07 96.00L500.86 96.00L500.86 102.24Q496.64 112.51 488.29 121.97Q479.94 131.42 468.61 138.72L464.19 132.86Q474.37 126.53 482.00 118.56Q489.63 110.59 493.76 102.24Z"/>
+<rect class="glyphrect" x="548.06" y="43.28" width="114" height="120" stroke-dasharray="4 3" opacity="0.8"/>
+<path class="g-fill g-stroke" fill-rule="nonzero" d="M614.24 138.91Q624.70 136.90 630.70 131.14Q636.70 125.38 636.70 117.41Q636.70 104.93 624.61 100.22Q618.27 118.75 606.22 129.60Q594.18 140.45 582.27 140.45Q574.78 140.45 570.56 135.98Q566.34 131.52 566.34 123.55Q566.34 113.76 572.72 106.03Q579.10 98.30 590.34 94.56L590.34 80.35L569.79 80.35L569.79 74.21L590.34 74.21L590.34 62.11L597.34 62.11L597.34 74.21L640.26 74.21L640.26 80.35L597.34 80.35L597.34 92.74Q603.78 91.49 610.11 91.49Q625.86 91.49 634.78 98.45Q643.71 105.41 643.71 117.41Q643.71 128.06 636.32 135.46Q628.93 142.85 615.97 145.25Z M618.18 98.50Q614.53 97.92 610.11 97.92Q603.30 97.92 597.34 99.36L597.34 128.54Q603.68 123.94 609.20 116.21Q614.72 108.48 618.18 98.50Z M590.34 101.57Q582.46 104.83 577.90 110.45Q573.34 116.06 573.34 122.88Q573.34 128.26 575.84 131.18Q578.34 134.11 582.94 134.11Q586.59 134.11 590.34 132.58Z"/>
+<rect class="glyphrect" x="646.06" y="51.28" width="114" height="110" stroke-dasharray="4 3" opacity="0.8"/>
+<path class="g-fill g-stroke" fill-rule="nonzero" d="M664.74 77.28L664.74 70.75L740.58 70.75L740.58 77.28Q737.70 87.55 730.74 95.81Q723.78 104.06 713.89 108.86L710.05 102.91Q727.62 94.18 732.70 77.28Z M693.06 86.40L700.35 86.40Q700.35 110.98 694.30 123.55Q688.26 136.13 673.66 142.37L670.21 136.22Q682.78 130.94 687.92 119.81Q693.06 108.67 693.06 86.40Z"/>
+<circle class="origin" cx="104" cy="139.2" r="3.6"/>
+<line class="tick" x1="104" y1="139.2" x2="104" y2="195.92"/>
+<line class="dim" x1="105" y1="191.92" x2="163.77" y2="191.92"/><polygon class="ah-dim" points="163.77,191.92 157.77,194.62 157.77,189.22"/><polygon class="ah-dim" points="105,191.92 111,189.22 111,194.62"/>
+<text class="lbl-s mono" x="134.38" y="207.92" text-anchor="middle">30.38</text>
+<circle class="origin" cx="164.77" cy="139.2" r="3.6"/>
+<line class="tick" x1="164.77" y1="139.2" x2="164.77" y2="195.92"/>
+<line class="dim" x1="165.77" y1="191.92" x2="223.29" y2="191.92"/><polygon class="ah-dim" points="223.29,191.92 217.29,194.62 217.29,189.22"/><polygon class="ah-dim" points="165.77,191.92 171.77,189.22 171.77,194.62"/>
+<text class="lbl-s mono" x="194.53" y="207.92" text-anchor="middle">29.76</text>
+<circle class="origin" cx="224.29" cy="139.2" r="3.6"/>
+<line class="tick" x1="224.29" y1="139.2" x2="224.29" y2="195.92"/>
+<line class="dim" x1="225.29" y1="191.92" x2="278.2" y2="191.92"/><polygon class="ah-dim" points="278.2,191.92 272.2,194.62 272.2,189.22"/><polygon class="ah-dim" points="225.29,191.92 231.29,189.22 231.29,194.62"/>
+<text class="lbl-s mono" x="251.74" y="207.92" text-anchor="middle">27.46</text>
+<circle class="origin" cx="279.2" cy="139.2" r="3.6"/>
+<line class="tick" x1="279.2" y1="139.2" x2="279.2" y2="195.92"/>
+<line class="dim" x1="280.2" y1="191.92" x2="331.67" y2="191.92"/><polygon class="ah-dim" points="331.67,191.92 325.67,194.62 325.67,189.22"/><polygon class="ah-dim" points="280.2,191.92 286.2,189.22 286.2,194.62"/>
+<text class="lbl-s mono" x="305.94" y="207.92" text-anchor="middle">26.74</text>
+<circle class="origin" cx="332.67" cy="139.2" r="3.6"/>
+<line class="tick" x1="332.67" y1="139.2" x2="332.67" y2="195.92"/>
+<line class="dim" x1="333.67" y1="191.92" x2="385.91" y2="191.92"/><polygon class="ah-dim" points="385.91,191.92 379.91,194.62 379.91,189.22"/><polygon class="ah-dim" points="333.67,191.92 339.67,189.22 339.67,194.62"/>
+<text class="lbl-s mono" x="359.79" y="207.92" text-anchor="middle">27.12</text>
+<circle class="origin" cx="386.91" cy="139.2" r="3.6"/>
+<line class="tick" x1="386.91" y1="139.2" x2="386.91" y2="195.92"/>
+<line class="dim" x1="387.91" y1="191.92" x2="434.1" y2="191.92"/><polygon class="ah-dim" points="434.1,191.92 428.1,194.62 428.1,189.22"/><polygon class="ah-dim" points="387.91,191.92 393.91,189.22 393.91,194.62"/>
+<text class="lbl-s mono" x="411.01" y="207.92" text-anchor="middle">24.10</text>
+<circle class="origin" cx="435.1" cy="139.2" r="3.6"/>
+<line class="tick" x1="435.1" y1="139.2" x2="435.1" y2="195.92"/>
+<line class="dim" x1="436.1" y1="191.92" x2="460.02" y2="191.92"/><polygon class="ah-dim" points="460.02,191.92 454.02,194.62 454.02,189.22"/><polygon class="ah-dim" points="436.1,191.92 442.1,189.22 442.1,194.62"/>
+<text class="lbl-s mono" x="448.06" y="207.92" text-anchor="middle">12.96</text>
+<text class="lbl-s" x="448.06" y="30" text-anchor="middle">幾何無し</text>
+<circle class="origin" cx="461.02" cy="139.2" r="3.6"/>
+<line class="tick" x1="461.02" y1="139.2" x2="461.02" y2="195.92"/>
+<line class="dim" x1="462.02" y1="191.92" x2="556.02" y2="191.92"/><polygon class="ah-dim" points="556.02,191.92 550.02,194.62 550.02,189.22"/><polygon class="ah-dim" points="462.02,191.92 468.02,189.22 468.02,194.62"/>
+<text class="lbl-s mono" x="509.02" y="207.92" text-anchor="middle">48.00</text>
+<circle class="origin" cx="557.02" cy="139.2" r="3.6"/>
+<line class="tick" x1="557.02" y1="139.2" x2="557.02" y2="195.92"/>
+<line class="dim" x1="558.02" y1="191.92" x2="652.02" y2="191.92"/><polygon class="ah-dim" points="652.02,191.92 646.02,194.62 646.02,189.22"/><polygon class="ah-dim" points="558.02,191.92 564.02,189.22 564.02,194.62"/>
+<text class="lbl-s mono" x="605.02" y="207.92" text-anchor="middle">48.00</text>
+<circle class="origin" cx="653.02" cy="139.2" r="3.6"/>
+<line class="tick" x1="653.02" y1="139.2" x2="653.02" y2="195.92"/>
+<line class="dim" x1="654.02" y1="191.92" x2="748.02" y2="191.92"/><polygon class="ah-dim" points="748.02,191.92 742.02,194.62 742.02,189.22"/><polygon class="ah-dim" points="654.02,191.92 660.02,189.22 660.02,194.62"/>
+<text class="lbl-s mono" x="701.02" y="207.92" text-anchor="middle">48.00</text>
+<line class="tick" x1="749.02" y1="139.2" x2="749.02" y2="195.92"/>
+<text class="lbl-s" x="104" y="225.92" text-anchor="start">送り幅 × fontSize（px）・● ペン原点・破線 quad（セルの plane × 48）</text>
+<line class="dim" x1="779.02" y1="139.2" x2="779.02" y2="281.76"/><polygon class="ah-dim" points="779.02,139.2 781.72,145.2 776.32,145.2"/><polygon class="ah-dim" points="779.02,281.76 776.32,275.76 781.72,275.76"/>
+<text class="lbl-s mono" x="771.02" y="250.48" text-anchor="end">行送り 71.28 px</text>
+<text class="lbl-s mono" x="771.02" y="266.48" text-anchor="end">＝ (ascender − descender + lineGap) × 48</text>
+</svg></div>
+<!-- /gen -->
+<figcaption><span class="fn">図 3</span>見本の文字列を 48px で置いた図（実データ。縦横とも 1 表示 px ＝ 2 単位）。送り幅と quad はタイポグラフィテーブルと表現のセルの値そのもの。空白はインクが無いので幾何を書かず、GameObject も作らないが、ペンは進む。</figcaption>
+</figure>
+<div class="tbl"><table>
+<thead><tr><th>字</th><th class="num">グリフ</th><th class="num">ペンの x（px）</th><th class="num">送り幅（em）</th><th class="num">送り幅（px）</th><th>quad の x の範囲（px）</th></tr></thead>
+<tbody>
+<!-- gen:LAYOUT_ROWS -->
+<tr><td>T</td><td class="num">52</td><td class="num mono">0.00</td><td class="num mono">0.633</td><td class="num mono">30.38</td><td class="mono">[−6.48, 36.52]</td></tr>
+<tr><td>2</td><td class="num">18</td><td class="num mono">30.38</td><td class="num mono">0.620</td><td class="num mono">29.76</td><td class="mono">[24.90, 65.90]</td></tr>
+<tr><td>F</td><td class="num">38</td><td class="num mono">60.14</td><td class="num mono">0.572</td><td class="num mono">27.46</td><td class="mono">[54.66, 93.66]</td></tr>
+<tr><td>o</td><td class="num">79</td><td class="num mono">87.60</td><td class="num mono">0.557</td><td class="num mono">26.74</td><td class="mono">[80.12, 122.12]</td></tr>
+<tr><td>n</td><td class="num">78</td><td class="num mono">114.34</td><td class="num mono">0.565</td><td class="num mono">27.12</td><td class="mono">[108.86, 147.86]</td></tr>
+<tr><td>t</td><td class="num">84</td><td class="num mono">141.46</td><td class="num mono">0.502</td><td class="num mono">24.10</td><td class="mono">[133.98, 170.98]</td></tr>
+<tr><td>␠（空白）</td><td class="num">0</td><td class="num mono">165.55</td><td class="num mono">0.270</td><td class="num mono">12.96</td><td class="mono">—</td></tr>
+<tr><td>永</td><td class="num">193</td><td class="num mono">178.51</td><td class="num mono">1.000</td><td class="num mono">48.00</td><td class="mono">[171.03, 234.03]</td></tr>
+<tr><td>あ</td><td class="num">101</td><td class="num mono">226.51</td><td class="num mono">1.000</td><td class="num mono">48.00</td><td class="mono">[222.03, 279.03]</td></tr>
+<tr><td>ア</td><td class="num">149</td><td class="num mono">274.51</td><td class="num mono">1.000</td><td class="num mono">48.00</td><td class="mono">[271.03, 328.03]</td></tr>
+<!-- /gen -->
+</tbody></table></div>
+<p>行の幅は <!-- gen:TOTAL -->322.51<!-- /gen --> px。ペンの位置は字の GameObject の <code>localPosition</code> になり（§6）、幾何はペン原点を原点として書く（§4）。</p>
+
+<h2 id="geometry"><span class="num">4</span>幾何を書く</h2>
+
+<h3 id="glyphgeometry"><span class="num">4.1</span>GlyphGeometry</h3>
+<p><code>GlyphGeometry</code> は表現がグリフの幾何を書き込む器で、ホストが 1 つを持ち回し、字ごとに <code>Clear</code> して使う（割り当て無し）。表現が呼ぶのは 2 つだけ。</p>
+<ul>
+<li><code>AddVertex(emX, emY, u, v)</code>: 位置 <code>(emX, emY, 0)</code> と UV0 <code>(u, v, emX, emY)</code> を足す。<b>UV0.zw は器が位置から書く</b>ので、表現は zw を書けない。シェーダはその微分から 1 表示 px が何 em かを得る（README §4.2・§5 S3）。</li>
+<li><code>AddTriangle(a, b, c)</code>: 頂点の番号で三角形を足す。<code>AddQuad</code> は頂点 4 つ（左下・右下・右上・左上）と三角形 2 つ <code>(0, 2, 1)</code>・<code>(0, 3, 2)</code> を書く便宜のメソッド。</li>
+</ul>
+<p>幾何は quad に限らない（README §4.2）。インクの無いグリフでは表現は何も書かず、ホストは <code>VertexCount</code> が 0 ならその字を描かない。</p>
+
+<h3 id="quad"><span class="num">4.2</span>SDF の quad と UV</h3>
+<p><code>SdfRepresentation.WriteGeometry</code> は、グリフインデックスでセル <code>SdfGlyphCell</code> を引き、<code>AddQuad</code> を 1 回呼ぶ。位置はセルの plane（em）、UV はセルの atlas（ページの px）をページの寸法で割った値。plane と atlas は同じ矩形を 2 つの座標系で書いたもので、<code>atlas ＝ 原点 ＋ plane × emPx</code> が厳密に成り立つ（02 章 §6.2）。だから quad の中で em と UV は同じ一次式で動き、bilinear で読む位置がずれない。</p>
+<figure class="fig" id="fig-quad">
+<!-- gen:FIG_QUAD -->
+<div class="scroll"><svg class="dia" viewBox="0 0 760 420" width="760" height="420" role="img" aria-label="あ の quad の em 座標と、ページの上の同じ矩形の UV" xmlns="http://www.w3.org/2000/svg">
+<rect class="cellbox hl" x="54.27" y="46.16" width="225.62" height="237.5"/>
+<line class="leader-c" x1="54.27" y1="283.66" x2="279.89" y2="46.16" stroke-dasharray="3 3"/>
+<line class="base" x1="40.27" y1="236" x2="293.89" y2="236"/>
+<line class="vguide" x1="72" y1="34.16" x2="72" y2="295.66"/>
+<rect class="inkbox" x="90.43" y="83.43" width="153.14" height="164.54"/>
+<path class="g-fill g-stroke" fill-rule="nonzero" d="M185.24 235.43Q205.95 231.44 217.82 220.04Q229.70 208.64 229.70 192.87Q229.70 168.17 205.76 158.86Q193.22 195.53 169.38 217.00Q145.53 238.47 121.97 238.47Q107.15 238.47 98.79 229.63Q90.43 220.80 90.43 205.03Q90.43 185.65 103.06 170.36Q115.70 155.06 137.93 147.65L137.93 119.53L97.27 119.53L97.27 107.37L137.93 107.37L137.93 83.43L151.80 83.43L151.80 107.37L236.73 107.37L236.73 119.53L151.80 119.53L151.80 144.04Q164.53 141.57 177.07 141.57Q208.23 141.57 225.90 155.34Q243.57 169.12 243.57 192.87Q243.57 213.96 228.94 228.59Q214.31 243.22 188.66 247.97Z M193.03 155.44Q185.81 154.30 177.07 154.30Q163.58 154.30 151.80 157.15L151.80 214.91Q164.34 205.79 175.26 190.50Q186.19 175.20 193.03 155.44Z M137.93 161.52Q122.35 167.98 113.33 179.09Q104.30 190.21 104.30 203.70Q104.30 214.34 109.24 220.13Q114.18 225.93 123.30 225.93Q130.52 225.93 137.93 222.89Z"/>
+<circle class="origin" cx="72" cy="236" r="4.5"/>
+<circle class="pt-seg" cx="54.27" cy="283.66" r="3.4"/>
+<text class="wnum" x="54.27" y="301.66" text-anchor="start">0</text>
+<text class="lbl-s mono" x="68.27" y="301.66" text-anchor="start">(−0.0933, −0.2508)</text>
+<circle class="pt-seg" cx="279.89" cy="283.66" r="3.4"/>
+<text class="wnum" x="279.89" y="317.66" text-anchor="end">1</text>
+<text class="lbl-s mono" x="265.89" y="317.66" text-anchor="end">(1.0942, −0.2508)</text>
+<circle class="pt-seg" cx="279.89" cy="46.16" r="3.4"/>
+<text class="wnum" x="279.89" y="22.16" text-anchor="end">2</text>
+<text class="lbl-s mono" x="265.89" y="22.16" text-anchor="end">(1.0942, 0.9992)</text>
+<circle class="pt-seg" cx="54.27" cy="46.16" r="3.4"/>
+<text class="wnum" x="54.27" y="38.16" text-anchor="start">3</text>
+<text class="lbl-s mono" x="68.27" y="38.16" text-anchor="start">(−0.0933, 0.9992)</text>
+<text class="lbl-s" x="297.89" y="230" text-anchor="start">ペン原点 (0, 0)</text>
+<text class="lbl-b" x="54.27" y="343.66" text-anchor="start">em の座標（plane）＝ 位置 と UV0.zw</text>
+<image href="03-atlas-to-screen/page-crop.png" x="440" y="34" width="306" height="324" style="image-rendering:pixelated" preserveAspectRatio="none"/>
+<line stroke="var(--atl-q)" stroke-width="1" stroke-dasharray="4 3" x1="542" y1="34" x2="542" y2="358"/>
+<line stroke="var(--atl-q)" stroke-width="1" stroke-dasharray="4 3" x1="440" y1="142" x2="746" y2="142"/>
+<line stroke="var(--atl-q)" stroke-width="1" stroke-dasharray="4 3" x1="644" y1="34" x2="644" y2="358"/>
+<line stroke="var(--atl-q)" stroke-width="1" stroke-dasharray="4 3" x1="440" y1="250" x2="746" y2="250"/>
+<rect class="slot c2" x="551" y="146.5" width="85.5" height="90"/>
+<text class="lbl-s mono on-plate" x="551" y="251.5" text-anchor="start">(0.7392, 0.4375)</text>
+<text class="lbl-s mono on-plate" x="636.5" y="140.5" text-anchor="end">(0.7951, 0.4970)</text>
+<text class="lbl-s" x="440" y="378" text-anchor="start">ページ 0（1020×1008）の一部</text>
+<text class="lbl-s mono" x="440" y="394" text-anchor="start">x 680〜884・y 360〜576（セル 3×3）</text>
+<text class="lbl-b" x="440" y="418" text-anchor="start">ページの UV ＝ UV0.xy</text>
+<line class="flow" x1="301.89" y1="160" x2="428" y2="160"/><polygon class="ah-flow" points="430,160 422,156.4 422,163.6"/>
+<text class="lbl-s mono" x="365.95" y="136" text-anchor="middle">atlas ÷</text>
+<text class="lbl-s" x="365.95" y="150" text-anchor="middle">ページの寸法</text>
+</svg></div>
+<!-- /gen -->
+<figcaption><span class="fn">図 4</span>「あ」の quad（実データ）。左は em の座標（破線はインク境界、点線の対角線で 2 つの三角形に分かれる）、右はページの上の同じ矩形。quad はインク境界に距離レンジ（0.1875em）を足して texel の格子へ外向きに丸めた範囲で、57×60 texel。</figcaption>
+</figure>
+<div class="tbl"><table>
+<thead><tr><th class="num">頂点</th><th>角</th><th>位置（em）</th><th>位置 × 48（px）</th><th>UV0（u, v, emX, emY）</th></tr></thead>
+<tbody>
+<!-- gen:VERTEX_ROWS -->
+<tr><td class="num">0</td><td>左下</td><td class="mono">(−0.0933, −0.2508)</td><td class="mono">(−4.48, −12.04)</td><td class="mono">(0.7392, 0.4375, −0.0933, −0.2508)</td></tr>
+<tr><td class="num">1</td><td>右下</td><td class="mono">(1.0942, −0.2508)</td><td class="mono">(52.52, −12.04)</td><td class="mono">(0.7951, 0.4375, 1.0942, −0.2508)</td></tr>
+<tr><td class="num">2</td><td>右上</td><td class="mono">(1.0942, 0.9992)</td><td class="mono">(52.52, 47.96)</td><td class="mono">(0.7951, 0.4970, 1.0942, 0.9992)</td></tr>
+<tr><td class="num">3</td><td>左上</td><td class="mono">(−0.0933, 0.9992)</td><td class="mono">(−4.48, 47.96)</td><td class="mono">(0.7392, 0.4970, −0.0933, 0.9992)</td></tr>
+<!-- /gen -->
+</tbody></table></div>
+<p>quad はインク境界から四方へ 0.1875em 以上広がる。これは描けると宣言した効果の最大の外延 0.15em ＋ 14px の AA の半分（0.5 ÷ 14 ≒ 0.036em）を覆う（README §4.3・§6.2）。足りないと、幾何の縁で縁取りが平らに断たれる。</p>
+
+<h3 id="mesh"><span class="num">4.3</span>Mesh へ詰める</h3>
+<p><code>GlyphGeometry.CopyTo(mesh, fontSize)</code> は、位置だけに表示サイズを掛けて <code>Mesh</code> へ詰める（<code>SetVertices</code> → <code>SetUVs(0, …)</code> → <code>SetTriangles</code>。頂点の数が決まる <code>SetVertices</code> が先）。UV0 は掛けないので、zw は em のまま残る——位置は表示 px、zw は em になり、その比が 1 表示 px あたりの em になる（§8.4）。uGUI のバッチは UV0 の 4 成分を保つ。</p>
+<p>検証ビューは字ごとに <code>Mesh</code> を 1 つ作る（<code>HideFlags.DontSave</code>）。<code>Mesh</code> はネイティブのオブジェクトで GC では回収されないので、作り直すときと破棄のときに明示的に捨てる。</p>
+
+<h2 id="material"><span class="num">5</span>マテリアルとテクスチャを用意する</h2>
+<p><code>GlyphMaterialCache</code> は、（表現の <code>MaterialScope</code>・エッジスタイル）を鍵にマテリアルを 1 つずつ作って持つ（README §4.5）。<code>Get</code> は次の順に動く。</p>
+<ol>
+<li>鍵で引き、あればそれを返す。</li>
+<li><code>Check</code>: エッジスタイルの値が範囲の内か（<code>FindOutOfRange</code>）、使う効果（値が 0 でないキー）を表現が描けるか（<code>style.Uses &amp; ~representation.Effects</code>）。合わなければ例外で止める——黙って近似すると表現によって見た目が変わる（README §6.3）。検証ビューは <code>Rebuild</code> の頭で同じ検査をし、合わなければ <code>LogError</code> を出して何も描かない。</li>
+<li><code>new Material(representation.Shader)</code>（<code>HideFlags.DontSave</code>）。</li>
+<li><code>representation.ConfigureMaterial(material)</code>: 表現の定数。SDF は <code>_RangeEm</code> に <code>SdfEncoding.RangeEm</code>（0.1875）を入れる。</li>
+<li><code>WriteEdgeStyle</code>: エッジスタイルの 5 値を uniform へ 1 対 1 で入れる。縁取りの色は sRGB で持ち、色空間が Linear のプロジェクトでは linear に直して <code>SetVector</code> で入れる（<code>Vector</code> は Unity が色空間の変換をしないので）。α は直さない。</li>
+</ol>
+<div class="tbl"><table>
+<thead><tr><th>uniform</th><th>入れるコード</th><th>見本（None）</th><th>図 8 の例（縁取り）</th></tr></thead>
+<tbody>
+<tr><td class="mono">_RangeEm</td><td><code>SdfRepresentation.ConfigureMaterial</code></td><td class="mono">0.1875</td><td class="mono">0.1875</td></tr>
+<tr><td class="mono">_FaceDilate</td><td rowspan="5"><code>GlyphMaterialCache.WriteEdgeStyle</code></td><td class="mono">0</td><td class="mono">0</td></tr>
+<tr><td class="mono">_FaceSoftness</td><td class="mono">0</td><td class="mono">0</td></tr>
+<tr><td class="mono">_OutlineColor</td><td class="mono">(0, 0, 0, 1)</td><td class="mono">(0, 0, 0, 1)</td></tr>
+<tr><td class="mono">_OutlineWidth</td><td class="mono">0</td><td class="mono">0.05</td></tr>
+<tr><td class="mono">_OutlineSoftness</td><td class="mono">0</td><td class="mono">0</td></tr>
+<tr><td class="mono">_MainTex</td><td>（マテリアルには入れない・§6）</td><td colspan="2"><code>CanvasRenderer.SetTexture</code> でページを渡す</td></tr>
+</tbody></table></div>
+<p>SDF の <code>MaterialScope</code> はシェーダ（既定のまま）で、距離レンジは全フォント共通なので、<b>全 SDF フォントがエッジスタイルごとに 1 つのマテリアルを共有する</b>。面の色とフェードは頂点色で（README §5 S2）、ページは <code>_MainTex</code> として字ごとに渡すので、どちらもマテリアルを分けない。見本の文字列は 1 つのマテリアルで描ける。</p>
+<p>テクスチャは <code>SdfRepresentation.GetTexture(glyph)</code> が <code>pages[cell.page]</code> を返す。インクの無いグリフでは呼ばれない。マテリアルはネイティブのオブジェクトなので、所有者は <code>Dispose</code>（全部）か <code>Release(scope)</code>（そのフォントの分）で捨てる。検証ビューは <code>OnDisable</code> で <code>Dispose</code> する。</p>
+
+<h2 id="renderer"><span class="num">6</span>CanvasRenderer へ渡す</h2>
+<p>検証ビューの <code>CreateGlyph</code> は、インクのある字ごとに、子の GameObject（<code>RectTransform</code> と <code>CanvasRenderer</code>・<code>HideFlags.DontSave</code>）を作り、<code>pivot</code> を 0、<code>sizeDelta</code> を 0、<code>localPosition</code> をペン原点にする。そのうえで <code>CanvasRenderer</code> の口へ次の順に渡す。</p>
+<figure class="fig" id="fig-slots">
+<!-- gen:FIG_SLOTS -->
+<div class="scroll"><svg class="dia" viewBox="0 0 760 380" width="760" height="380" role="img" aria-label="CanvasRenderer の 5 つの口と、T2Font が渡す物・シェーダが受け取る物" xmlns="http://www.w3.org/2000/svg">
+<text class="lbl-b" x="16" y="24" text-anchor="start">T2Font が用意する物</text>
+<text class="lbl-b" x="300" y="24" text-anchor="start">CanvasRenderer</text>
+<text class="lbl-b" x="520" y="24" text-anchor="start">シェーダが受け取る物</text>
+<rect class="node host" x="290" y="34" width="196" height="294" rx="6"/>
+<rect class="node" x="16" y="40" width="246" height="48" rx="5"/>
+<text class="lbl-s mono" x="26" y="60" text-anchor="start">GlyphGeometry.CopyTo(mesh, 48)</text>
+<text class="lbl-s" x="26" y="77" text-anchor="start">位置は em × 48・UV0 は em のまま</text>
+<rect class="node in" x="300" y="46" width="176" height="36" rx="4"/>
+<text class="lbl-s mono" x="310" y="69" text-anchor="start">SetMesh(mesh)</text>
+<rect class="node sdf" x="520" y="40" width="224" height="48" rx="5"/>
+<text class="lbl-s mono" x="530" y="69" text-anchor="start">POSITION・TEXCOORD0</text>
+<line class="flow" x1="262" y1="64" x2="296" y2="64"/><polygon class="ah-flow" points="298,64 290,60.4 290,67.6"/>
+<line class="flow" x1="478" y1="64" x2="516" y2="64"/><polygon class="ah-flow" points="518,64 510,60.4 510,67.6"/>
+<rect class="node" x="16" y="98" width="246" height="48" rx="5"/>
+<text class="lbl-s mono" x="26" y="118" text-anchor="start">GlyphMaterialCache.Get(表現, スタイル)</text>
+<text class="lbl-s" x="26" y="135" text-anchor="start">T2Font/SDF・_RangeEm・エッジスタイル</text>
+<rect class="node in" x="300" y="104" width="176" height="36" rx="4"/>
+<text class="lbl-s mono" x="310" y="127" text-anchor="start">SetMaterial(material, 0)</text>
+<rect class="node sdf" x="520" y="98" width="224" height="48" rx="5"/>
+<text class="lbl-s mono" x="530" y="127" text-anchor="start">_RangeEm・_FaceDilate …</text>
+<line class="flow" x1="262" y1="122" x2="296" y2="122"/><polygon class="ah-flow" points="298,122 290,118.4 290,125.6"/>
+<line class="flow" x1="478" y1="122" x2="516" y2="122"/><polygon class="ah-flow" points="518,122 510,118.4 510,125.6"/>
+<rect class="node" x="16" y="156" width="246" height="48" rx="5"/>
+<text class="lbl-s mono" x="26" y="176" text-anchor="start">SdfRepresentation.GetTexture(glyph)</text>
+<text class="lbl-s" x="26" y="193" text-anchor="start">pages[cell.page]</text>
+<rect class="node in" x="300" y="162" width="176" height="36" rx="4"/>
+<text class="lbl-s mono" x="310" y="185" text-anchor="start">SetTexture(page)</text>
+<rect class="node sdf" x="520" y="156" width="224" height="48" rx="5"/>
+<text class="lbl-s mono" x="530" y="185" text-anchor="start">_MainTex</text>
+<line class="flow" x1="262" y1="180" x2="296" y2="180"/><polygon class="ah-flow" points="298,180 290,176.4 290,183.6"/>
+<line class="flow" x1="478" y1="180" x2="516" y2="180"/><polygon class="ah-flow" points="518,180 510,176.4 510,183.6"/>
+<rect class="node" x="16" y="214" width="246" height="48" rx="5"/>
+<text class="lbl-s mono" x="26" y="234" text-anchor="start">faceColor.rgb・alpha</text>
+<text class="lbl-s" x="26" y="251" text-anchor="start">面の色とフェード</text>
+<rect class="node in" x="300" y="220" width="176" height="36" rx="4"/>
+<text class="lbl-s mono" x="310" y="243" text-anchor="start">SetColor(color)</text>
+<rect class="node sdf" x="520" y="214" width="224" height="48" rx="5"/>
+<text class="lbl-s mono" x="530" y="243" text-anchor="start">COLOR（頂点色）</text>
+<line class="flow" x1="262" y1="238" x2="296" y2="238"/><polygon class="ah-flow" points="298,238 290,234.4 290,241.6"/>
+<line class="flow" x1="478" y1="238" x2="516" y2="238"/><polygon class="ah-flow" points="518,238 510,234.4 510,241.6"/>
+<rect class="node" x="16" y="272" width="246" height="48" rx="5"/>
+<text class="lbl-s mono" x="26" y="292" text-anchor="start">RectTransform の矩形</text>
+<text class="lbl-s" x="26" y="309" text-anchor="start">ルートの Canvas の空間</text>
+<rect class="node in" x="300" y="278" width="176" height="36" rx="4"/>
+<text class="lbl-s mono" x="310" y="301" text-anchor="start">EnableRectClipping(rect)</text>
+<rect class="node sdf" x="520" y="272" width="224" height="48" rx="5"/>
+<text class="lbl-s mono" x="530" y="301" text-anchor="start">UNITY_UI_CLIP_RECT・_ClipRect</text>
+<line class="flow" x1="262" y1="296" x2="296" y2="296"/><polygon class="ah-flow" points="298,296 290,292.4 290,299.6"/>
+<line class="flow" x1="478" y1="296" x2="516" y2="296"/><polygon class="ah-flow" points="518,296 510,292.4 510,299.6"/>
+<text class="lbl-s" x="300" y="352" text-anchor="start">materialCount = 1 を先に</text>
+<text class="lbl-s" x="300" y="368" text-anchor="start">SetMesh は最後に呼ぶ</text>
+<text class="lbl-s" x="520" y="352" text-anchor="start">テクスチャとクリップは</text>
+<text class="lbl-s" x="520" y="368" text-anchor="start">Canvas がバッチへ渡す</text>
+</svg></div>
+<!-- /gen -->
+<figcaption><span class="fn">図 5</span>字 1 つの <code>CanvasRenderer</code> に渡す物（上から呼ぶ順）。<code>materialCount</code> を先に入れないと <code>SetMaterial</code> が効かず何も描かれない。<code>SetMesh</code> は中身を Canvas 側へ写すので、詰め終えてから最後に呼ぶ。</figcaption>
+</figure>
+<ul>
+<li><b>色</b>: <code>SetColor(faceColor.rgb, alpha)</code>。Canvas が頂点色として渡し（色空間の扱いは <a href="#colorspace">§9.2</a>）、シェーダは rgb を面の色、α をフェードとして最後に 1 回だけ掛ける（README §5 S2）。<code>CanvasRenderer</code> の色はバッチの鍵に入らないので、色違いの字もまとまる。</li>
+<li><b>クリップ</b>: <code>ClipToRect</code> のとき、自分の矩形を最上位の Canvas の空間へ写して <code>EnableRectClipping(rect)</code> に渡す（<code>RectMask2D</code> と同じ取り方）。</li>
+</ul>
+<p>見本の文字列では、空白を除く 9 字ぶん、GameObject・<code>CanvasRenderer</code>・<code>Mesh</code> が 9 組できる。ここまでが C# の仕事で、値が変わらない限り次のフレームからは何もしない（<a href="#frame">§10</a>）。</p>
+
+<h2 id="batch"><span class="num">7</span>Canvas がバッチにまとめる</h2>
+<p><code>CanvasRenderer</code> は自分では描かない。親の Canvas が、配下の <code>CanvasRenderer</code> の幾何を集め、描く順に並べ、<b>同じマテリアル × 同じテクスチャが続く所を 1 回の描画（バッチ）にまとめる</b>（README §4.4）。このとき頂点はルートの Canvas の空間へ写され、<code>CanvasRenderer</code> の色が頂点色に入る。矩形クリップを有効にした字のバッチには、Canvas がキーワード <code>UNITY_UI_CLIP_RECT</code> と <code>_ClipRect</code> を渡す。</p>
+<figure class="fig" id="fig-batch">
+<!-- gen:FIG_BATCH -->
+<div class="scroll"><svg class="dia" viewBox="0 0 760 322" width="760" height="322" role="img" aria-label="Canvas が同じマテリアルとテクスチャの字を 1 回の描画にまとめる図" xmlns="http://www.w3.org/2000/svg">
+<text class="lbl-s" x="16" y="18" text-anchor="start">T2FontText 1（エッジスタイル None）— 字ごとの CanvasRenderer（空白は幾何が無いので作らない）</text>
+<rect class="node" x="16" y="26" width="73.78" height="52" rx="4"/>
+<text class="node-t" x="52.89" y="50" text-anchor="middle">T</text>
+<text class="lbl-s mono" x="52.89" y="68" text-anchor="middle">A × p0</text>
+<rect class="node" x="97.78" y="26" width="73.78" height="52" rx="4"/>
+<text class="node-t" x="134.67" y="50" text-anchor="middle">2</text>
+<text class="lbl-s mono" x="134.67" y="68" text-anchor="middle">A × p0</text>
+<rect class="node" x="179.56" y="26" width="73.78" height="52" rx="4"/>
+<text class="node-t" x="216.44" y="50" text-anchor="middle">F</text>
+<text class="lbl-s mono" x="216.44" y="68" text-anchor="middle">A × p0</text>
+<rect class="node" x="261.33" y="26" width="73.78" height="52" rx="4"/>
+<text class="node-t" x="298.22" y="50" text-anchor="middle">o</text>
+<text class="lbl-s mono" x="298.22" y="68" text-anchor="middle">A × p0</text>
+<rect class="node" x="343.11" y="26" width="73.78" height="52" rx="4"/>
+<text class="node-t" x="380" y="50" text-anchor="middle">n</text>
+<text class="lbl-s mono" x="380" y="68" text-anchor="middle">A × p0</text>
+<rect class="node" x="424.89" y="26" width="73.78" height="52" rx="4"/>
+<text class="node-t" x="461.78" y="50" text-anchor="middle">t</text>
+<text class="lbl-s mono" x="461.78" y="68" text-anchor="middle">A × p0</text>
+<rect class="node" x="506.67" y="26" width="73.78" height="52" rx="4"/>
+<text class="node-t" x="543.56" y="50" text-anchor="middle">永</text>
+<text class="lbl-s mono" x="543.56" y="68" text-anchor="middle">A × p0</text>
+<rect class="node" x="588.44" y="26" width="73.78" height="52" rx="4"/>
+<text class="node-t" x="625.33" y="50" text-anchor="middle">あ</text>
+<text class="lbl-s mono" x="625.33" y="68" text-anchor="middle">A × p0</text>
+<rect class="node" x="670.22" y="26" width="73.78" height="52" rx="4"/>
+<text class="node-t" x="707.11" y="50" text-anchor="middle">ア</text>
+<text class="lbl-s mono" x="707.11" y="68" text-anchor="middle">A × p0</text>
+<line class="flow" x1="380" y1="80" x2="380" y2="102"/><polygon class="ah-flow" points="380,104 376.4,96 383.6,96"/>
+<rect class="node sdf" x="16" y="106" width="728" height="46" rx="6"/><text class="node-t" x="28" y="128" text-anchor="start">バッチ 1: マテリアル A × ページ 0 → 描画 1 回</text>
+<text class="lbl-s mono" x="732" y="128" text-anchor="end">9 quad・36 頂点・18 三角形</text>
+<text class="lbl-s" x="16" y="174" text-anchor="start">T2FontText 2（縁取り 0.05em）— エッジスタイルが違うのでマテリアル B</text>
+<rect class="node" x="16" y="182" width="73.78" height="52" rx="4"/>
+<text class="node-t" x="52.89" y="206" text-anchor="middle">永</text>
+<text class="lbl-s mono" x="52.89" y="224" text-anchor="middle">B × p0</text>
+<rect class="node" x="97.78" y="182" width="73.78" height="52" rx="4"/>
+<text class="node-t" x="134.67" y="206" text-anchor="middle">あ</text>
+<text class="lbl-s mono" x="134.67" y="224" text-anchor="middle">B × p0</text>
+<rect class="node" x="179.56" y="182" width="73.78" height="52" rx="4"/>
+<text class="node-t" x="216.44" y="206" text-anchor="middle">ア</text>
+<text class="lbl-s mono" x="216.44" y="224" text-anchor="middle">B × p0</text>
+<line class="flow" x1="134.67" y1="236" x2="134.67" y2="258"/><polygon class="ah-flow" points="134.67,260 131.07,252 138.27,252"/>
+<rect class="node sdf" x="16" y="262" width="237.33" height="46" rx="6"/><text class="node-t" x="28" y="284" text-anchor="start">バッチ 2: マテリアル B × ページ 0</text>
+<text class="lbl-s" x="269.33" y="290" text-anchor="start">マテリアルかテクスチャが変わる所でバッチが分かれる</text>
+</svg></div>
+<!-- /gen -->
+<figcaption><span class="fn">図 6</span>見本の文字列（上）は 9 字すべてが同じマテリアル A と同じページなので、1 回の描画になる。エッジスタイルが違えばマテリアルが違うのでバッチが分かれる（下）。フォントやページが違えばテクスチャが違うので、やはり分かれる。</figcaption>
+</figure>
+<p>Canvas は変わった所だけバッチを作り直し、変わらなければ前のフレームのバッチをそのまま描く。GPU は毎フレーム描くが、C# の側（§3〜§6）は値が変わったときしか回らない。</p>
+
+<h2 id="gpu"><span class="num">8</span>GPU で描く</h2>
+<p>バッチ 1 つが描画の呼び出し 1 回になり、GPU の上で下の段を流れる。シェーダは README §5 の契約（S1〜S8）を満たす。</p>
+<figure class="fig" id="fig-gpu">
+<!-- gen:FIG_GPU -->
+<div class="scroll"><svg class="dia" viewBox="0 0 760 525" width="760" height="525" role="img" aria-label="GPU の上の段の流れ図" xmlns="http://www.w3.org/2000/svg">
+<rect class="node in" x="40" y="16" width="680" height="61" rx="6"/><text class="node-t" x="52" y="38" text-anchor="start">バッチの頂点</text><text class="node-s" x="52" y="57" text-anchor="start">POSITION（ルートの Canvas の空間）・COLOR・TEXCOORD0（u, v, emX, emY）</text><text class="asm" x="710" y="38" text-anchor="end">Canvas</text>
+<line class="flow" x1="380" y1="77" x2="380" y2="95"/><polygon class="ah-flow" points="380,97 376.4,89 383.6,89"/>
+<rect class="node step" x="40" y="99" width="680" height="61" rx="6"/><text class="node-t" x="52" y="121" text-anchor="start">頂点シェーダ vert</text><text class="node-s" x="52" y="140" text-anchor="start">UnityObjectToClipPos(position) → クリップ空間・色と UV0 と canvasPos をそのまま渡す</text><text class="asm" x="710" y="121" text-anchor="end">シェーダ</text>
+<line class="flow" x1="380" y1="160" x2="380" y2="178"/><polygon class="ah-flow" points="380,180 376.4,172 383.6,172"/>
+<rect class="node step" x="40" y="182" width="680" height="78" rx="6"/><text class="node-t" x="52" y="204" text-anchor="start">ラスタライズ</text><text class="node-s" x="52" y="223" text-anchor="start">三角形が覆う画素の中心ごとにフラグメントを作り、varying を補間する</text><text class="node-s" x="52" y="239" text-anchor="start">2×2 の画素を組にして回すので ddx・ddy が隣との差として取れる</text><text class="asm" x="710" y="204" text-anchor="end">GPU の固定機能</text>
+<line class="flow" x1="380" y1="260" x2="380" y2="278"/><polygon class="ah-flow" points="380,280 376.4,272 383.6,272"/>
+<rect class="node sdf" x="40" y="282" width="680" height="78" rx="6"/><text class="node-t" x="52" y="304" text-anchor="start">フラグメントシェーダ frag</text><text class="node-s" x="52" y="323" text-anchor="start">tex2D(_MainTex, uv).r → 距離 s（em）・UV0.zw の微分 → 1 表示 px の em</text><text class="node-s" x="52" y="339" text-anchor="start">→ 被覆率 ao・af → 面と縁取りの色 → フェード → クリップ</text><text class="asm" x="710" y="304" text-anchor="end">シェーダ</text>
+<line class="flow" x1="380" y1="360" x2="380" y2="378"/><polygon class="ah-flow" points="380,380 376.4,372 383.6,372"/>
+<rect class="node step" x="40" y="382" width="680" height="61" rx="6"/><text class="node-t" x="52" y="404" text-anchor="start">ブレンド</text><text class="node-s" x="52" y="423" text-anchor="start">Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha・ZWrite Off・Cull Off</text><text class="asm" x="710" y="404" text-anchor="end">GPU の固定機能</text>
+<line class="flow" x1="380" y1="443" x2="380" y2="461"/><polygon class="ah-flow" points="380,463 376.4,455 383.6,455"/>
+<rect class="node host" x="40" y="465" width="680" height="44" rx="6"/><text class="node-t" x="52" y="487" text-anchor="start">レンダーターゲットの画素</text><text class="asm" x="710" y="487" text-anchor="end">§9</text>
+</svg></div>
+<!-- /gen -->
+<figcaption><span class="fn">図 7</span>GPU の上の段。シェーダが書くのは頂点シェーダとフラグメントシェーダで、ラスタライズとブレンドは GPU の固定機能をシェーダの設定で動かす。</figcaption>
+</figure>
+
+<h3 id="state"><span class="num">8.1</span>描画の設定</h3>
+<div class="tbl"><table>
+<thead><tr><th>設定</th><th>値</th><th>意味</th></tr></thead>
+<tbody>
+<tr><td class="mono">Tags</td><td class="mono">Queue=Transparent・RenderType=Transparent</td><td>カメラが描く Canvas では透明物の並びに入る（§9.1）</td></tr>
+<tr><td class="mono">Cull</td><td class="mono">[_CullMode]（既定 0 ＝ Off）</td><td>裏返した字も描く</td></tr>
+<tr><td class="mono">ZWrite・ZTest</td><td class="mono">Off・[unity_GUIZTestMode]</td><td>深度を書かない。深度の判定は Canvas が描画モードに合わせて決める</td></tr>
+<tr><td class="mono">Blend</td><td class="mono">SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha</td><td>rgb は straight α、α は over（README §5 S6・<a href="#blend">§8.6</a>）</td></tr>
+<tr><td class="mono">multi_compile</td><td class="mono">__ UNITY_UI_CLIP_RECT</td><td>矩形クリップの変種。マテリアルを実行時に作るので <code>shader_feature</code> にするとビルドで落ちる（README §5 S7）</td></tr>
+</tbody></table></div>
+
+<h3 id="vert"><span class="num">8.2</span>頂点シェーダ</h3>
+<p>入力は POSITION・COLOR・TEXCOORD0（float4）だけ（README §5 S1）。追加の頂点チャネル（<code>Canvas.additionalShaderChannels</code>）は Canvas 全体の設定なので使わない。<code>vert</code> は位置を <code>UnityObjectToClipPos</code> でクリップ空間へ写し、色と UV0 はそのまま渡し、クリップの判定用に位置（ルートの Canvas の空間）を <code>canvasPos</code> として渡す。<code>_ClipRect</code> も同じ空間で来るので、そのまま比べられる。</p>
+
+<h3 id="raster"><span class="num">8.3</span>ラスタライズ</h3>
+<p>GPU は三角形が覆う画素の中心ごとにフラグメントを 1 つ作り、頂点の値（色・UV0・canvasPos）を三角形の中で補間して渡す。quad の 2 つの三角形は対角線を共有するので、境の画素は片方にだけ入る。フラグメントは 2×2 の画素を組にして回すので、<code>ddx</code>・<code>ddy</code> は隣の画素との値の差として取れる。</p>
+<p>見本では fontSize が emPx と同じ 48 なので、「あ」の quad は画面でもページと同じ 57×60 px になり、1 画素がおよそ 1 texel に当たる（ペン原点が画素の格子に揃っていないぶん、読む位置は texel の中心からずれる）。fontSize を変えると、同じ quad が画面の多い（少ない）画素を覆い、ページを bilinear で拡大（縮小）して読む。</p>
+
+<h3 id="frag"><span class="num">8.4</span>フラグメントシェーダ</h3>
+<p><code>frag</code> は画素ごとに次を計算する。図 8 は各段の値を、同じ式で CPU で計算した画像。</p>
+<ol>
+<li><b>距離を読む</b>: <code>s = (tex2D(_MainTex, uv0.xy).r − 0.5) × 2 × _RangeEm</code>。符号化（02 章 §6.1）の逆で、輪郭からの距離（em・インク領域の内側が正）に戻す。距離は bilinear で補間して読むので、ページの texel より細かく輪郭が決まる。</li>
+<li><b>1 表示 px の em</b>: <code>emPerPx = ½ (|∇uv0.z| ＋ |∇uv0.w|)</code>（∇ は ddx・ddy の組）。UV0.zw は quad の中で一次なので微分は quad の中で一定で、回転・拡縮しても正しい（README §5 S3）。回転も拡縮もしない見本では 1 ÷ 48 ≒ 0.02083em。距離 s の <code>fwidth</code> を使わないのは、bilinear の区分ごとに値が変わり、距離レンジの外では 0 になるため。</li>
+<li><b>2 つの境界</b>: 面の縁は <code>s = −_FaceDilate</code>、縁取りの外縁は <code>s = −(_FaceDilate ＋ _OutlineWidth)</code>。</li>
+<li><b>被覆率</b>: 縁取り込みの形 <code>ao = saturate((s − 外縁) ÷ (emPerPx ＋ _OutlineSoftness) ＋ 0.5)</code>、面 <code>af = min(saturate((s − 面の縁) ÷ (emPerPx ＋ _FaceSoftness) ＋ 0.5), ao)</code>。ランプは境界を中心に置くので、ぼかしを足しても 50% の位置は動かない（README §6.1）。ぼかしが 0 ならランプの幅は画面の 1px。</li>
+<li><b>入れ子の面積で合成する</b>: 面が af、縁取りの帯が <code>ao − af</code>。<code>aOutline = _OutlineColor.a × (ao − af)</code>、<code>a = af ＋ aOutline</code>、premultiplied の色 <code>face.rgb × af ＋ _OutlineColor.rgb × aOutline</code> を足してから a で割って straight に戻す（README §5 S4）。</li>
+<li><b>フェード</b>: 出力の α に頂点色の α を最後に 1 回だけ掛ける（README §5 S2）。</li>
+</ol>
+<figure class="fig" id="fig-frag">
+<div class="quad">
+<figure><!-- gen:PANEL_R --><svg class="dia narrow" viewBox="-3 0 67 64" role="img" aria-label="あ の tex.r" xmlns="http://www.w3.org/2000/svg"><image href="03-atlas-to-screen/frag-r.png" x="0" y="0" width="61" height="64" style="image-rendering:pixelated" preserveAspectRatio="none"/><polygon class="ah-ctrl" points="-0.2,34.5 -3,32.8 -3,36.2"/><polygon class="ah-ctrl" points="61.2,34.5 64,32.8 64,36.2"/></svg><!-- /gen --><figcaption>(a) <code>tex.r</code>（bilinear で読んだ値）</figcaption></figure>
+<figure><!-- gen:PANEL_AO --><svg class="dia narrow" viewBox="-3 0 67 64" role="img" aria-label="あ の ao" xmlns="http://www.w3.org/2000/svg"><image class="inv" href="03-atlas-to-screen/frag-ao.png" x="0" y="0" width="61" height="64" style="image-rendering:pixelated" preserveAspectRatio="none"/><polygon class="ah-ctrl" points="-0.2,34.5 -3,32.8 -3,36.2"/><polygon class="ah-ctrl" points="61.2,34.5 64,32.8 64,36.2"/></svg><!-- /gen --><figcaption>(b) <code>ao</code>（縁取り込みの形）</figcaption></figure>
+<figure><!-- gen:PANEL_AF --><svg class="dia narrow" viewBox="-3 0 67 64" role="img" aria-label="あ の af" xmlns="http://www.w3.org/2000/svg"><image class="inv" href="03-atlas-to-screen/frag-af.png" x="0" y="0" width="61" height="64" style="image-rendering:pixelated" preserveAspectRatio="none"/><polygon class="ah-ctrl" points="-0.2,34.5 -3,32.8 -3,36.2"/><polygon class="ah-ctrl" points="61.2,34.5 64,32.8 64,36.2"/></svg><!-- /gen --><figcaption>(c) <code>af</code>（面）</figcaption></figure>
+<figure><!-- gen:PANEL_OUT --><svg class="dia narrow" viewBox="-3 0 67 64" role="img" aria-label="あ をブレンドした結果" xmlns="http://www.w3.org/2000/svg"><image href="03-atlas-to-screen/frag-out.png" x="0" y="0" width="61" height="64" style="image-rendering:pixelated" preserveAspectRatio="none"/><polygon class="ah-ctrl" points="-0.2,34.5 -3,32.8 -3,36.2"/><polygon class="ah-ctrl" points="61.2,34.5 64,32.8 64,36.2"/></svg><!-- /gen --><figcaption>(d) ブレンドした結果</figcaption></figure>
+</div>
+<figcaption><span class="fn">図 8</span>「あ」を 48px・縁取り 0.05em（黒）・面の色 白で描いたときのフラグメントの値（実データ。1 マス＝画面の 1 画素。地の色の所は quad の外でフラグメントが無い）。(d) は比較の場面のカメラの背景色 (0.32, 0.36, 0.42) の上へブレンドして sRGB で書いた色。◀ の行の断面が図 9。</figcaption>
+</figure>
+<figure class="fig" id="fig-section">
+<!-- gen:FIG_SECTION -->
+<div class="scroll"><svg class="dia" viewBox="0 0 760 432" width="760" height="432" role="img" aria-label="あ を 48px で描いたときの 1 行の断面。距離と 2 つの被覆率" xmlns="http://www.w3.org/2000/svg">
+<line class="grid" x1="97.14" y1="26" x2="97.14" y2="196"/>
+<line class="grid" x1="97.14" y1="268" x2="97.14" y2="388"/>
+<line class="grid" x1="108.65" y1="26" x2="108.65" y2="196"/>
+<line class="grid" x1="108.65" y1="268" x2="108.65" y2="388"/>
+<line class="grid" x1="120.16" y1="26" x2="120.16" y2="196"/>
+<line class="grid" x1="120.16" y1="268" x2="120.16" y2="388"/>
+<line class="grid" x1="131.67" y1="26" x2="131.67" y2="196"/>
+<line class="grid" x1="131.67" y1="268" x2="131.67" y2="388"/>
+<line class="grid" x1="143.18" y1="26" x2="143.18" y2="196"/>
+<line class="grid" x1="143.18" y1="268" x2="143.18" y2="388"/>
+<line class="grid" x1="154.68" y1="26" x2="154.68" y2="196"/>
+<line class="grid" x1="154.68" y1="268" x2="154.68" y2="388"/>
+<line class="grid" x1="166.19" y1="26" x2="166.19" y2="196"/>
+<line class="grid" x1="166.19" y1="268" x2="166.19" y2="388"/>
+<line class="grid" x1="177.7" y1="26" x2="177.7" y2="196"/>
+<line class="grid" x1="177.7" y1="268" x2="177.7" y2="388"/>
+<line class="grid" x1="189.21" y1="26" x2="189.21" y2="196"/>
+<line class="grid" x1="189.21" y1="268" x2="189.21" y2="388"/>
+<line class="grid" x1="200.72" y1="26" x2="200.72" y2="196"/>
+<line class="grid" x1="200.72" y1="268" x2="200.72" y2="388"/>
+<line class="grid" x1="212.23" y1="26" x2="212.23" y2="196"/>
+<line class="grid" x1="212.23" y1="268" x2="212.23" y2="388"/>
+<line class="grid" x1="223.74" y1="26" x2="223.74" y2="196"/>
+<line class="grid" x1="223.74" y1="268" x2="223.74" y2="388"/>
+<line class="grid" x1="235.25" y1="26" x2="235.25" y2="196"/>
+<line class="grid" x1="235.25" y1="268" x2="235.25" y2="388"/>
+<line class="grid" x1="246.75" y1="26" x2="246.75" y2="196"/>
+<line class="grid" x1="246.75" y1="268" x2="246.75" y2="388"/>
+<line class="grid" x1="258.26" y1="26" x2="258.26" y2="196"/>
+<line class="grid" x1="258.26" y1="268" x2="258.26" y2="388"/>
+<line class="grid" x1="269.77" y1="26" x2="269.77" y2="196"/>
+<line class="grid" x1="269.77" y1="268" x2="269.77" y2="388"/>
+<line class="grid" x1="281.28" y1="26" x2="281.28" y2="196"/>
+<line class="grid" x1="281.28" y1="268" x2="281.28" y2="388"/>
+<line class="grid" x1="292.79" y1="26" x2="292.79" y2="196"/>
+<line class="grid" x1="292.79" y1="268" x2="292.79" y2="388"/>
+<line class="grid" x1="304.3" y1="26" x2="304.3" y2="196"/>
+<line class="grid" x1="304.3" y1="268" x2="304.3" y2="388"/>
+<line class="grid" x1="315.81" y1="26" x2="315.81" y2="196"/>
+<line class="grid" x1="315.81" y1="268" x2="315.81" y2="388"/>
+<line class="grid" x1="327.32" y1="26" x2="327.32" y2="196"/>
+<line class="grid" x1="327.32" y1="268" x2="327.32" y2="388"/>
+<line class="grid" x1="338.82" y1="26" x2="338.82" y2="196"/>
+<line class="grid" x1="338.82" y1="268" x2="338.82" y2="388"/>
+<line class="grid" x1="350.33" y1="26" x2="350.33" y2="196"/>
+<line class="grid" x1="350.33" y1="268" x2="350.33" y2="388"/>
+<line class="grid" x1="361.84" y1="26" x2="361.84" y2="196"/>
+<line class="grid" x1="361.84" y1="268" x2="361.84" y2="388"/>
+<line class="grid" x1="373.35" y1="26" x2="373.35" y2="196"/>
+<line class="grid" x1="373.35" y1="268" x2="373.35" y2="388"/>
+<line class="grid" x1="384.86" y1="26" x2="384.86" y2="196"/>
+<line class="grid" x1="384.86" y1="268" x2="384.86" y2="388"/>
+<line class="grid" x1="396.37" y1="26" x2="396.37" y2="196"/>
+<line class="grid" x1="396.37" y1="268" x2="396.37" y2="388"/>
+<line class="grid" x1="407.88" y1="26" x2="407.88" y2="196"/>
+<line class="grid" x1="407.88" y1="268" x2="407.88" y2="388"/>
+<line class="grid" x1="419.39" y1="26" x2="419.39" y2="196"/>
+<line class="grid" x1="419.39" y1="268" x2="419.39" y2="388"/>
+<line class="grid" x1="430.89" y1="26" x2="430.89" y2="196"/>
+<line class="grid" x1="430.89" y1="268" x2="430.89" y2="388"/>
+<line class="grid" x1="442.4" y1="26" x2="442.4" y2="196"/>
+<line class="grid" x1="442.4" y1="268" x2="442.4" y2="388"/>
+<line class="grid" x1="453.91" y1="26" x2="453.91" y2="196"/>
+<line class="grid" x1="453.91" y1="268" x2="453.91" y2="388"/>
+<line class="grid" x1="465.42" y1="26" x2="465.42" y2="196"/>
+<line class="grid" x1="465.42" y1="268" x2="465.42" y2="388"/>
+<line class="grid" x1="476.93" y1="26" x2="476.93" y2="196"/>
+<line class="grid" x1="476.93" y1="268" x2="476.93" y2="388"/>
+<line class="grid" x1="488.44" y1="26" x2="488.44" y2="196"/>
+<line class="grid" x1="488.44" y1="268" x2="488.44" y2="388"/>
+<line class="grid" x1="499.95" y1="26" x2="499.95" y2="196"/>
+<line class="grid" x1="499.95" y1="268" x2="499.95" y2="388"/>
+<line class="grid" x1="511.46" y1="26" x2="511.46" y2="196"/>
+<line class="grid" x1="511.46" y1="268" x2="511.46" y2="388"/>
+<line class="grid" x1="522.97" y1="26" x2="522.97" y2="196"/>
+<line class="grid" x1="522.97" y1="268" x2="522.97" y2="388"/>
+<line class="grid" x1="534.47" y1="26" x2="534.47" y2="196"/>
+<line class="grid" x1="534.47" y1="268" x2="534.47" y2="388"/>
+<line class="grid" x1="545.98" y1="26" x2="545.98" y2="196"/>
+<line class="grid" x1="545.98" y1="268" x2="545.98" y2="388"/>
+<line class="grid" x1="557.49" y1="26" x2="557.49" y2="196"/>
+<line class="grid" x1="557.49" y1="268" x2="557.49" y2="388"/>
+<line class="grid" x1="569" y1="26" x2="569" y2="196"/>
+<line class="grid" x1="569" y1="268" x2="569" y2="388"/>
+<line class="grid" x1="580.51" y1="26" x2="580.51" y2="196"/>
+<line class="grid" x1="580.51" y1="268" x2="580.51" y2="388"/>
+<line class="grid" x1="592.02" y1="26" x2="592.02" y2="196"/>
+<line class="grid" x1="592.02" y1="268" x2="592.02" y2="388"/>
+<line class="grid" x1="603.53" y1="26" x2="603.53" y2="196"/>
+<line class="grid" x1="603.53" y1="268" x2="603.53" y2="388"/>
+<line class="grid" x1="615.04" y1="26" x2="615.04" y2="196"/>
+<line class="grid" x1="615.04" y1="268" x2="615.04" y2="388"/>
+<line class="grid" x1="626.54" y1="26" x2="626.54" y2="196"/>
+<line class="grid" x1="626.54" y1="268" x2="626.54" y2="388"/>
+<line class="grid" x1="638.05" y1="26" x2="638.05" y2="196"/>
+<line class="grid" x1="638.05" y1="268" x2="638.05" y2="388"/>
+<line class="grid" x1="649.56" y1="26" x2="649.56" y2="196"/>
+<line class="grid" x1="649.56" y1="268" x2="649.56" y2="388"/>
+<line class="grid" x1="661.07" y1="26" x2="661.07" y2="196"/>
+<line class="grid" x1="661.07" y1="268" x2="661.07" y2="388"/>
+<line class="grid" x1="672.58" y1="26" x2="672.58" y2="196"/>
+<line class="grid" x1="672.58" y1="268" x2="672.58" y2="388"/>
+<line class="grid" x1="684.09" y1="26" x2="684.09" y2="196"/>
+<line class="grid" x1="684.09" y1="268" x2="684.09" y2="388"/>
+<line class="grid" x1="695.6" y1="26" x2="695.6" y2="196"/>
+<line class="grid" x1="695.6" y1="268" x2="695.6" y2="388"/>
+<line class="grid" x1="707.11" y1="26" x2="707.11" y2="196"/>
+<line class="grid" x1="707.11" y1="268" x2="707.11" y2="388"/>
+<line class="grid" x1="718.61" y1="26" x2="718.61" y2="196"/>
+<line class="grid" x1="718.61" y1="268" x2="718.61" y2="388"/>
+<line class="grid" x1="730.12" y1="26" x2="730.12" y2="196"/>
+<line class="grid" x1="730.12" y1="268" x2="730.12" y2="388"/>
+<line class="grid" x1="741.63" y1="26" x2="741.63" y2="196"/>
+<line class="grid" x1="741.63" y1="268" x2="741.63" y2="388"/>
+<rect fill="none" stroke="var(--rule-strong)" x="86" y="26" width="656" height="170"/>
+<rect fill="none" stroke="var(--rule-strong)" x="86" y="268" width="656" height="120"/>
+<rect class="band-ext" x="86" y="111" width="656" height="22.67"/>
+<line class="dim-g" x1="86" y1="111" x2="742" y2="111"/>
+<line class="leader-c" x1="86" y1="133.67" x2="742" y2="133.67"/>
+<text class="lbl-s mono" x="80" y="30" text-anchor="end">+0.1875</text>
+<text class="lbl-s mono" x="80" y="115" text-anchor="end">0</text>
+<text class="lbl-s mono" x="80" y="137.67" text-anchor="end">−0.05</text>
+<text class="lbl-s mono" x="80" y="200" text-anchor="end">−0.1875</text>
+<text class="lbl-s" x="80" y="18" text-anchor="end">s（em）</text>
+<polyline class="curve" points="86.0,196.0 86.5,196.0 86.9,196.0 87.4,196.0 87.9,196.0 88.3,196.0 88.8,196.0 89.3,196.0 89.8,196.0 90.2,196.0 90.7,196.0 91.2,196.0 91.6,196.0 92.1,195.9 92.6,195.9 93.0,195.8 93.5,195.7 94.0,195.6 94.4,195.6 94.9,195.5 95.4,195.4 95.8,195.3 96.3,195.3 96.8,195.2 97.3,195.1 97.7,195.0 98.2,195.0 98.7,194.9 99.1,194.8 99.6,194.7 100.1,194.7 100.5,194.6 101.0,194.5 101.5,194.4 101.9,194.3 102.4,194.3 102.9,194.2 103.3,194.1 103.8,193.7 104.3,193.3 104.8,193.0 105.2,192.6 105.7,192.2 106.2,191.8 106.6,191.5 107.1,191.1 107.6,190.7 108.0,190.4 108.5,190.0 109.0,189.6 109.4,189.2 109.9,188.9 110.4,188.5 110.9,188.1 111.3,187.8 111.8,187.4 112.3,187.0 112.7,186.7 113.2,186.3 113.7,185.9 114.1,185.5 114.6,185.2 115.1,184.8 115.5,184.4 116.0,184.1 116.5,183.7 116.9,183.4 117.4,183.0 117.9,182.6 118.4,182.3 118.8,181.9 119.3,181.5 119.8,181.2 120.2,180.8 120.7,180.5 121.2,180.1 121.6,179.7 122.1,179.4 122.6,179.0 123.0,178.6 123.5,178.3 124.0,177.9 124.5,177.5 124.9,177.2 125.4,176.8 125.9,176.5 126.3,176.1 126.8,175.7 127.3,175.4 127.7,175.0 128.2,174.7 128.7,174.3 129.1,174.0 129.6,173.6 130.1,173.3 130.5,172.9 131.0,172.6 131.5,172.2 132.0,171.9 132.4,171.5 132.9,171.2 133.4,170.8 133.8,170.4 134.3,170.1 134.8,169.7 135.2,169.4 135.7,169.0 136.2,168.7 136.6,168.3 137.1,168.0 137.6,167.6 138.0,167.3 138.5,166.9 139.0,166.6 139.5,166.2 139.9,165.9 140.4,165.5 140.9,165.2 141.3,164.8 141.8,164.4 142.3,164.1 142.7,163.7 143.2,163.4 143.7,163.0 144.1,162.7 144.6,162.3 145.1,162.0 145.6,161.6 146.0,161.3 146.5,160.9 147.0,160.6 147.4,160.2 147.9,159.9 148.4,159.5 148.8,159.2 149.3,158.8 149.8,158.4 150.2,158.1 150.7,157.7 151.2,157.3 151.6,157.0 152.1,156.6 152.6,156.3 153.1,155.9 153.5,155.5 154.0,155.2 154.5,154.8 154.9,154.4 155.4,154.1 155.9,153.7 156.3,153.4 156.8,153.0 157.3,152.6 157.7,152.3 158.2,151.9 158.7,151.5 159.1,151.2 159.6,150.8 160.1,150.5 160.6,150.1 161.0,149.7 161.5,149.4 162.0,149.0 162.4,148.7 162.9,148.4 163.4,148.0 163.8,147.7 164.3,147.3 164.8,147.0 165.2,146.6 165.7,146.3 166.2,146.0 166.7,145.6 167.1,145.3 167.6,144.9 168.1,144.6 168.5,144.2 169.0,143.9 169.5,143.6 169.9,143.2 170.4,142.9 170.9,142.5 171.3,142.2 171.8,141.8 172.3,141.5 172.7,141.2 173.2,140.8 173.7,140.5 174.2,140.2 174.6,139.8 175.1,139.5 175.6,139.1 176.0,138.8 176.5,138.5 177.0,138.1 177.4,137.8 177.9,137.5 178.4,137.1 178.8,136.8 179.3,136.5 179.8,136.1 180.3,135.8 180.7,135.5 181.2,135.1 181.7,134.8 182.1,134.4 182.6,134.1 183.1,133.8 183.5,133.4 184.0,133.1 184.5,132.8 184.9,132.4 185.4,132.1 185.9,131.8 186.3,131.4 186.8,131.1 187.3,130.7 187.8,130.4 188.2,130.1 188.7,129.7 189.2,129.4 189.6,129.1 190.1,128.7 190.6,128.4 191.0,128.1 191.5,127.7 192.0,127.4 192.4,127.1 192.9,126.7 193.4,126.4 193.8,126.0 194.3,125.7 194.8,125.4 195.3,125.0 195.7,124.7 196.2,124.4 196.7,124.1 197.1,123.7 197.6,123.4 198.1,123.1 198.5,122.8 199.0,122.4 199.5,122.1 199.9,121.8 200.4,121.5 200.9,121.1 201.4,120.8 201.8,120.5 202.3,120.2 202.8,119.8 203.2,119.5 203.7,119.2 204.2,118.8 204.6,118.5 205.1,118.2 205.6,117.9 206.0,117.5 206.5,117.2 207.0,116.9 207.4,116.6 207.9,116.2 208.4,115.9 208.9,115.6 209.3,115.3 209.8,114.9 210.3,114.6 210.7,114.3 211.2,114.0 211.7,113.6 212.1,113.3 212.6,113.0 213.1,112.7 213.5,112.3 214.0,112.0 214.5,111.7 214.9,111.4 215.4,111.0 215.9,110.7 216.4,110.4 216.8,110.0 217.3,109.7 217.8,109.4 218.2,109.1 218.7,108.8 219.2,108.4 219.6,108.1 220.1,107.8 220.6,107.5 221.0,107.2 221.5,106.9 222.0,106.6 222.5,106.3 222.9,106.0 223.4,105.7 223.9,105.4 224.3,105.1 224.8,104.7 225.3,104.4 225.7,104.1 226.2,103.8 226.7,103.5 227.1,103.2 227.6,102.9 228.1,102.6 228.5,102.3 229.0,102.0 229.5,101.7 230.0,101.4 230.4,101.2 230.9,101.1 231.4,100.9 231.8,100.7 232.3,100.6 232.8,100.4 233.2,100.2 233.7,100.1 234.2,99.9 234.6,99.8 235.1,99.6 235.6,99.4 236.1,99.3 236.5,99.1 237.0,99.0 237.5,98.8 237.9,98.6 238.4,98.5 238.9,98.3 239.3,98.1 239.8,98.0 240.3,97.8 240.7,97.7 241.2,97.5 241.7,97.6 242.1,97.8 242.6,98.1 243.1,98.3 243.6,98.6 244.0,98.8 244.5,99.1 245.0,99.3 245.4,99.6 245.9,99.8 246.4,100.1 246.8,100.3 247.3,100.6 247.8,100.8 248.2,101.1 248.7,101.3 249.2,101.5 249.6,101.8 250.1,102.0 250.6,102.3 251.1,102.5 251.5,102.8 252.0,103.0 252.5,103.3 252.9,103.5 253.4,103.8 253.9,104.1 254.3,104.4 254.8,104.7 255.3,104.9 255.7,105.2 256.2,105.5 256.7,105.8 257.2,106.1 257.6,106.3 258.1,106.6 258.6,106.9 259.0,107.2 259.5,107.5 260.0,107.7 260.4,108.0 260.9,108.3 261.4,108.6 261.8,108.9 262.3,109.2 262.8,109.4 263.2,109.7 263.7,110.0 264.2,110.3 264.7,110.6 265.1,110.8 265.6,111.1 266.1,111.4 266.5,111.6 267.0,111.9 267.5,112.2 267.9,112.5 268.4,112.7 268.9,113.0 269.3,113.3 269.8,113.5 270.3,113.8 270.7,114.1 271.2,114.4 271.7,114.6 272.2,114.9 272.6,115.2 273.1,115.4 273.6,115.7 274.0,116.0 274.5,116.3 275.0,116.5 275.4,116.8 275.9,117.1 276.4,117.3 276.8,117.6 277.3,117.8 277.8,118.1 278.3,118.3 278.7,118.6 279.2,118.9 279.7,119.1 280.1,119.4 280.6,119.6 281.1,119.9 281.5,120.1 282.0,120.4 282.5,120.6 282.9,120.9 283.4,121.1 283.9,121.4 284.3,121.6 284.8,121.9 285.3,122.2 285.8,122.4 286.2,122.7 286.7,122.9 287.2,123.2 287.6,123.4 288.1,123.7 288.6,123.9 289.0,124.2 289.5,124.4 290.0,124.6 290.4,124.9 290.9,125.1 291.4,125.4 291.8,125.6 292.3,125.9 292.8,126.1 293.3,126.4 293.7,126.6 294.2,126.8 294.7,127.1 295.1,127.3 295.6,127.6 296.1,127.8 296.5,128.1 297.0,128.3 297.5,128.6 297.9,128.8 298.4,129.0 298.9,129.3 299.4,129.2 299.8,129.1 300.3,129.0 300.8,128.9 301.2,128.8 301.7,128.7 302.2,128.6 302.6,128.5 303.1,128.3 303.6,128.2 304.0,128.1 304.5,128.0 305.0,127.9 305.4,127.8 305.9,127.7 306.4,127.6 306.9,127.5 307.3,127.4 307.8,127.3 308.3,127.2 308.7,127.1 309.2,126.9 309.7,126.8 310.1,126.7 310.6,126.5 311.1,126.1 311.5,125.7 312.0,125.3 312.5,124.9 313.0,124.5 313.4,124.1 313.9,123.7 314.4,123.2 314.8,122.8 315.3,122.4 315.8,122.0 316.2,121.6 316.7,121.2 317.2,120.8 317.6,120.4 318.1,120.0 318.6,119.6 319.0,119.2 319.5,118.8 320.0,118.4 320.5,117.9 320.9,117.5 321.4,117.1 321.9,116.7 322.3,116.3 322.8,116.0 323.3,115.6 323.7,115.2 324.2,114.8 324.7,114.4 325.1,114.1 325.6,113.7 326.1,113.3 326.5,112.9 327.0,112.5 327.5,112.2 328.0,111.8 328.4,111.4 328.9,111.0 329.4,110.6 329.8,110.3 330.3,109.9 330.8,109.5 331.2,109.1 331.7,108.7 332.2,108.4 332.6,108.0 333.1,107.6 333.6,107.2 334.1,106.8 334.5,106.5 335.0,106.1 335.5,105.7 335.9,105.3 336.4,104.9 336.9,104.6 337.3,104.2 337.8,103.8 338.3,103.4 338.7,103.0 339.2,102.7 339.7,102.3 340.1,101.9 340.6,101.5 341.1,101.1 341.6,100.8 342.0,100.4 342.5,100.0 343.0,99.6 343.4,99.2 343.9,98.9 344.4,98.5 344.8,98.1 345.3,98.1 345.8,98.2 346.2,98.3 346.7,98.4 347.2,98.5 347.6,98.6 348.1,98.7 348.6,98.8 349.1,99.0 349.5,99.1 350.0,99.2 350.5,99.3 350.9,99.4 351.4,99.5 351.9,99.6 352.3,99.7 352.8,99.8 353.3,99.9 353.7,100.0 354.2,100.1 354.7,100.3 355.2,100.4 355.6,100.5 356.1,100.6 356.6,100.8 357.0,101.1 357.5,101.5 358.0,101.9 358.4,102.3 358.9,102.7 359.4,103.0 359.8,103.4 360.3,103.8 360.8,104.2 361.2,104.6 361.7,104.9 362.2,105.3 362.7,105.7 363.1,106.1 363.6,106.5 364.1,106.8 364.5,107.2 365.0,107.6 365.5,108.0 365.9,108.4 366.4,108.7 366.9,109.1 367.3,109.5 367.8,109.9 368.3,110.3 368.8,110.6 369.2,111.0 369.7,111.4 370.2,111.8 370.6,112.2 371.1,112.5 371.6,112.9 372.0,113.3 372.5,113.7 373.0,114.1 373.4,114.4 373.9,114.8 374.4,115.2 374.8,115.6 375.3,116.0 375.8,116.3 376.3,116.7 376.7,117.1 377.2,117.5 377.7,117.9 378.1,118.2 378.6,118.6 379.1,119.0 379.5,119.4 380.0,119.8 380.5,120.1 380.9,120.5 381.4,120.9 381.9,121.3 382.3,121.7 382.8,122.0 383.3,122.4 383.8,122.8 384.2,123.2 384.7,123.6 385.2,123.9 385.6,124.3 386.1,124.7 386.6,125.1 387.0,125.5 387.5,125.8 388.0,126.2 388.4,126.6 388.9,127.0 389.4,127.4 389.9,127.7 390.3,128.1 390.8,128.5 391.3,128.9 391.7,129.3 392.2,129.7 392.7,130.0 393.1,130.4 393.6,130.8 394.1,131.2 394.5,131.6 395.0,131.9 395.5,132.3 395.9,132.7 396.4,133.1 396.9,133.5 397.4,133.8 397.8,134.2 398.3,134.6 398.8,135.0 399.2,135.4 399.7,135.7 400.2,136.1 400.6,136.5 401.1,136.9 401.6,137.3 402.0,137.6 402.5,138.0 403.0,138.3 403.4,138.6 403.9,138.9 404.4,139.2 404.9,139.5 405.3,139.8 405.8,140.1 406.3,140.4 406.7,140.7 407.2,141.0 407.7,141.3 408.1,141.5 408.6,141.8 409.1,142.1 409.5,142.4 410.0,142.7 410.5,143.0 411.0,143.3 411.4,143.6 411.9,143.9 412.4,144.2 412.8,144.5 413.3,144.8 413.8,145.1 414.2,145.1 414.7,144.8 415.2,144.5 415.6,144.1 416.1,143.8 416.6,143.5 417.0,143.2 417.5,142.9 418.0,142.6 418.5,142.3 418.9,142.0 419.4,141.7 419.9,141.4 420.3,141.1 420.8,140.8 421.3,140.4 421.7,140.1 422.2,139.8 422.7,139.5 423.1,139.2 423.6,138.9 424.1,138.6 424.6,138.3 425.0,138.0 425.5,137.7 426.0,137.3 426.4,137.0 426.9,136.7 427.4,136.4 427.8,136.0 428.3,135.7 428.8,135.4 429.2,135.1 429.7,134.7 430.2,134.4 430.6,134.1 431.1,133.8 431.6,133.4 432.1,133.1 432.5,132.8 433.0,132.5 433.5,132.1 433.9,131.8 434.4,131.5 434.9,131.1 435.3,130.8 435.8,130.5 436.3,130.2 436.7,129.8 437.2,129.5 437.7,129.2 438.1,128.8 438.6,128.5 439.1,128.1 439.6,127.8 440.0,127.5 440.5,127.1 441.0,126.8 441.4,126.4 441.9,126.1 442.4,125.7 442.8,125.4 443.3,125.0 443.8,124.7 444.2,124.4 444.7,124.0 445.2,123.7 445.7,123.3 446.1,123.0 446.6,122.6 447.1,122.3 447.5,122.0 448.0,121.6 448.5,121.3 448.9,120.9 449.4,120.6 449.9,120.3 450.3,120.0 450.8,119.6 451.3,119.3 451.7,119.0 452.2,118.7 452.7,118.3 453.2,118.0 453.6,117.7 454.1,117.4 454.6,117.0 455.0,116.7 455.5,116.4 456.0,116.1 456.4,115.7 456.9,115.4 457.4,115.1 457.8,114.8 458.3,114.4 458.8,114.1 459.2,113.8 459.7,113.4 460.2,113.1 460.7,112.8 461.1,112.5 461.6,112.2 462.1,111.8 462.5,111.5 463.0,111.2 463.5,110.9 463.9,110.6 464.4,110.3 464.9,109.9 465.3,109.6 465.8,109.3 466.3,109.0 466.8,108.7 467.2,108.3 467.7,108.0 468.2,107.7 468.6,107.4 469.1,107.1 469.6,106.8 470.0,106.4 470.5,106.1 471.0,105.8 471.4,105.5 471.9,105.2 472.4,104.9 472.8,104.6 473.3,104.3 473.8,104.0 474.3,103.7 474.7,103.4 475.2,103.1 475.7,102.8 476.1,102.5 476.6,102.2 477.1,101.9 477.5,101.7 478.0,101.4 478.5,101.1 478.9,100.8 479.4,100.5 479.9,100.2 480.4,99.9 480.8,99.6 481.3,99.3 481.8,99.0 482.2,98.7 482.7,98.4 483.2,98.2 483.6,98.4 484.1,98.6 484.6,98.8 485.0,99.0 485.5,99.2 486.0,99.4 486.4,99.5 486.9,99.7 487.4,99.9 487.9,100.1 488.3,100.3 488.8,100.5 489.3,100.7 489.7,100.8 490.2,101.0 490.7,101.2 491.1,101.4 491.6,101.6 492.1,101.8 492.5,102.0 493.0,102.2 493.5,102.3 493.9,102.5 494.4,102.7 494.9,103.0 495.4,103.3 495.8,103.7 496.3,104.0 496.8,104.3 497.2,104.6 497.7,105.0 498.2,105.3 498.6,105.6 499.1,105.9 499.6,106.3 500.0,106.6 500.5,106.9 501.0,107.2 501.5,107.6 501.9,107.9 502.4,108.2 502.9,108.5 503.3,108.9 503.8,109.2 504.3,109.5 504.7,109.8 505.2,110.2 505.7,110.5 506.1,110.8 506.6,111.2 507.1,111.5 507.5,111.8 508.0,112.2 508.5,112.5 509.0,112.8 509.4,113.2 509.9,113.5 510.4,113.8 510.8,114.2 511.3,114.5 511.8,114.9 512.2,115.2 512.7,115.5 513.2,115.9 513.6,116.2 514.1,116.5 514.6,116.9 515.0,117.2 515.5,117.5 516.0,117.9 516.5,118.2 516.9,118.5 517.4,118.9 517.9,119.2 518.3,119.6 518.8,120.0 519.3,120.3 519.7,120.7 520.2,121.0 520.7,121.4 521.1,121.8 521.6,122.1 522.1,122.5 522.6,122.8 523.0,123.2 523.5,123.6 524.0,123.9 524.4,124.3 524.9,124.6 525.4,125.0 525.8,125.4 526.3,125.7 526.8,126.1 527.2,126.4 527.7,126.8 528.2,127.2 528.6,127.5 529.1,127.9 529.6,128.2 530.1,128.6 530.5,128.9 531.0,129.3 531.5,129.7 531.9,130.0 532.4,130.4 532.9,130.7 533.3,131.1 533.8,131.4 534.3,131.8 534.7,132.1 535.2,132.5 535.7,132.8 536.2,133.2 536.6,133.5 537.1,133.9 537.6,134.2 538.0,134.6 538.5,135.0 539.0,135.3 539.4,135.7 539.9,136.0 540.4,136.4 540.8,136.5 541.3,136.4 541.8,136.3 542.2,136.2 542.7,136.1 543.2,135.9 543.7,135.8 544.1,135.7 544.6,135.6 545.1,135.5 545.5,135.4 546.0,135.3 546.5,135.2 546.9,135.1 547.4,135.0 547.9,134.9 548.3,134.8 548.8,134.7 549.3,134.6 549.7,134.5 550.2,134.3 550.7,134.2 551.2,134.1 551.6,134.0 552.1,133.9 552.6,133.6 553.0,133.3 553.5,133.0 554.0,132.7 554.4,132.4 554.9,132.1 555.4,131.8 555.8,131.5 556.3,131.2 556.8,130.8 557.3,130.5 557.7,130.2 558.2,129.9 558.7,129.6 559.1,129.3 559.6,129.0 560.1,128.7 560.5,128.4 561.0,128.1 561.5,127.8 561.9,127.4 562.4,127.1 562.9,126.8 563.3,126.5 563.8,126.2 564.3,125.9 564.8,125.6 565.2,125.2 565.7,124.9 566.2,124.6 566.6,124.3 567.1,123.9 567.6,123.6 568.0,123.3 568.5,122.9 569.0,122.6 569.4,122.3 569.9,122.0 570.4,121.6 570.8,121.3 571.3,121.0 571.8,120.7 572.3,120.3 572.7,120.0 573.2,119.7 573.7,119.4 574.1,119.0 574.6,118.7 575.1,118.4 575.5,118.1 576.0,117.7 576.5,117.4 576.9,117.1 577.4,116.8 577.9,116.5 578.4,116.2 578.8,115.8 579.3,115.5 579.8,115.2 580.2,114.9 580.7,114.6 581.2,114.2 581.6,113.9 582.1,113.6 582.6,113.3 583.0,113.0 583.5,112.7 584.0,112.3 584.4,112.0 584.9,111.7 585.4,111.4 585.9,111.1 586.3,110.7 586.8,110.4 587.3,110.1 587.7,109.7 588.2,109.4 588.7,109.0 589.1,108.7 589.6,108.4 590.1,108.0 590.5,107.7 591.0,107.3 591.5,107.0 591.9,106.6 592.4,106.3 592.9,106.0 593.4,105.6 593.8,105.3 594.3,104.9 594.8,104.6 595.2,104.2 595.7,103.9 596.2,103.5 596.6,103.2 597.1,102.9 597.6,102.5 598.0,102.2 598.5,101.9 599.0,101.7 599.5,101.5 599.9,101.3 600.4,101.1 600.9,100.9 601.3,100.7 601.8,100.5 602.3,100.3 602.7,100.1 603.2,99.9 603.7,99.7 604.1,99.5 604.6,99.3 605.1,99.1 605.5,98.8 606.0,98.6 606.5,98.4 607.0,98.2 607.4,98.0 607.9,97.8 608.4,97.6 608.8,97.4 609.3,97.2 609.8,97.1 610.2,97.5 610.7,97.8 611.2,98.2 611.6,98.5 612.1,98.9 612.6,99.2 613.1,99.6 613.5,100.0 614.0,100.3 614.5,100.7 614.9,101.0 615.4,101.4 615.9,101.7 616.3,102.1 616.8,102.4 617.3,102.8 617.7,103.1 618.2,103.5 618.7,103.8 619.1,104.2 619.6,104.5 620.1,104.9 620.6,105.3 621.0,105.6 621.5,105.9 622.0,106.3 622.4,106.6 622.9,106.9 623.4,107.2 623.8,107.6 624.3,107.9 624.8,108.2 625.2,108.5 625.7,108.9 626.2,109.2 626.6,109.5 627.1,109.8 627.6,110.2 628.1,110.5 628.5,110.8 629.0,111.2 629.5,111.5 629.9,111.8 630.4,112.1 630.9,112.5 631.3,112.8 631.8,113.1 632.3,113.4 632.7,113.8 633.2,114.1 633.7,114.5 634.2,114.8 634.6,115.2 635.1,115.5 635.6,115.9 636.0,116.2 636.5,116.6 637.0,116.9 637.4,117.3 637.9,117.6 638.4,118.0 638.8,118.4 639.3,118.7 639.8,119.1 640.2,119.4 640.7,119.8 641.2,120.1 641.7,120.5 642.1,120.8 642.6,121.2 643.1,121.5 643.5,121.9 644.0,122.2 644.5,122.6 644.9,123.0 645.4,123.4 645.9,123.8 646.3,124.1 646.8,124.5 647.3,124.9 647.7,125.3 648.2,125.7 648.7,126.0 649.2,126.4 649.6,126.8 650.1,127.2 650.6,127.6 651.0,127.9 651.5,128.3 652.0,128.7 652.4,129.1 652.9,129.5 653.4,129.8 653.8,130.2 654.3,130.6 654.8,131.0 655.3,131.4 655.7,131.7 656.2,132.1 656.7,132.5 657.1,132.9 657.6,133.3 658.1,133.6 658.5,134.0 659.0,134.4 659.5,134.8 659.9,135.2 660.4,135.5 660.9,135.9 661.3,136.3 661.8,136.7 662.3,137.1 662.8,137.4 663.2,137.8 663.7,138.2 664.2,138.6 664.6,139.0 665.1,139.3 665.6,139.7 666.0,140.1 666.5,140.5 667.0,140.9 667.4,141.2 667.9,141.6 668.4,142.0 668.9,142.3 669.3,142.7 669.8,143.0 670.3,143.4 670.7,143.8 671.2,144.1 671.7,144.5 672.1,144.9 672.6,145.2 673.1,145.6 673.5,146.0 674.0,146.3 674.5,146.7 674.9,147.0 675.4,147.4 675.9,147.8 676.4,148.1 676.8,148.5 677.3,148.9 677.8,149.2 678.2,149.6 678.7,149.9 679.2,150.3 679.6,150.7 680.1,151.1 680.6,151.5 681.0,151.8 681.5,152.2 682.0,152.6 682.4,153.0 682.9,153.4 683.4,153.7 683.9,154.1 684.3,154.5 684.8,154.9 685.3,155.3 685.7,155.6 686.2,156.0 686.7,156.4 687.1,156.8 687.6,157.2 688.1,157.5 688.5,157.9 689.0,158.3 689.5,158.7 690.0,159.1 690.4,159.4 690.9,159.8 691.4,160.2 691.8,160.5 692.3,160.9 692.8,161.3 693.2,161.6 693.7,162.0 694.2,162.3 694.6,162.7 695.1,163.1 695.6,163.4 696.0,163.8 696.5,164.2 697.0,164.5 697.5,164.9 697.9,165.2 698.4,165.6 698.9,166.0 699.3,166.3 699.8,166.7 700.3,167.1 700.7,167.4 701.2,167.8 701.7,168.2 702.1,168.5 702.6,168.9 703.1,169.3 703.5,169.7 704.0,170.1 704.5,170.4 705.0,170.8 705.4,171.2 705.9,171.6 706.4,172.0 706.8,172.3 707.3,172.7 707.8,173.1 708.2,173.5 708.7,173.9 709.2,174.2 709.6,174.6 710.1,175.0 710.6,175.4 711.1,175.8 711.5,176.1 712.0,176.5 712.5,176.9 712.9,177.3 713.4,177.7 713.9,178.0 714.3,178.4 714.8,178.8 715.3,179.2 715.7,179.6 716.2,179.9 716.7,180.3 717.1,180.7 717.6,181.1 718.1,181.5 718.6,181.8 719.0,182.2 719.5,182.6 720.0,183.0 720.4,183.4 720.9,183.7 721.4,184.1 721.8,184.5 722.3,184.9 722.8,185.3 723.2,185.6 723.7,186.0 724.2,186.4 724.7,186.8 725.1,187.1 725.6,187.5 726.1,187.9 726.5,188.2 727.0,188.6 727.5,189.0 727.9,189.3 728.4,189.7 728.9,190.1 729.3,190.4 729.8,190.8 730.3,191.1 730.7,191.5 731.2,191.9 731.7,192.2 732.2,192.6 732.6,193.0 733.1,193.3 733.6,193.7 734.0,194.0 734.5,194.4 735.0,194.8 735.4,195.1 735.9,195.5 736.4,195.8 736.8,195.8 737.3,195.8 737.8,195.8 738.2,195.8 738.7,195.8 739.2,195.8 739.7,195.8 740.1,195.8 740.6,195.9 741.1,195.9 741.5,195.9 742.0,195.9"/>
+<text class="lbl-s mono" x="80" y="272" text-anchor="end">1</text>
+<text class="lbl-s mono" x="80" y="332" text-anchor="end">0.5</text>
+<text class="lbl-s mono" x="80" y="392" text-anchor="end">0</text>
+<line class="tick" x1="86" y1="328" x2="742" y2="328"/>
+<polyline fill="none" stroke="var(--ctrl)" stroke-width="1.6" points="86.0,388.0 86.5,388.0 86.9,388.0 87.4,388.0 87.9,388.0 88.3,388.0 88.8,388.0 89.3,388.0 89.8,388.0 90.2,388.0 90.7,388.0 91.2,388.0 91.6,388.0 92.1,388.0 92.6,388.0 93.0,388.0 93.5,388.0 94.0,388.0 94.4,388.0 94.9,388.0 95.4,388.0 95.8,388.0 96.3,388.0 96.8,388.0 97.3,388.0 97.7,388.0 98.2,388.0 98.7,388.0 99.1,388.0 99.6,388.0 100.1,388.0 100.5,388.0 101.0,388.0 101.5,388.0 101.9,388.0 102.4,388.0 102.9,388.0 103.3,388.0 103.8,388.0 104.3,388.0 104.8,388.0 105.2,388.0 105.7,388.0 106.2,388.0 106.6,388.0 107.1,388.0 107.6,388.0 108.0,388.0 108.5,388.0 109.0,388.0 109.4,388.0 109.9,388.0 110.4,388.0 110.9,388.0 111.3,388.0 111.8,388.0 112.3,388.0 112.7,388.0 113.2,388.0 113.7,388.0 114.1,388.0 114.6,388.0 115.1,388.0 115.5,388.0 116.0,388.0 116.5,388.0 116.9,388.0 117.4,388.0 117.9,388.0 118.4,388.0 118.8,388.0 119.3,388.0 119.8,388.0 120.2,388.0 120.7,388.0 121.2,388.0 121.6,388.0 122.1,388.0 122.6,388.0 123.0,388.0 123.5,388.0 124.0,388.0 124.5,388.0 124.9,388.0 125.4,388.0 125.9,388.0 126.3,388.0 126.8,388.0 127.3,388.0 127.7,388.0 128.2,388.0 128.7,388.0 129.1,388.0 129.6,388.0 130.1,388.0 130.5,388.0 131.0,388.0 131.5,388.0 132.0,388.0 132.4,388.0 132.9,388.0 133.4,388.0 133.8,388.0 134.3,388.0 134.8,388.0 135.2,388.0 135.7,388.0 136.2,388.0 136.6,388.0 137.1,388.0 137.6,388.0 138.0,388.0 138.5,388.0 139.0,388.0 139.5,388.0 139.9,388.0 140.4,388.0 140.9,388.0 141.3,388.0 141.8,388.0 142.3,388.0 142.7,388.0 143.2,388.0 143.7,388.0 144.1,388.0 144.6,388.0 145.1,388.0 145.6,388.0 146.0,388.0 146.5,388.0 147.0,388.0 147.4,388.0 147.9,388.0 148.4,388.0 148.8,388.0 149.3,388.0 149.8,388.0 150.2,388.0 150.7,388.0 151.2,388.0 151.6,388.0 152.1,388.0 152.6,388.0 153.1,388.0 153.5,388.0 154.0,388.0 154.5,388.0 154.9,388.0 155.4,388.0 155.9,388.0 156.3,388.0 156.8,388.0 157.3,388.0 157.7,388.0 158.2,388.0 158.7,388.0 159.1,388.0 159.6,388.0 160.1,388.0 160.6,388.0 161.0,388.0 161.5,388.0 162.0,388.0 162.4,388.0 162.9,388.0 163.4,388.0 163.8,388.0 164.3,388.0 164.8,388.0 165.2,388.0 165.7,388.0 166.2,388.0 166.7,388.0 167.1,388.0 167.6,388.0 168.1,388.0 168.5,388.0 169.0,388.0 169.5,388.0 169.9,388.0 170.4,388.0 170.9,388.0 171.3,388.0 171.8,388.0 172.3,388.0 172.7,388.0 173.2,388.0 173.7,388.0 174.2,388.0 174.6,388.0 175.1,388.0 175.6,388.0 176.0,388.0 176.5,388.0 177.0,384.8 177.4,380.5 177.9,376.3 178.4,372.0 178.8,367.7 179.3,363.5 179.8,359.2 180.3,354.9 180.7,350.7 181.2,346.4 181.7,342.1 182.1,337.9 182.6,333.6 183.1,329.3 183.5,325.1 184.0,320.8 184.5,316.5 184.9,312.3 185.4,308.0 185.9,303.7 186.3,299.5 186.8,295.2 187.3,290.9 187.8,286.7 188.2,282.4 188.7,278.1 189.2,273.9 189.6,269.6 190.1,268.0 190.6,268.0 191.0,268.0 191.5,268.0 192.0,268.0 192.4,268.0 192.9,268.0 193.4,268.0 193.8,268.0 194.3,268.0 194.8,268.0 195.3,268.0 195.7,268.0 196.2,268.0 196.7,268.0 197.1,268.0 197.6,268.0 198.1,268.0 198.5,268.0 199.0,268.0 199.5,268.0 199.9,268.0 200.4,268.0 200.9,268.0 201.4,268.0 201.8,268.0 202.3,268.0 202.8,268.0 203.2,268.0 203.7,268.0 204.2,268.0 204.6,268.0 205.1,268.0 205.6,268.0 206.0,268.0 206.5,268.0 207.0,268.0 207.4,268.0 207.9,268.0 208.4,268.0 208.9,268.0 209.3,268.0 209.8,268.0 210.3,268.0 210.7,268.0 211.2,268.0 211.7,268.0 212.1,268.0 212.6,268.0 213.1,268.0 213.5,268.0 214.0,268.0 214.5,268.0 214.9,268.0 215.4,268.0 215.9,268.0 216.4,268.0 216.8,268.0 217.3,268.0 217.8,268.0 218.2,268.0 218.7,268.0 219.2,268.0 219.6,268.0 220.1,268.0 220.6,268.0 221.0,268.0 221.5,268.0 222.0,268.0 222.5,268.0 222.9,268.0 223.4,268.0 223.9,268.0 224.3,268.0 224.8,268.0 225.3,268.0 225.7,268.0 226.2,268.0 226.7,268.0 227.1,268.0 227.6,268.0 228.1,268.0 228.5,268.0 229.0,268.0 229.5,268.0 230.0,268.0 230.4,268.0 230.9,268.0 231.4,268.0 231.8,268.0 232.3,268.0 232.8,268.0 233.2,268.0 233.7,268.0 234.2,268.0 234.6,268.0 235.1,268.0 235.6,268.0 236.1,268.0 236.5,268.0 237.0,268.0 237.5,268.0 237.9,268.0 238.4,268.0 238.9,268.0 239.3,268.0 239.8,268.0 240.3,268.0 240.7,268.0 241.2,268.0 241.7,268.0 242.1,268.0 242.6,268.0 243.1,268.0 243.6,268.0 244.0,268.0 244.5,268.0 245.0,268.0 245.4,268.0 245.9,268.0 246.4,268.0 246.8,268.0 247.3,268.0 247.8,268.0 248.2,268.0 248.7,268.0 249.2,268.0 249.6,268.0 250.1,268.0 250.6,268.0 251.1,268.0 251.5,268.0 252.0,268.0 252.5,268.0 252.9,268.0 253.4,268.0 253.9,268.0 254.3,268.0 254.8,268.0 255.3,268.0 255.7,268.0 256.2,268.0 256.7,268.0 257.2,268.0 257.6,268.0 258.1,268.0 258.6,268.0 259.0,268.0 259.5,268.0 260.0,268.0 260.4,268.0 260.9,268.0 261.4,268.0 261.8,268.0 262.3,268.0 262.8,268.0 263.2,268.0 263.7,268.0 264.2,268.0 264.7,268.0 265.1,268.0 265.6,268.0 266.1,268.0 266.5,268.0 267.0,268.0 267.5,268.0 267.9,268.0 268.4,268.0 268.9,268.0 269.3,268.0 269.8,268.0 270.3,268.0 270.7,268.0 271.2,268.0 271.7,268.0 272.2,268.0 272.6,268.0 273.1,268.0 273.6,268.0 274.0,268.0 274.5,268.0 275.0,268.0 275.4,268.0 275.9,268.0 276.4,268.0 276.8,268.0 277.3,268.0 277.8,268.0 278.3,268.0 278.7,268.0 279.2,268.0 279.7,268.0 280.1,268.0 280.6,268.0 281.1,268.0 281.5,268.0 282.0,268.0 282.5,268.0 282.9,268.0 283.4,268.0 283.9,268.0 284.3,268.0 284.8,268.0 285.3,268.0 285.8,268.0 286.2,268.0 286.7,268.0 287.2,268.0 287.6,268.0 288.1,268.0 288.6,268.0 289.0,268.0 289.5,268.0 290.0,268.0 290.4,268.0 290.9,268.0 291.4,268.0 291.8,268.0 292.3,268.0 292.8,268.0 293.3,268.0 293.7,268.0 294.2,268.0 294.7,268.0 295.1,268.0 295.6,268.0 296.1,268.0 296.5,268.0 297.0,268.0 297.5,268.0 297.9,268.0 298.4,269.3 298.9,272.4 299.4,271.3 299.8,270.0 300.3,268.6 300.8,268.0 301.2,268.0 301.7,268.0 302.2,268.0 302.6,268.0 303.1,268.0 303.6,268.0 304.0,268.0 304.5,268.0 305.0,268.0 305.4,268.0 305.9,268.0 306.4,268.0 306.9,268.0 307.3,268.0 307.8,268.0 308.3,268.0 308.7,268.0 309.2,268.0 309.7,268.0 310.1,268.0 310.6,268.0 311.1,268.0 311.5,268.0 312.0,268.0 312.5,268.0 313.0,268.0 313.4,268.0 313.9,268.0 314.4,268.0 314.8,268.0 315.3,268.0 315.8,268.0 316.2,268.0 316.7,268.0 317.2,268.0 317.6,268.0 318.1,268.0 318.6,268.0 319.0,268.0 319.5,268.0 320.0,268.0 320.5,268.0 320.9,268.0 321.4,268.0 321.9,268.0 322.3,268.0 322.8,268.0 323.3,268.0 323.7,268.0 324.2,268.0 324.7,268.0 325.1,268.0 325.6,268.0 326.1,268.0 326.5,268.0 327.0,268.0 327.5,268.0 328.0,268.0 328.4,268.0 328.9,268.0 329.4,268.0 329.8,268.0 330.3,268.0 330.8,268.0 331.2,268.0 331.7,268.0 332.2,268.0 332.6,268.0 333.1,268.0 333.6,268.0 334.1,268.0 334.5,268.0 335.0,268.0 335.5,268.0 335.9,268.0 336.4,268.0 336.9,268.0 337.3,268.0 337.8,268.0 338.3,268.0 338.7,268.0 339.2,268.0 339.7,268.0 340.1,268.0 340.6,268.0 341.1,268.0 341.6,268.0 342.0,268.0 342.5,268.0 343.0,268.0 343.4,268.0 343.9,268.0 344.4,268.0 344.8,268.0 345.3,268.0 345.8,268.0 346.2,268.0 346.7,268.0 347.2,268.0 347.6,268.0 348.1,268.0 348.6,268.0 349.1,268.0 349.5,268.0 350.0,268.0 350.5,268.0 350.9,268.0 351.4,268.0 351.9,268.0 352.3,268.0 352.8,268.0 353.3,268.0 353.7,268.0 354.2,268.0 354.7,268.0 355.2,268.0 355.6,268.0 356.1,268.0 356.6,268.0 357.0,268.0 357.5,268.0 358.0,268.0 358.4,268.0 358.9,268.0 359.4,268.0 359.8,268.0 360.3,268.0 360.8,268.0 361.2,268.0 361.7,268.0 362.2,268.0 362.7,268.0 363.1,268.0 363.6,268.0 364.1,268.0 364.5,268.0 365.0,268.0 365.5,268.0 365.9,268.0 366.4,268.0 366.9,268.0 367.3,268.0 367.8,268.0 368.3,268.0 368.8,268.0 369.2,268.0 369.7,268.0 370.2,268.0 370.6,268.0 371.1,268.0 371.6,268.0 372.0,268.0 372.5,268.0 373.0,268.0 373.4,268.0 373.9,268.0 374.4,268.0 374.8,268.0 375.3,268.0 375.8,268.0 376.3,268.0 376.7,268.0 377.2,268.0 377.7,268.0 378.1,268.0 378.6,268.0 379.1,268.0 379.5,268.0 380.0,268.0 380.5,268.0 380.9,268.0 381.4,268.0 381.9,268.0 382.3,268.0 382.8,268.0 383.3,268.0 383.8,268.0 384.2,268.0 384.7,268.0 385.2,268.0 385.6,268.0 386.1,268.0 386.6,268.0 387.0,268.0 387.5,268.0 388.0,268.0 388.4,268.0 388.9,268.0 389.4,268.0 389.9,268.0 390.3,268.0 390.8,268.0 391.3,268.0 391.7,272.1 392.2,277.0 392.7,281.8 393.1,286.6 393.6,291.5 394.1,296.3 394.5,301.1 395.0,306.0 395.5,310.8 395.9,315.6 396.4,320.5 396.9,325.3 397.4,330.1 397.8,335.0 398.3,339.8 398.8,344.6 399.2,349.4 399.7,354.3 400.2,359.1 400.6,363.9 401.1,368.8 401.6,373.6 402.0,378.4 402.5,383.2 403.0,387.0 403.4,388.0 403.9,388.0 404.4,388.0 404.9,388.0 405.3,388.0 405.8,388.0 406.3,388.0 406.7,388.0 407.2,388.0 407.7,388.0 408.1,388.0 408.6,388.0 409.1,388.0 409.5,388.0 410.0,388.0 410.5,388.0 411.0,388.0 411.4,388.0 411.9,388.0 412.4,388.0 412.8,388.0 413.3,388.0 413.8,388.0 414.2,388.0 414.7,388.0 415.2,388.0 415.6,388.0 416.1,388.0 416.6,388.0 417.0,388.0 417.5,388.0 418.0,388.0 418.5,388.0 418.9,388.0 419.4,388.0 419.9,388.0 420.3,388.0 420.8,388.0 421.3,388.0 421.7,388.0 422.2,388.0 422.7,388.0 423.1,388.0 423.6,388.0 424.1,388.0 424.6,386.7 425.0,382.7 425.5,378.8 426.0,374.7 426.4,370.6 426.9,366.4 427.4,362.3 427.8,358.1 428.3,354.0 428.8,349.8 429.2,345.7 429.7,341.6 430.2,337.4 430.6,333.3 431.1,329.1 431.6,325.0 432.1,320.9 432.5,316.7 433.0,312.6 433.5,308.4 433.9,304.3 434.4,300.1 434.9,296.0 435.3,291.9 435.8,287.7 436.3,283.6 436.7,279.4 437.2,275.2 437.7,270.8 438.1,268.0 438.6,268.0 439.1,268.0 439.6,268.0 440.0,268.0 440.5,268.0 441.0,268.0 441.4,268.0 441.9,268.0 442.4,268.0 442.8,268.0 443.3,268.0 443.8,268.0 444.2,268.0 444.7,268.0 445.2,268.0 445.7,268.0 446.1,268.0 446.6,268.0 447.1,268.0 447.5,268.0 448.0,268.0 448.5,268.0 448.9,268.0 449.4,268.0 449.9,268.0 450.3,268.0 450.8,268.0 451.3,268.0 451.7,268.0 452.2,268.0 452.7,268.0 453.2,268.0 453.6,268.0 454.1,268.0 454.6,268.0 455.0,268.0 455.5,268.0 456.0,268.0 456.4,268.0 456.9,268.0 457.4,268.0 457.8,268.0 458.3,268.0 458.8,268.0 459.2,268.0 459.7,268.0 460.2,268.0 460.7,268.0 461.1,268.0 461.6,268.0 462.1,268.0 462.5,268.0 463.0,268.0 463.5,268.0 463.9,268.0 464.4,268.0 464.9,268.0 465.3,268.0 465.8,268.0 466.3,268.0 466.8,268.0 467.2,268.0 467.7,268.0 468.2,268.0 468.6,268.0 469.1,268.0 469.6,268.0 470.0,268.0 470.5,268.0 471.0,268.0 471.4,268.0 471.9,268.0 472.4,268.0 472.8,268.0 473.3,268.0 473.8,268.0 474.3,268.0 474.7,268.0 475.2,268.0 475.7,268.0 476.1,268.0 476.6,268.0 477.1,268.0 477.5,268.0 478.0,268.0 478.5,268.0 478.9,268.0 479.4,268.0 479.9,268.0 480.4,268.0 480.8,268.0 481.3,268.0 481.8,268.0 482.2,268.0 482.7,268.0 483.2,268.0 483.6,268.0 484.1,268.0 484.6,268.0 485.0,268.0 485.5,268.0 486.0,268.0 486.4,268.0 486.9,268.0 487.4,268.0 487.9,268.0 488.3,268.0 488.8,268.0 489.3,268.0 489.7,268.0 490.2,268.0 490.7,268.0 491.1,268.0 491.6,268.0 492.1,268.0 492.5,268.0 493.0,268.0 493.5,268.0 493.9,268.0 494.4,268.0 494.9,268.0 495.4,268.0 495.8,268.0 496.3,268.0 496.8,268.0 497.2,268.0 497.7,268.0 498.2,268.0 498.6,268.0 499.1,268.0 499.6,268.0 500.0,268.0 500.5,268.0 501.0,268.0 501.5,268.0 501.9,268.0 502.4,268.0 502.9,268.0 503.3,268.0 503.8,268.0 504.3,268.0 504.7,268.0 505.2,268.0 505.7,268.0 506.1,268.0 506.6,268.0 507.1,268.0 507.5,268.0 508.0,268.0 508.5,268.0 509.0,268.0 509.4,268.0 509.9,268.0 510.4,268.0 510.8,268.0 511.3,268.0 511.8,268.0 512.2,268.0 512.7,268.0 513.2,268.0 513.6,268.0 514.1,268.0 514.6,268.0 515.0,268.0 515.5,268.0 516.0,268.0 516.5,268.0 516.9,268.0 517.4,268.0 517.9,268.0 518.3,268.0 518.8,268.0 519.3,268.0 519.7,268.0 520.2,268.0 520.7,268.0 521.1,268.0 521.6,268.0 522.1,268.0 522.6,268.0 523.0,268.0 523.5,268.0 524.0,268.0 524.4,268.0 524.9,268.0 525.4,268.0 525.8,268.0 526.3,268.0 526.8,268.0 527.2,268.0 527.7,268.0 528.2,268.0 528.6,268.0 529.1,268.0 529.6,268.0 530.1,268.0 530.5,268.0 531.0,272.5 531.5,277.0 531.9,281.5 532.4,286.0 532.9,290.5 533.3,295.0 533.8,299.4 534.3,303.9 534.7,308.4 535.2,312.9 535.7,317.4 536.2,321.9 536.6,326.4 537.1,330.9 537.6,335.3 538.0,339.8 538.5,344.3 539.0,348.8 539.4,353.3 539.9,357.8 540.4,362.3 540.8,363.7 541.3,362.4 541.8,361.0 542.2,359.7 542.7,358.3 543.2,357.0 543.7,355.6 544.1,354.3 544.6,352.9 545.1,351.5 545.5,350.2 546.0,348.8 546.5,347.5 546.9,346.1 547.4,344.8 547.9,343.4 548.3,342.1 548.8,340.7 549.3,339.4 549.7,338.0 550.2,336.7 550.7,335.3 551.2,334.0 551.6,332.6 552.1,331.3 552.6,327.4 553.0,323.5 553.5,319.6 554.0,315.6 554.4,311.7 554.9,307.8 555.4,303.9 555.8,300.0 556.3,296.0 556.8,292.1 557.3,288.2 557.7,284.3 558.2,280.4 558.7,276.4 559.1,272.5 559.6,268.6 560.1,268.0 560.5,268.0 561.0,268.0 561.5,268.0 561.9,268.0 562.4,268.0 562.9,268.0 563.3,268.0 563.8,268.0 564.3,268.0 564.8,268.0 565.2,268.0 565.7,268.0 566.2,268.0 566.6,268.0 567.1,268.0 567.6,268.0 568.0,268.0 568.5,268.0 569.0,268.0 569.4,268.0 569.9,268.0 570.4,268.0 570.8,268.0 571.3,268.0 571.8,268.0 572.3,268.0 572.7,268.0 573.2,268.0 573.7,268.0 574.1,268.0 574.6,268.0 575.1,268.0 575.5,268.0 576.0,268.0 576.5,268.0 576.9,268.0 577.4,268.0 577.9,268.0 578.4,268.0 578.8,268.0 579.3,268.0 579.8,268.0 580.2,268.0 580.7,268.0 581.2,268.0 581.6,268.0 582.1,268.0 582.6,268.0 583.0,268.0 583.5,268.0 584.0,268.0 584.4,268.0 584.9,268.0 585.4,268.0 585.9,268.0 586.3,268.0 586.8,268.0 587.3,268.0 587.7,268.0 588.2,268.0 588.7,268.0 589.1,268.0 589.6,268.0 590.1,268.0 590.5,268.0 591.0,268.0 591.5,268.0 591.9,268.0 592.4,268.0 592.9,268.0 593.4,268.0 593.8,268.0 594.3,268.0 594.8,268.0 595.2,268.0 595.7,268.0 596.2,268.0 596.6,268.0 597.1,268.0 597.6,268.0 598.0,268.0 598.5,268.0 599.0,268.0 599.5,268.0 599.9,268.0 600.4,268.0 600.9,268.0 601.3,268.0 601.8,268.0 602.3,268.0 602.7,268.0 603.2,268.0 603.7,268.0 604.1,268.0 604.6,268.0 605.1,268.0 605.5,268.0 606.0,268.0 606.5,268.0 607.0,268.0 607.4,268.0 607.9,268.0 608.4,268.0 608.8,268.0 609.3,268.0 609.8,268.0 610.2,268.0 610.7,268.0 611.2,268.0 611.6,268.0 612.1,268.0 612.6,268.0 613.1,268.0 613.5,268.0 614.0,268.0 614.5,268.0 614.9,268.0 615.4,268.0 615.9,268.0 616.3,268.0 616.8,268.0 617.3,268.0 617.7,268.0 618.2,268.0 618.7,268.0 619.1,268.0 619.6,268.0 620.1,268.0 620.6,268.0 621.0,268.0 621.5,268.0 622.0,268.0 622.4,268.0 622.9,268.0 623.4,268.0 623.8,268.0 624.3,268.0 624.8,268.0 625.2,268.0 625.7,268.0 626.2,268.0 626.6,268.0 627.1,268.0 627.6,268.0 628.1,268.0 628.5,268.0 629.0,268.0 629.5,268.0 629.9,268.0 630.4,268.0 630.9,268.0 631.3,268.0 631.8,268.0 632.3,268.0 632.7,268.0 633.2,268.0 633.7,268.0 634.2,268.0 634.6,268.0 635.1,268.0 635.6,268.0 636.0,268.0 636.5,268.0 637.0,268.0 637.4,268.0 637.9,268.0 638.4,268.0 638.8,268.0 639.3,268.0 639.8,268.0 640.2,268.0 640.7,268.0 641.2,268.0 641.7,268.0 642.1,268.0 642.6,268.0 643.1,268.0 643.5,268.0 644.0,268.0 644.5,268.0 644.9,268.0 645.4,268.0 645.9,268.0 646.3,268.0 646.8,268.0 647.3,268.0 647.7,268.0 648.2,268.0 648.7,268.0 649.2,268.0 649.6,268.0 650.1,268.0 650.6,268.0 651.0,268.0 651.5,268.0 652.0,268.0 652.4,269.7 652.9,274.5 653.4,279.3 653.8,284.2 654.3,289.0 654.8,293.8 655.3,298.6 655.7,303.5 656.2,308.3 656.7,313.1 657.1,318.0 657.6,322.8 658.1,327.6 658.5,332.5 659.0,337.3 659.5,342.1 659.9,347.0 660.4,351.8 660.9,356.6 661.3,361.5 661.8,366.3 662.3,371.1 662.8,376.0 663.2,380.8 663.7,385.6 664.2,388.0 664.6,388.0 665.1,388.0 665.6,388.0 666.0,388.0 666.5,388.0 667.0,388.0 667.4,388.0 667.9,388.0 668.4,388.0 668.9,388.0 669.3,388.0 669.8,388.0 670.3,388.0 670.7,388.0 671.2,388.0 671.7,388.0 672.1,388.0 672.6,388.0 673.1,388.0 673.5,388.0 674.0,388.0 674.5,388.0 674.9,388.0 675.4,388.0 675.9,388.0 676.4,388.0 676.8,388.0 677.3,388.0 677.8,388.0 678.2,388.0 678.7,388.0 679.2,388.0 679.6,388.0 680.1,388.0 680.6,388.0 681.0,388.0 681.5,388.0 682.0,388.0 682.4,388.0 682.9,388.0 683.4,388.0 683.9,388.0 684.3,388.0 684.8,388.0 685.3,388.0 685.7,388.0 686.2,388.0 686.7,388.0 687.1,388.0 687.6,388.0 688.1,388.0 688.5,388.0 689.0,388.0 689.5,388.0 690.0,388.0 690.4,388.0 690.9,388.0 691.4,388.0 691.8,388.0 692.3,388.0 692.8,388.0 693.2,388.0 693.7,388.0 694.2,388.0 694.6,388.0 695.1,388.0 695.6,388.0 696.0,388.0 696.5,388.0 697.0,388.0 697.5,388.0 697.9,388.0 698.4,388.0 698.9,388.0 699.3,388.0 699.8,388.0 700.3,388.0 700.7,388.0 701.2,388.0 701.7,388.0 702.1,388.0 702.6,388.0 703.1,388.0 703.5,388.0 704.0,388.0 704.5,388.0 705.0,388.0 705.4,388.0 705.9,388.0 706.4,388.0 706.8,388.0 707.3,388.0 707.8,388.0 708.2,388.0 708.7,388.0 709.2,388.0 709.6,388.0 710.1,388.0 710.6,388.0 711.1,388.0 711.5,388.0 712.0,388.0 712.5,388.0 712.9,388.0 713.4,388.0 713.9,388.0 714.3,388.0 714.8,388.0 715.3,388.0 715.7,388.0 716.2,388.0 716.7,388.0 717.1,388.0 717.6,388.0 718.1,388.0 718.6,388.0 719.0,388.0 719.5,388.0 720.0,388.0 720.4,388.0 720.9,388.0 721.4,388.0 721.8,388.0 722.3,388.0 722.8,388.0 723.2,388.0 723.7,388.0 724.2,388.0 724.7,388.0 725.1,388.0 725.6,388.0 726.1,388.0 726.5,388.0 727.0,388.0 727.5,388.0 727.9,388.0 728.4,388.0 728.9,388.0 729.3,388.0 729.8,388.0 730.3,388.0 730.7,388.0 731.2,388.0 731.7,388.0 732.2,388.0 732.6,388.0 733.1,388.0 733.6,388.0 734.0,388.0 734.5,388.0 735.0,388.0 735.4,388.0 735.9,388.0 736.4,388.0 736.8,388.0 737.3,388.0 737.8,388.0 738.2,388.0 738.7,388.0 739.2,388.0 739.7,388.0 740.1,388.0 740.6,388.0 741.1,388.0 741.5,388.0 742.0,388.0"/>
+<polyline fill="none" stroke="var(--guide)" stroke-width="2.2" points="86.0,388.0 86.5,388.0 86.9,388.0 87.4,388.0 87.9,388.0 88.3,388.0 88.8,388.0 89.3,388.0 89.8,388.0 90.2,388.0 90.7,388.0 91.2,388.0 91.6,388.0 92.1,388.0 92.6,388.0 93.0,388.0 93.5,388.0 94.0,388.0 94.4,388.0 94.9,388.0 95.4,388.0 95.8,388.0 96.3,388.0 96.8,388.0 97.3,388.0 97.7,388.0 98.2,388.0 98.7,388.0 99.1,388.0 99.6,388.0 100.1,388.0 100.5,388.0 101.0,388.0 101.5,388.0 101.9,388.0 102.4,388.0 102.9,388.0 103.3,388.0 103.8,388.0 104.3,388.0 104.8,388.0 105.2,388.0 105.7,388.0 106.2,388.0 106.6,388.0 107.1,388.0 107.6,388.0 108.0,388.0 108.5,388.0 109.0,388.0 109.4,388.0 109.9,388.0 110.4,388.0 110.9,388.0 111.3,388.0 111.8,388.0 112.3,388.0 112.7,388.0 113.2,388.0 113.7,388.0 114.1,388.0 114.6,388.0 115.1,388.0 115.5,388.0 116.0,388.0 116.5,388.0 116.9,388.0 117.4,388.0 117.9,388.0 118.4,388.0 118.8,388.0 119.3,388.0 119.8,388.0 120.2,388.0 120.7,388.0 121.2,388.0 121.6,388.0 122.1,388.0 122.6,388.0 123.0,388.0 123.5,388.0 124.0,388.0 124.5,388.0 124.9,388.0 125.4,388.0 125.9,388.0 126.3,388.0 126.8,388.0 127.3,388.0 127.7,388.0 128.2,388.0 128.7,388.0 129.1,388.0 129.6,388.0 130.1,388.0 130.5,388.0 131.0,388.0 131.5,388.0 132.0,388.0 132.4,388.0 132.9,388.0 133.4,388.0 133.8,388.0 134.3,388.0 134.8,388.0 135.2,388.0 135.7,388.0 136.2,388.0 136.6,388.0 137.1,388.0 137.6,388.0 138.0,388.0 138.5,388.0 139.0,388.0 139.5,388.0 139.9,388.0 140.4,388.0 140.9,388.0 141.3,388.0 141.8,388.0 142.3,388.0 142.7,388.0 143.2,388.0 143.7,388.0 144.1,388.0 144.6,388.0 145.1,388.0 145.6,388.0 146.0,388.0 146.5,388.0 147.0,388.0 147.4,388.0 147.9,388.0 148.4,388.0 148.8,388.0 149.3,388.0 149.8,388.0 150.2,388.0 150.7,388.0 151.2,388.0 151.6,388.0 152.1,388.0 152.6,388.0 153.1,388.0 153.5,388.0 154.0,388.0 154.5,388.0 154.9,388.0 155.4,388.0 155.9,388.0 156.3,388.0 156.8,388.0 157.3,388.0 157.7,388.0 158.2,388.0 158.7,388.0 159.1,388.0 159.6,388.0 160.1,388.0 160.6,388.0 161.0,388.0 161.5,388.0 162.0,388.0 162.4,388.0 162.9,388.0 163.4,388.0 163.8,388.0 164.3,388.0 164.8,388.0 165.2,388.0 165.7,388.0 166.2,388.0 166.7,388.0 167.1,388.0 167.6,388.0 168.1,388.0 168.5,388.0 169.0,388.0 169.5,388.0 169.9,388.0 170.4,388.0 170.9,388.0 171.3,388.0 171.8,388.0 172.3,388.0 172.7,388.0 173.2,388.0 173.7,388.0 174.2,388.0 174.6,388.0 175.1,388.0 175.6,388.0 176.0,388.0 176.5,388.0 177.0,388.0 177.4,388.0 177.9,388.0 178.4,388.0 178.8,388.0 179.3,388.0 179.8,388.0 180.3,388.0 180.7,388.0 181.2,388.0 181.7,388.0 182.1,388.0 182.6,388.0 183.1,388.0 183.5,388.0 184.0,388.0 184.5,388.0 184.9,388.0 185.4,388.0 185.9,388.0 186.3,388.0 186.8,388.0 187.3,388.0 187.8,388.0 188.2,388.0 188.7,388.0 189.2,388.0 189.6,388.0 190.1,388.0 190.6,388.0 191.0,388.0 191.5,388.0 192.0,388.0 192.4,388.0 192.9,388.0 193.4,388.0 193.8,388.0 194.3,388.0 194.8,388.0 195.3,388.0 195.7,388.0 196.2,388.0 196.7,388.0 197.1,388.0 197.6,388.0 198.1,388.0 198.5,388.0 199.0,388.0 199.5,388.0 199.9,388.0 200.4,388.0 200.9,388.0 201.4,388.0 201.8,388.0 202.3,388.0 202.8,388.0 203.2,388.0 203.7,388.0 204.2,388.0 204.6,388.0 205.1,388.0 205.6,388.0 206.0,388.0 206.5,388.0 207.0,388.0 207.4,388.0 207.9,388.0 208.4,388.0 208.9,386.3 209.3,382.2 209.8,378.0 210.3,373.9 210.7,369.7 211.2,365.6 211.7,361.5 212.1,357.3 212.6,353.2 213.1,349.0 213.5,344.9 214.0,340.7 214.5,336.6 214.9,332.5 215.4,328.3 215.9,324.2 216.4,320.0 216.8,315.9 217.3,311.8 217.8,307.6 218.2,303.5 218.7,299.5 219.2,295.6 219.6,291.7 220.1,287.7 220.6,283.8 221.0,279.9 221.5,276.0 222.0,272.1 222.5,268.1 222.9,268.0 223.4,268.0 223.9,268.0 224.3,268.0 224.8,268.0 225.3,268.0 225.7,268.0 226.2,268.0 226.7,268.0 227.1,268.0 227.6,268.0 228.1,268.0 228.5,268.0 229.0,268.0 229.5,268.0 230.0,268.0 230.4,268.0 230.9,268.0 231.4,268.0 231.8,268.0 232.3,268.0 232.8,268.0 233.2,268.0 233.7,268.0 234.2,268.0 234.6,268.0 235.1,268.0 235.6,268.0 236.1,268.0 236.5,268.0 237.0,268.0 237.5,268.0 237.9,268.0 238.4,268.0 238.9,268.0 239.3,268.0 239.8,268.0 240.3,268.0 240.7,268.0 241.2,268.0 241.7,268.0 242.1,268.0 242.6,268.0 243.1,268.0 243.6,268.0 244.0,268.0 244.5,268.0 245.0,268.0 245.4,268.0 245.9,268.0 246.4,268.0 246.8,268.0 247.3,268.0 247.8,268.0 248.2,268.0 248.7,268.0 249.2,268.0 249.6,268.0 250.1,268.0 250.6,268.0 251.1,268.0 251.5,268.0 252.0,268.0 252.5,268.0 252.9,268.0 253.4,268.0 253.9,268.0 254.3,268.0 254.8,268.0 255.3,268.0 255.7,268.0 256.2,268.0 256.7,268.0 257.2,268.0 257.6,268.8 258.1,272.4 258.6,275.9 259.0,279.5 259.5,283.1 260.0,286.7 260.4,290.2 260.9,293.8 261.4,297.4 261.8,301.0 262.3,304.5 262.8,308.1 263.2,311.7 263.7,315.3 264.2,318.8 264.7,322.3 265.1,325.8 265.6,329.2 266.1,332.7 266.5,336.1 267.0,339.6 267.5,343.1 267.9,346.5 268.4,350.0 268.9,353.4 269.3,356.9 269.8,360.3 270.3,363.8 270.7,367.2 271.2,370.7 271.7,374.1 272.2,377.6 272.6,381.0 273.1,384.5 273.6,387.9 274.0,388.0 274.5,388.0 275.0,388.0 275.4,388.0 275.9,388.0 276.4,388.0 276.8,388.0 277.3,388.0 277.8,388.0 278.3,388.0 278.7,388.0 279.2,388.0 279.7,388.0 280.1,388.0 280.6,388.0 281.1,388.0 281.5,388.0 282.0,388.0 282.5,388.0 282.9,388.0 283.4,388.0 283.9,388.0 284.3,388.0 284.8,388.0 285.3,388.0 285.8,388.0 286.2,388.0 286.7,388.0 287.2,388.0 287.6,388.0 288.1,388.0 288.6,388.0 289.0,388.0 289.5,388.0 290.0,388.0 290.4,388.0 290.9,388.0 291.4,388.0 291.8,388.0 292.3,388.0 292.8,388.0 293.3,388.0 293.7,388.0 294.2,388.0 294.7,388.0 295.1,388.0 295.6,388.0 296.1,388.0 296.5,388.0 297.0,388.0 297.5,388.0 297.9,388.0 298.4,388.0 298.9,388.0 299.4,388.0 299.8,388.0 300.3,388.0 300.8,388.0 301.2,388.0 301.7,388.0 302.2,388.0 302.6,388.0 303.1,388.0 303.6,388.0 304.0,388.0 304.5,388.0 305.0,388.0 305.4,388.0 305.9,388.0 306.4,388.0 306.9,388.0 307.3,388.0 307.8,388.0 308.3,388.0 308.7,388.0 309.2,388.0 309.7,388.0 310.1,388.0 310.6,388.0 311.1,388.0 311.5,388.0 312.0,388.0 312.5,388.0 313.0,388.0 313.4,388.0 313.9,388.0 314.4,388.0 314.8,388.0 315.3,388.0 315.8,388.0 316.2,388.0 316.7,388.0 317.2,388.0 317.6,388.0 318.1,388.0 318.6,388.0 319.0,388.0 319.5,388.0 320.0,388.0 320.5,388.0 320.9,388.0 321.4,388.0 321.9,388.0 322.3,388.0 322.8,388.0 323.3,386.2 323.7,381.4 324.2,376.6 324.7,371.7 325.1,366.9 325.6,362.1 326.1,357.2 326.5,352.4 327.0,347.6 327.5,342.7 328.0,337.9 328.4,333.1 328.9,328.2 329.4,323.4 329.8,318.6 330.3,313.8 330.8,308.9 331.2,304.1 331.7,299.3 332.2,294.4 332.6,289.6 333.1,284.8 333.6,279.9 334.1,275.1 334.5,270.3 335.0,268.0 335.5,268.0 335.9,268.0 336.4,268.0 336.9,268.0 337.3,268.0 337.8,268.0 338.3,268.0 338.7,268.0 339.2,268.0 339.7,268.0 340.1,268.0 340.6,268.0 341.1,268.0 341.6,268.0 342.0,268.0 342.5,268.0 343.0,268.0 343.4,268.0 343.9,268.0 344.4,268.0 344.8,268.0 345.3,268.0 345.8,268.0 346.2,268.0 346.7,268.0 347.2,268.0 347.6,268.0 348.1,268.0 348.6,268.0 349.1,268.0 349.5,268.0 350.0,268.0 350.5,268.0 350.9,268.0 351.4,268.0 351.9,268.0 352.3,268.0 352.8,268.0 353.3,268.0 353.7,268.0 354.2,268.0 354.7,268.0 355.2,268.0 355.6,268.0 356.1,268.0 356.6,268.0 357.0,268.0 357.5,268.0 358.0,268.0 358.4,268.0 358.9,268.0 359.4,268.0 359.8,268.0 360.3,268.0 360.8,268.0 361.2,268.0 361.7,268.0 362.2,268.0 362.7,268.0 363.1,268.0 363.6,270.2 364.1,275.1 364.5,279.9 365.0,284.7 365.5,289.6 365.9,294.4 366.4,299.2 366.9,304.1 367.3,308.9 367.8,313.7 368.3,318.6 368.8,323.4 369.2,328.2 369.7,333.1 370.2,337.9 370.6,342.7 371.1,347.5 371.6,352.4 372.0,357.2 372.5,362.0 373.0,366.9 373.4,371.7 373.9,376.5 374.4,381.4 374.8,386.2 375.3,388.0 375.8,388.0 376.3,388.0 376.7,388.0 377.2,388.0 377.7,388.0 378.1,388.0 378.6,388.0 379.1,388.0 379.5,388.0 380.0,388.0 380.5,388.0 380.9,388.0 381.4,388.0 381.9,388.0 382.3,388.0 382.8,388.0 383.3,388.0 383.8,388.0 384.2,388.0 384.7,388.0 385.2,388.0 385.6,388.0 386.1,388.0 386.6,388.0 387.0,388.0 387.5,388.0 388.0,388.0 388.4,388.0 388.9,388.0 389.4,388.0 389.9,388.0 390.3,388.0 390.8,388.0 391.3,388.0 391.7,388.0 392.2,388.0 392.7,388.0 393.1,388.0 393.6,388.0 394.1,388.0 394.5,388.0 395.0,388.0 395.5,388.0 395.9,388.0 396.4,388.0 396.9,388.0 397.4,388.0 397.8,388.0 398.3,388.0 398.8,388.0 399.2,388.0 399.7,388.0 400.2,388.0 400.6,388.0 401.1,388.0 401.6,388.0 402.0,388.0 402.5,388.0 403.0,388.0 403.4,388.0 403.9,388.0 404.4,388.0 404.9,388.0 405.3,388.0 405.8,388.0 406.3,388.0 406.7,388.0 407.2,388.0 407.7,388.0 408.1,388.0 408.6,388.0 409.1,388.0 409.5,388.0 410.0,388.0 410.5,388.0 411.0,388.0 411.4,388.0 411.9,388.0 412.4,388.0 412.8,388.0 413.3,388.0 413.8,388.0 414.2,388.0 414.7,388.0 415.2,388.0 415.6,388.0 416.1,388.0 416.6,388.0 417.0,388.0 417.5,388.0 418.0,388.0 418.5,388.0 418.9,388.0 419.4,388.0 419.9,388.0 420.3,388.0 420.8,388.0 421.3,388.0 421.7,388.0 422.2,388.0 422.7,388.0 423.1,388.0 423.6,388.0 424.1,388.0 424.6,388.0 425.0,388.0 425.5,388.0 426.0,388.0 426.4,388.0 426.9,388.0 427.4,388.0 427.8,388.0 428.3,388.0 428.8,388.0 429.2,388.0 429.7,388.0 430.2,388.0 430.6,388.0 431.1,388.0 431.6,388.0 432.1,388.0 432.5,388.0 433.0,388.0 433.5,388.0 433.9,388.0 434.4,388.0 434.9,388.0 435.3,388.0 435.8,388.0 436.3,388.0 436.7,388.0 437.2,388.0 437.7,388.0 438.1,388.0 438.6,388.0 439.1,388.0 439.6,388.0 440.0,388.0 440.5,388.0 441.0,388.0 441.4,388.0 441.9,388.0 442.4,388.0 442.8,388.0 443.3,388.0 443.8,388.0 444.2,388.0 444.7,388.0 445.2,388.0 445.7,388.0 446.1,388.0 446.6,388.0 447.1,388.0 447.5,388.0 448.0,388.0 448.5,388.0 448.9,388.0 449.4,388.0 449.9,388.0 450.3,388.0 450.8,388.0 451.3,388.0 451.7,388.0 452.2,388.0 452.7,388.0 453.2,388.0 453.6,388.0 454.1,388.0 454.6,388.0 455.0,388.0 455.5,388.0 456.0,388.0 456.4,388.0 456.9,383.9 457.4,379.8 457.8,375.7 458.3,371.5 458.8,367.4 459.2,363.2 459.7,359.1 460.2,355.0 460.7,350.9 461.1,346.9 461.6,342.8 462.1,338.8 462.5,334.8 463.0,330.7 463.5,326.7 463.9,322.6 464.4,318.6 464.9,314.5 465.3,310.5 465.8,306.4 466.3,302.4 466.8,298.4 467.2,294.3 467.7,290.3 468.2,286.2 468.6,282.2 469.1,278.1 469.6,274.1 470.0,270.0 470.5,268.0 471.0,268.0 471.4,268.0 471.9,268.0 472.4,268.0 472.8,268.0 473.3,268.0 473.8,268.0 474.3,268.0 474.7,268.0 475.2,268.0 475.7,268.0 476.1,268.0 476.6,268.0 477.1,268.0 477.5,268.0 478.0,268.0 478.5,268.0 478.9,268.0 479.4,268.0 479.9,268.0 480.4,268.0 480.8,268.0 481.3,268.0 481.8,268.0 482.2,268.0 482.7,268.0 483.2,268.0 483.6,268.0 484.1,268.0 484.6,268.0 485.0,268.0 485.5,268.0 486.0,268.0 486.4,268.0 486.9,268.0 487.4,268.0 487.9,268.0 488.3,268.0 488.8,268.0 489.3,268.0 489.7,268.0 490.2,268.0 490.7,268.0 491.1,268.0 491.6,268.0 492.1,268.0 492.5,268.0 493.0,268.0 493.5,268.0 493.9,268.0 494.4,268.0 494.9,268.0 495.4,268.0 495.8,268.0 496.3,268.0 496.8,268.0 497.2,268.0 497.7,268.0 498.2,268.0 498.6,268.0 499.1,268.0 499.6,268.0 500.0,271.9 500.5,276.0 501.0,280.2 501.5,284.3 501.9,288.5 502.4,292.6 502.9,296.7 503.3,300.9 503.8,305.0 504.3,309.2 504.7,313.3 505.2,317.5 505.7,321.6 506.1,325.8 506.6,330.0 507.1,334.3 507.5,338.6 508.0,342.8 508.5,347.1 509.0,351.4 509.4,355.6 509.9,359.9 510.4,364.1 510.8,368.4 511.3,372.7 511.8,376.9 512.2,381.2 512.7,385.5 513.2,388.0 513.6,388.0 514.1,388.0 514.6,388.0 515.0,388.0 515.5,388.0 516.0,388.0 516.5,388.0 516.9,388.0 517.4,388.0 517.9,388.0 518.3,388.0 518.8,388.0 519.3,388.0 519.7,388.0 520.2,388.0 520.7,388.0 521.1,388.0 521.6,388.0 522.1,388.0 522.6,388.0 523.0,388.0 523.5,388.0 524.0,388.0 524.4,388.0 524.9,388.0 525.4,388.0 525.8,388.0 526.3,388.0 526.8,388.0 527.2,388.0 527.7,388.0 528.2,388.0 528.6,388.0 529.1,388.0 529.6,388.0 530.1,388.0 530.5,388.0 531.0,388.0 531.5,388.0 531.9,388.0 532.4,388.0 532.9,388.0 533.3,388.0 533.8,388.0 534.3,388.0 534.7,388.0 535.2,388.0 535.7,388.0 536.2,388.0 536.6,388.0 537.1,388.0 537.6,388.0 538.0,388.0 538.5,388.0 539.0,388.0 539.4,388.0 539.9,388.0 540.4,388.0 540.8,388.0 541.3,388.0 541.8,388.0 542.2,388.0 542.7,388.0 543.2,388.0 543.7,388.0 544.1,388.0 544.6,388.0 545.1,388.0 545.5,388.0 546.0,388.0 546.5,388.0 546.9,388.0 547.4,388.0 547.9,388.0 548.3,388.0 548.8,388.0 549.3,388.0 549.7,388.0 550.2,388.0 550.7,388.0 551.2,388.0 551.6,388.0 552.1,388.0 552.6,388.0 553.0,388.0 553.5,388.0 554.0,388.0 554.4,388.0 554.9,388.0 555.4,388.0 555.8,388.0 556.3,388.0 556.8,388.0 557.3,388.0 557.7,388.0 558.2,388.0 558.7,388.0 559.1,388.0 559.6,388.0 560.1,388.0 560.5,388.0 561.0,388.0 561.5,388.0 561.9,388.0 562.4,388.0 562.9,388.0 563.3,388.0 563.8,388.0 564.3,388.0 564.8,388.0 565.2,388.0 565.7,388.0 566.2,388.0 566.6,388.0 567.1,388.0 567.6,388.0 568.0,388.0 568.5,388.0 569.0,388.0 569.4,388.0 569.9,388.0 570.4,388.0 570.8,388.0 571.3,388.0 571.8,388.0 572.3,388.0 572.7,388.0 573.2,388.0 573.7,388.0 574.1,388.0 574.6,388.0 575.1,388.0 575.5,388.0 576.0,388.0 576.5,388.0 576.9,388.0 577.4,388.0 577.9,388.0 578.4,388.0 578.8,388.0 579.3,385.4 579.8,381.4 580.2,377.3 580.7,373.3 581.2,369.2 581.6,365.2 582.1,361.1 582.6,357.1 583.0,353.0 583.5,349.0 584.0,345.0 584.4,340.9 584.9,336.9 585.4,332.8 585.9,328.8 586.3,324.7 586.8,320.6 587.3,316.2 587.7,311.9 588.2,307.5 588.7,303.1 589.1,298.8 589.6,294.4 590.1,290.0 590.5,285.7 591.0,281.3 591.5,277.0 591.9,272.6 592.4,268.2 592.9,268.0 593.4,268.0 593.8,268.0 594.3,268.0 594.8,268.0 595.2,268.0 595.7,268.0 596.2,268.0 596.6,268.0 597.1,268.0 597.6,268.0 598.0,268.0 598.5,268.0 599.0,268.0 599.5,268.0 599.9,268.0 600.4,268.0 600.9,268.0 601.3,268.0 601.8,268.0 602.3,268.0 602.7,268.0 603.2,268.0 603.7,268.0 604.1,268.0 604.6,268.0 605.1,268.0 605.5,268.0 606.0,268.0 606.5,268.0 607.0,268.0 607.4,268.0 607.9,268.0 608.4,268.0 608.8,268.0 609.3,268.0 609.8,268.0 610.2,268.0 610.7,268.0 611.2,268.0 611.6,268.0 612.1,268.0 612.6,268.0 613.1,268.0 613.5,268.0 614.0,268.0 614.5,268.0 614.9,268.0 615.4,268.0 615.9,268.0 616.3,268.0 616.8,268.0 617.3,268.0 617.7,268.0 618.2,268.0 618.7,268.0 619.1,268.0 619.6,268.0 620.1,268.0 620.6,268.0 621.0,268.0 621.5,268.0 622.0,268.0 622.4,272.0 622.9,276.1 623.4,280.3 623.8,284.4 624.3,288.5 624.8,292.7 625.2,296.8 625.7,301.0 626.2,305.1 626.6,309.2 627.1,313.4 627.6,317.5 628.1,321.7 628.5,325.8 629.0,329.9 629.5,334.1 629.9,338.2 630.4,342.4 630.9,346.5 631.3,350.7 631.8,354.8 632.3,358.9 632.7,363.1 633.2,367.6 633.7,372.1 634.2,376.6 634.6,381.1 635.1,385.6 635.6,388.0 636.0,388.0 636.5,388.0 637.0,388.0 637.4,388.0 637.9,388.0 638.4,388.0 638.8,388.0 639.3,388.0 639.8,388.0 640.2,388.0 640.7,388.0 641.2,388.0 641.7,388.0 642.1,388.0 642.6,388.0 643.1,388.0 643.5,388.0 644.0,388.0 644.5,388.0 644.9,388.0 645.4,388.0 645.9,388.0 646.3,388.0 646.8,388.0 647.3,388.0 647.7,388.0 648.2,388.0 648.7,388.0 649.2,388.0 649.6,388.0 650.1,388.0 650.6,388.0 651.0,388.0 651.5,388.0 652.0,388.0 652.4,388.0 652.9,388.0 653.4,388.0 653.8,388.0 654.3,388.0 654.8,388.0 655.3,388.0 655.7,388.0 656.2,388.0 656.7,388.0 657.1,388.0 657.6,388.0 658.1,388.0 658.5,388.0 659.0,388.0 659.5,388.0 659.9,388.0 660.4,388.0 660.9,388.0 661.3,388.0 661.8,388.0 662.3,388.0 662.8,388.0 663.2,388.0 663.7,388.0 664.2,388.0 664.6,388.0 665.1,388.0 665.6,388.0 666.0,388.0 666.5,388.0 667.0,388.0 667.4,388.0 667.9,388.0 668.4,388.0 668.9,388.0 669.3,388.0 669.8,388.0 670.3,388.0 670.7,388.0 671.2,388.0 671.7,388.0 672.1,388.0 672.6,388.0 673.1,388.0 673.5,388.0 674.0,388.0 674.5,388.0 674.9,388.0 675.4,388.0 675.9,388.0 676.4,388.0 676.8,388.0 677.3,388.0 677.8,388.0 678.2,388.0 678.7,388.0 679.2,388.0 679.6,388.0 680.1,388.0 680.6,388.0 681.0,388.0 681.5,388.0 682.0,388.0 682.4,388.0 682.9,388.0 683.4,388.0 683.9,388.0 684.3,388.0 684.8,388.0 685.3,388.0 685.7,388.0 686.2,388.0 686.7,388.0 687.1,388.0 687.6,388.0 688.1,388.0 688.5,388.0 689.0,388.0 689.5,388.0 690.0,388.0 690.4,388.0 690.9,388.0 691.4,388.0 691.8,388.0 692.3,388.0 692.8,388.0 693.2,388.0 693.7,388.0 694.2,388.0 694.6,388.0 695.1,388.0 695.6,388.0 696.0,388.0 696.5,388.0 697.0,388.0 697.5,388.0 697.9,388.0 698.4,388.0 698.9,388.0 699.3,388.0 699.8,388.0 700.3,388.0 700.7,388.0 701.2,388.0 701.7,388.0 702.1,388.0 702.6,388.0 703.1,388.0 703.5,388.0 704.0,388.0 704.5,388.0 705.0,388.0 705.4,388.0 705.9,388.0 706.4,388.0 706.8,388.0 707.3,388.0 707.8,388.0 708.2,388.0 708.7,388.0 709.2,388.0 709.6,388.0 710.1,388.0 710.6,388.0 711.1,388.0 711.5,388.0 712.0,388.0 712.5,388.0 712.9,388.0 713.4,388.0 713.9,388.0 714.3,388.0 714.8,388.0 715.3,388.0 715.7,388.0 716.2,388.0 716.7,388.0 717.1,388.0 717.6,388.0 718.1,388.0 718.6,388.0 719.0,388.0 719.5,388.0 720.0,388.0 720.4,388.0 720.9,388.0 721.4,388.0 721.8,388.0 722.3,388.0 722.8,388.0 723.2,388.0 723.7,388.0 724.2,388.0 724.7,388.0 725.1,388.0 725.6,388.0 726.1,388.0 726.5,388.0 727.0,388.0 727.5,388.0 727.9,388.0 728.4,388.0 728.9,388.0 729.3,388.0 729.8,388.0 730.3,388.0 730.7,388.0 731.2,388.0 731.7,388.0 732.2,388.0 732.6,388.0 733.1,388.0 733.6,388.0 734.0,388.0 734.5,388.0 735.0,388.0 735.4,388.0 735.9,388.0 736.4,388.0 736.8,388.0 737.3,388.0 737.8,388.0 738.2,388.0 738.7,388.0 739.2,388.0 739.7,388.0 740.1,388.0 740.6,388.0 741.1,388.0 741.5,388.0 742.0,388.0"/>
+<circle cx="91.39" cy="388" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="91.39" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="102.89" cy="388" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="102.89" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="114.4" cy="388" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="114.4" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="125.91" cy="388" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="125.91" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="137.42" cy="388" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="137.42" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="148.93" cy="388" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="148.93" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="160.44" cy="388" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="160.44" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="171.95" cy="388" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="171.95" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="183.46" cy="325.76" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="183.46" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="194.97" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="194.97" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="206.47" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="206.47" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="217.98" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="217.98" cy="305.67" r="2.6" fill="var(--guide)"/>
+<circle cx="229.49" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="229.49" cy="268" r="2.6" fill="var(--guide)"/>
+<circle cx="241" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="241" cy="268" r="2.6" fill="var(--guide)"/>
+<circle cx="252.51" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="252.51" cy="268" r="2.6" fill="var(--guide)"/>
+<circle cx="264.02" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="264.02" cy="317.57" r="2.6" fill="var(--guide)"/>
+<circle cx="275.53" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="275.53" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="287.04" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="287.04" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="298.54" cy="270.16" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="298.54" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="310.05" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="310.05" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="321.56" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="321.56" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="333.07" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="333.07" cy="285.21" r="2.6" fill="var(--guide)"/>
+<circle cx="344.58" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="344.58" cy="268" r="2.6" fill="var(--guide)"/>
+<circle cx="356.09" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="356.09" cy="268" r="2.6" fill="var(--guide)"/>
+<circle cx="367.6" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="367.6" cy="311.5" r="2.6" fill="var(--guide)"/>
+<circle cx="379.11" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="379.11" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="390.61" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="390.61" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="402.12" cy="379.26" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="402.12" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="413.63" cy="388" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="413.63" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="425.14" cy="381.73" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="425.14" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="436.65" cy="280.26" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="436.65" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="448.16" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="448.16" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="459.67" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="459.67" cy="359.54" r="2.6" fill="var(--guide)"/>
+<circle cx="471.18" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="471.18" cy="268" r="2.6" fill="var(--guide)"/>
+<circle cx="482.68" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="482.68" cy="268" r="2.6" fill="var(--guide)"/>
+<circle cx="494.19" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="494.19" cy="268" r="2.6" fill="var(--guide)"/>
+<circle cx="505.7" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="505.7" cy="321.87" r="2.6" fill="var(--guide)"/>
+<circle cx="517.21" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="517.21" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="528.72" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="528.72" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="540.23" cy="360.9" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="540.23" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="551.74" cy="332.28" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="551.74" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="563.25" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="563.25" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="574.75" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="574.75" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="586.26" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="586.26" cy="325.25" r="2.6" fill="var(--guide)"/>
+<circle cx="597.77" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="597.77" cy="268" r="2.6" fill="var(--guide)"/>
+<circle cx="609.28" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="609.28" cy="268" r="2.6" fill="var(--guide)"/>
+<circle cx="620.79" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="620.79" cy="268" r="2.6" fill="var(--guide)"/>
+<circle cx="632.3" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="632.3" cy="359.14" r="2.6" fill="var(--guide)"/>
+<circle cx="643.81" cy="268" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="643.81" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="655.32" cy="299.3" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="655.32" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="666.82" cy="388" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="666.82" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="678.33" cy="388" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="678.33" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="689.84" cy="388" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="689.84" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="701.35" cy="388" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="701.35" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="712.86" cy="388" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="712.86" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="724.37" cy="388" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="724.37" cy="388" r="2.6" fill="var(--guide)"/>
+<circle cx="735.88" cy="388" r="2.6" fill="var(--surface)" stroke="var(--ctrl)" stroke-width="1.3"/>
+<circle cx="735.88" cy="388" r="2.6" fill="var(--guide)"/>
+<text class="lbl-s mono" x="120.16" y="404" text-anchor="middle">225</text>
+<text class="lbl-s mono" x="177.7" y="404" text-anchor="middle">230</text>
+<text class="lbl-s mono" x="235.25" y="404" text-anchor="middle">235</text>
+<text class="lbl-s mono" x="292.79" y="404" text-anchor="middle">240</text>
+<text class="lbl-s mono" x="350.33" y="404" text-anchor="middle">245</text>
+<text class="lbl-s mono" x="407.88" y="404" text-anchor="middle">250</text>
+<text class="lbl-s mono" x="465.42" y="404" text-anchor="middle">255</text>
+<text class="lbl-s mono" x="522.97" y="404" text-anchor="middle">260</text>
+<text class="lbl-s mono" x="580.51" y="404" text-anchor="middle">265</text>
+<text class="lbl-s mono" x="638.05" y="404" text-anchor="middle">270</text>
+<text class="lbl-s mono" x="695.6" y="404" text-anchor="middle">275</text>
+<text class="lbl-s" x="742" y="422" text-anchor="end">画面の x（px）。縦の細線は画素の境、点は画素の中心</text>
+<line class="curve" x1="86" y1="222" x2="108" y2="222"/><text class="lbl-s" x="114" y="226" text-anchor="start">距離 s</text>
+<line class="dim-g" x1="186" y1="222" x2="208" y2="222"/><text class="lbl-s" x="214" y="226" text-anchor="start">面の縁 s = −_FaceDilate</text>
+<line class="leader-c" x1="386" y1="222" x2="408" y2="222"/><text class="lbl-s" x="414" y="226" text-anchor="start">縁取りの外縁 s = −(_FaceDilate + _OutlineWidth)</text>
+<line stroke="var(--ctrl)" stroke-width="1.6" x1="86" y1="258" x2="108" y2="258"/><text class="lbl-s" x="114" y="262" text-anchor="start">ao（縁取り込みの形）</text>
+<line stroke="var(--guide)" stroke-width="2.2" x1="286" y1="258" x2="308" y2="258"/><text class="lbl-s" x="314" y="262" text-anchor="start">af（面）</text>
+<text class="lbl-s" x="80" y="312" text-anchor="end">被覆率</text>
+</svg></div>
+<!-- /gen -->
+<figcaption><span class="fn">図 9</span>図 8 の ◀ の行（em の y ＝ <!-- gen:ROW_EY -->0.3146<!-- /gen -->）の断面（実データ）。上は距離 s、下は被覆率。s が境界の線を横切る所で ao と af が 0 から 1 へ変わり、輪郭に垂直に横切る所ではその幅が画面の 1px になる。斜めに横切る所は x の向きに測ると広い。</figcaption>
+</figure>
+<p>図 9 の行の画素 2 つの値。1 つは縁取りの外縁、1 つは面の縁にかかる。</p>
+<div class="tbl"><table>
+<thead><tr><th>値</th><th>画素 x = <!-- gen:P0_X -->230.5<!-- /gen -->（外縁）</th><th>画素 x = <!-- gen:P1_X -->233.5<!-- /gen -->（面の縁）</th></tr></thead>
+<tbody>
+<tr><td>em の座標（UV0.zw）</td><td class="mono"><!-- gen:P0_EM -->(0.0831, 0.3146)<!-- /gen --></td><td class="mono"><!-- gen:P1_EM -->(0.1456, 0.3146)<!-- /gen --></td></tr>
+<tr><td>ページの UV（UV0.xy）</td><td class="mono"><!-- gen:P0_UV -->(0.74752, 0.46442)<!-- /gen --></td><td class="mono"><!-- gen:P1_UV -->(0.75046, 0.46442)<!-- /gen --></td></tr>
+<tr><td><code>tex.r</code></td><td class="mono"><!-- gen:P0_R -->0.3677<!-- /gen --></td><td class="mono"><!-- gen:P1_R -->0.5103<!-- /gen --></td></tr>
+<tr><td>距離 s（em）</td><td class="mono"><!-- gen:P0_S -->−0.04961<!-- /gen --></td><td class="mono"><!-- gen:P1_S -->0.00388<!-- /gen --></td></tr>
+<tr><td><code>emPerPx</code></td><td class="mono">0.02083</td><td class="mono">0.02083</td></tr>
+<tr><td><code>ao</code>（外縁 −0.05 から）</td><td class="mono"><!-- gen:P0_AO -->0.5187<!-- /gen --></td><td class="mono"><!-- gen:P1_AO -->1.0000<!-- /gen --></td></tr>
+<tr><td><code>af</code>（面の縁 0 から）</td><td class="mono"><!-- gen:P0_AF -->0.0000<!-- /gen --></td><td class="mono"><!-- gen:P1_AF -->0.6861<!-- /gen --></td></tr>
+<tr><td><code>aOutline</code></td><td class="mono"><!-- gen:P0_AOL -->0.5187<!-- /gen --></td><td class="mono"><!-- gen:P1_AOL -->0.3139<!-- /gen --></td></tr>
+<tr><td>出力（straight の rgb, α）</td><td class="mono"><!-- gen:P0_OUT -->(0, 0, 0, 0.519)<!-- /gen --></td><td class="mono"><!-- gen:P1_OUT -->(0.686, 0.686, 0.686, 1.000)<!-- /gen --></td></tr>
+</tbody></table></div>
+
+<h3 id="clip"><span class="num">8.5</span>クリップ</h3>
+<p>キーワード <code>UNITY_UI_CLIP_RECT</code> が有効なバッチでは、出力の α に <code>UnityGet2DClipping(canvasPos.xy, _ClipRect)</code> を掛ける。矩形の内なら 1、外なら 0 で、矩形の外の画素は α 0 で書かれる（描かれない）。</p>
+
+<h3 id="blend"><span class="num">8.6</span>ブレンドしてレンダーターゲットへ書く</h3>
+<p>フラグメントの出力は、レンダーターゲットの今の画素（dst）と次の式でブレンドして書かれる。</p>
+<div class="formula">rgb ＝ src.rgb × src.a ＋ dst.rgb × (1 − src.a)　　a ＝ src.a × 1 ＋ dst.a × (1 − src.a)</div>
+<p>rgb は straight α の合成、α は over 合成。不透明な背景（バックバッファ）の上では普通の重ね塗りになる。透明にクリアした RenderTexture の上では、rgb は premultiplied（色 × α）になり、α は 1 回だけ掛かる。α も SrcAlpha で合成すると α が二乗され、その RenderTexture を重ねたときに下層が漏れる（README §5 S6）。</p>
+<div class="tbl"><table>
+<thead><tr><th>画素</th><th>src（rgb, a）</th><th>dst</th><th>書く値（linear の rgb, a）</th><th>sRGB で 8bit</th></tr></thead>
+<tbody>
+<tr><td>x = <!-- gen:P0_X -->230.5<!-- /gen -->（縁取り・外縁）</td><td class="mono"><!-- gen:P0_OUT -->(0, 0, 0, 0.519)<!-- /gen --></td><td>背景</td><td class="mono"><!-- gen:P0_RES -->(0.0402, 0.0513, 0.0709, 1.0000)<!-- /gen --></td><td class="mono"><!-- gen:P0_RES8 -->(56, 64, 75)<!-- /gen --></td></tr>
+<tr><td>x = <!-- gen:P1_X -->233.5<!-- /gen -->（縁取り・面の縁）</td><td class="mono"><!-- gen:P1_OUT -->(0.686, 0.686, 0.686, 1.000)<!-- /gen --></td><td>背景</td><td class="mono"><!-- gen:P1_RES -->(0.6861, 0.6861, 0.6861, 1.0000)<!-- /gen --></td><td class="mono"><!-- gen:P1_RES8 -->(216, 216, 216)<!-- /gen --></td></tr>
+<tr><td>x = <!-- gen:P1_X -->233.5<!-- /gen -->（縁取り無し）</td><td class="mono"><!-- gen:P2_OUT -->(1.000, 1.000, 1.000, 0.686)<!-- /gen --></td><td>背景</td><td class="mono"><!-- gen:P2_RES -->(0.7123, 0.7195, 0.7323, 1.0000)<!-- /gen --></td><td class="mono"><!-- gen:P2_RES8 -->(220, 221, 222)<!-- /gen --></td></tr>
+<tr><td>x = <!-- gen:P1_X -->233.5<!-- /gen -->（縁取り無し）</td><td class="mono"><!-- gen:P2_OUT -->(1.000, 1.000, 1.000, 0.686)<!-- /gen --></td><td>透明の RT</td><td class="mono"><!-- gen:P2_PREMUL -->(0.686, 0.686, 0.686, 0.686)<!-- /gen --></td><td>—</td></tr>
+</tbody></table></div>
+<p>背景は比較の場面のカメラの背景色 (0.32, 0.36, 0.42)（sRGB）を linear に直した <!-- gen:BG_LIN -->(0.0835, 0.1065, 0.1473)<!-- /gen -->（α 1）、透明の RT は (0, 0, 0, 0) にクリアした RenderTexture。8bit の値は sRGB のレンダーターゲットへ書いたときに残る値（<a href="#colorspace">§9.2</a>）。最後の行で α も SrcAlpha で合成すると、α は <!-- gen:P2_A -->0.686<!-- /gen -->² ≒ <!-- gen:P2_A2 -->0.471<!-- /gen --> になる。</p>
+
+<h2 id="screen"><span class="num">9</span>レンダーターゲットから画面へ</h2>
+
+<h3 id="modes"><span class="num">9.1</span>Canvas の描画モード</h3>
+<p>どのレンダーターゲットへ、いつ描くかは Canvas の描画モードで決まる。シェーダとマテリアルはどのモードでも同じ。</p>
+<figure class="fig" id="fig-modes">
+<!-- gen:FIG_MODES -->
+<div class="scroll"><svg class="dia" viewBox="0 0 760 510" width="760" height="510" role="img" aria-label="Canvas の描画モードごとのレンダーターゲットと画面までの流れ" xmlns="http://www.w3.org/2000/svg">
+<rect class="node in" x="16" y="16" width="220" height="62" rx="6"/><text class="node-t" x="28" y="38" text-anchor="start">Screen Space - Overlay</text><text class="node-s" x="28" y="57" text-anchor="start">カメラを持たない</text>
+<rect class="node in" x="270" y="16" width="220" height="62" rx="6"/><text class="node-t" x="282" y="38" text-anchor="start">Screen Space - Camera</text><text class="node-s" x="282" y="57" text-anchor="start">指定のカメラの前の平面</text>
+<rect class="node in" x="524" y="16" width="220" height="62" rx="6"/><text class="node-t" x="536" y="38" text-anchor="start">World Space</text><text class="node-s" x="536" y="57" text-anchor="start">シーンの中の平面</text>
+<line class="flow" x1="380" y1="78" x2="380" y2="102"/><polygon class="ah-flow" points="380,104 376.4,96 383.6,96"/>
+<line class="flow" x1="634" y1="78" x2="634" y2="102"/><polygon class="ah-flow" points="634,104 630.4,96 637.6,96"/>
+<rect class="node step" x="270" y="106" width="474" height="62" rx="6"/><text class="node-t" x="282" y="128" text-anchor="start">カメラが描く</text><text class="node-s" x="282" y="147" text-anchor="start">不透明物の後、透明物の並び（Queue Transparent）の中で描く</text>
+<line class="flow" x1="507" y1="168" x2="507" y2="192"/><polygon class="ah-flow" points="507,194 503.4,186 510.6,186"/>
+<rect class="node step" x="270" y="196" width="474" height="78" rx="6"/><text class="node-t" x="282" y="218" text-anchor="start">カメラのカラーターゲット</text><text class="node-s" x="282" y="237" text-anchor="start">URP の中間のカラーテクスチャ（使うかどうかは URP が決める）</text><text class="node-s" x="282" y="253" text-anchor="start">か、バックバッファ（中間を使わないとき）</text>
+<line class="flow" x1="507" y1="274" x2="507" y2="298"/><polygon class="ah-flow" points="507,300 503.4,292 510.6,292"/>
+<rect class="node step" x="270" y="302" width="474" height="44" rx="6"/><text class="node-t" x="282" y="324" text-anchor="start">中間を使ったときは、バックバッファへ写す（ブリット）</text>
+<line class="flow" x1="507" y1="346" x2="507" y2="370"/><polygon class="ah-flow" points="507,372 503.4,364 510.6,364"/>
+<line class="flow" x1="126" y1="78" x2="126" y2="372"/><polygon class="ah-flow" points="126,374 122.4,366 129.6,366"/>
+<text class="lbl-s" x="136" y="188" text-anchor="start">URP の UI のパスが</text>
+<text class="lbl-s" x="136" y="204" text-anchor="start">シーンの画像の上へ描く</text>
+<text class="lbl-s mono" x="136" y="220" text-anchor="start">（rendersUIOverlay）</text>
+<rect class="node sdf" x="16" y="374" width="728" height="46" rx="6"/><text class="node-t" x="28" y="396" text-anchor="start">バックバッファ（スワップチェーンの今のフレームの画像）</text>
+<line class="flow" x1="380" y1="420" x2="380" y2="444"/><polygon class="ah-flow" points="380,446 376.4,438 383.6,438"/>
+<rect class="node host" x="16" y="448" width="728" height="46" rx="6"/><text class="node-t" x="28" y="470" text-anchor="start">Present → ディスプレイ</text>
+</svg></div>
+<!-- /gen -->
+<figcaption><span class="fn">図 10</span>Canvas の描画モードごとの描く者とレンダーターゲット（URP の場合。中間のテクスチャを使うかは URP が決める）。カメラの <code>targetTexture</code> に RenderTexture を入れると、そのカメラの描く Canvas は画面ではなく RenderTexture へ描かれる。</figcaption>
+</figure>
+<div class="tbl"><table>
+<thead><tr><th>描画モード</th><th>描く者と時点</th><th>レンダーターゲット</th><th><code>unity_GUIZTestMode</code></th></tr></thead>
+<tbody>
+<tr><td>Screen Space - Overlay</td><td>URP が UI のパスで、シーンを描いた画像の上へ（カメラを持たない）</td><td>画面（バックバッファ）</td><td class="mono">Always</td></tr>
+<tr><td>Screen Space - Camera</td><td>指定のカメラが、透明物の並びの中で</td><td>カメラのカラーターゲット</td><td class="mono">LessEqual</td></tr>
+<tr><td>World Space</td><td>シーンを描く各カメラが、透明物の並びの中で（3D の配置に従って前後する）</td><td>カメラのカラーターゲット</td><td class="mono">LessEqual</td></tr>
+</tbody></table></div>
+<p>URP では Overlay の Canvas も URP が描く。<code>SupportedRenderingFeatures.rendersUIOverlay</code> は UI のオーバーレイを描く処理をエンジンではなく SRP が呼ぶことを表し、URP のカメラの描画（Render Graph）には UI を描くパスがある。<code>unity_GUIZTestMode</code> は Canvas が描く直前に入れる値で、Overlay では Always、ほかでは LessEqual になる。</p>
+<p>カメラのカラーターゲットは、URP が中間のカラーテクスチャを使うときはそのテクスチャで、最後にバックバッファへ写す（ブリット）。使うかどうかは、Universal Renderer の Intermediate Texture が Auto（既定）なら URP が描画の内容から決める。どのレンダーターゲットへどの順に描かれたかは、Render Graph Viewer（Window &gt; Analysis &gt; Render Graph Viewer）か Frame Debugger で確かめられる。</p>
+<p>Overlay では、ルートの Canvas の空間は画面の px に CanvasScaler の倍率を掛けた単位になる。どのモードでも、AA の幅は UV0.zw の微分から決めるので、倍率・カメラの距離・回転によらず画面の 1px になる（§8.4）。</p>
+
+<h3 id="colorspace"><span class="num">9.2</span>色空間</h3>
+<p>本プロジェクトの色空間は Linear。シェーダは linear の値で計算し、sRGB のレンダーターゲットへ書くときに GPU が linear から sRGB へ直す。ブレンドで dst を読むときは sRGB から linear へ戻すので、ブレンドも linear で行われる。§8.6 の表の 8bit の値はこの変換の後の値。</p>
+<p>色の入口は 2 つで、扱いが違う。</p>
+<ul>
+<li><b>面の色（頂点色）</b>: Linear のプロジェクトでは、Canvas がメッシュを作るときに gamma から linear へ直してからシェーダへ渡す（uGUI の既定）。Canvas の Vertex Color Always in Gamma Color Space（<code>Canvas.vertexColorAlwaysGammaSpace</code>）を有効にすると、この変換をシェーダに任せる。組み込みの UI シェーダは変換を持つが、<code>T2Font/SDF</code> は持たず、既定（無効）を前提にしている——有効にした Canvas では gamma の値を linear として扱うので、面の色が明るくずれる。</li>
+<li><b>縁取りの色</b>: マテリアルの <code>Vector</code> で、Unity が変換しないので、<code>GlyphMaterialCache</code> が Linear のときに linear へ直して入れる（§5）。</li>
+</ul>
+
+<h3 id="present"><span class="num">9.3</span>画面へ出す</h3>
+<p>フレームの描画が終わると、Unity はバックバッファ（スワップチェーンの今のフレームの画像）を Present し、ディスプレイがそれを表示する。垂直同期の設定によっては、ここで次の表示の時点まで待つ。</p>
+
+<h3 id="direct"><span class="num">9.4</span>Canvas を通らない経路</h3>
+<p>適合検査の <code>GlyphConformance.CheckRendering</code>（README §10）は、Canvas もカメラも使わずに同じシェーダで描く。<code>CommandBuffer</code> で一時の RenderTexture（ARGB32・linear）を透明にクリアし、正射影を置き、<code>DrawMesh</code> で字の Mesh を描いて、<code>ReadPixels</code> で読み戻す。<code>_MainTex</code> は <code>MaterialPropertyBlock</code> で渡し、クリップは Canvas と同じキーワードと <code>_ClipRect</code> を自分で入れる。シェーダが Canvas に依らず、描画パイプラインにも依らないことを、この経路が確かめる。</p>
+
+<h2 id="frame"><span class="num">10</span>1 フレームの中の順序</h2>
+<p>§3〜§9 は 1 フレームの中で次の順に起きる。右肩は PlayerLoop の段の名前。</p>
+<figure class="fig" id="fig-frame">
+<!-- gen:FIG_FRAME -->
+<div class="scroll"><svg class="dia" viewBox="0 0 760 480" width="760" height="480" role="img" aria-label="1 フレームの中で T2Font の描画が進む順序" xmlns="http://www.w3.org/2000/svg">
+<rect class="node step" x="40" y="16" width="680" height="58" rx="6"/>
+<text class="node-t" x="54" y="39" text-anchor="start">Update</text>
+<text class="asm" x="706" y="39" text-anchor="end">PlayerLoop の Update</text>
+<text class="lbl-s" x="54" y="60" text-anchor="start">ホストが文字列・色などを変える（T2FontText のプロパティは _dirty を立てるだけ）</text>
+<line class="flow" x1="380" y1="74" x2="380" y2="90"/><polygon class="ah-flow" points="380,92 376.4,84 383.6,84"/>
+<rect class="node host" x="40" y="94" width="680" height="58" rx="6"/>
+<text class="node-t" x="54" y="117" text-anchor="start">LateUpdate</text>
+<text class="asm" x="706" y="117" text-anchor="end">PreLateUpdate.ScriptRunBehaviourLateUpdate</text>
+<text class="lbl-s" x="54" y="138" text-anchor="start">T2FontText.LateUpdate: _dirty なら Rebuild（§3〜§6）</text>
+<line class="flow" x1="380" y1="152" x2="380" y2="168"/><polygon class="ah-flow" points="380,170 376.4,162 383.6,162"/>
+<rect class="node step" x="40" y="172" width="680" height="58" rx="6"/>
+<text class="node-t" x="54" y="195" text-anchor="start">Canvas の更新</text>
+<text class="asm" x="706" y="195" text-anchor="end">PostLateUpdate.PlayerUpdateCanvases</text>
+<text class="lbl-s" x="54" y="216" text-anchor="start">Canvas.willRenderCanvases（uGUI のレイアウトと Graphic の再構築）</text>
+<line class="flow" x1="380" y1="230" x2="380" y2="246"/><polygon class="ah-flow" points="380,248 376.4,240 383.6,240"/>
+<rect class="node step" x="40" y="250" width="680" height="58" rx="6"/>
+<text class="node-t" x="54" y="273" text-anchor="start">ジオメトリをまとめる</text>
+<text class="asm" x="706" y="273" text-anchor="end">PostLateUpdate.PlayerEmitCanvasGeometry</text>
+<text class="lbl-s" x="54" y="294" text-anchor="start">変わった Canvas のバッチを作り直す（§7）</text>
+<line class="flow" x1="380" y1="308" x2="380" y2="324"/><polygon class="ah-flow" points="380,326 376.4,318 383.6,318"/>
+<rect class="node sdf" x="40" y="328" width="680" height="58" rx="6"/>
+<text class="node-t" x="54" y="351" text-anchor="start">描く</text>
+<text class="asm" x="706" y="351" text-anchor="end">PostLateUpdate.FinishFrameRendering</text>
+<text class="lbl-s" x="54" y="372" text-anchor="start">URP がカメラを描く。Camera・World の Canvas はカメラの中、Overlay の Canvas は UI のパス（§8・§9）</text>
+<line class="flow" x1="380" y1="386" x2="380" y2="402"/><polygon class="ah-flow" points="380,404 376.4,396 383.6,396"/>
+<rect class="node step" x="40" y="406" width="680" height="58" rx="6"/>
+<text class="node-t" x="54" y="429" text-anchor="start">画面へ出す</text>
+<text class="asm" x="706" y="429" text-anchor="end">PostLateUpdate.PresentAfterDraw</text>
+<text class="lbl-s" x="54" y="450" text-anchor="start">バックバッファを Present する</text>
+</svg></div>
+<!-- /gen -->
+<figcaption><span class="fn">図 11</span>1 フレームの中の順序。検証ビューは値が変わると <code>_dirty</code> を立て、次の <code>LateUpdate</code> で作り直す（<code>[ExecuteAlways]</code> なので Edit モードでも動く）。値が変わらないフレームでは、C# の側は何もせず、Canvas が持つバッチを GPU が描き直すだけ。</figcaption>
+</figure>
+<p>検証ビューは値が変わるたびに字の GameObject・Mesh を全部作り直す（README §10 の検証のための作り）。利用側のテキスト描画で毎フレーム文字列が変わるなら、GameObject を使い回し、<code>GlyphGeometry</code> を 1 つの <code>Mesh</code> へまとめて詰めるなど、§4〜§6 の作り方を変えればよい。§7 以降は変わらない。</p>
+
+<h2 id="terms"><span class="num">11</span>用語</h2>
+<p>訳語の正典はリポジトリの <code>docs/reference/terminology.md</code>（02 章 §9 も参照）。本書で新しく出る主な用語と英語の対応は次のとおり。</p>
+<dl class="defs">
+<dt>ホスト</dt><dd>host。字を画面へ置く側。本書では検証ビュー <code>T2FontText</code></dd>
+<dt>quad</dt><dd>頂点 4 つ・三角形 2 つの矩形の幾何</dd>
+<dt>マテリアル</dt><dd>material。シェーダと uniform の値の組</dd>
+<dt>uniform</dt><dd>描画の呼び出しの間で一定のシェーダの入力（<code>_RangeEm</code> など）</dd>
+<dt>頂点色</dt><dd>vertex color。COLOR。T2Font では rgb が面の色、α がフェード</dd>
+<dt>バッチ</dt><dd>batch。Canvas が 1 回の描画の呼び出しにまとめた字の幾何</dd>
+<dt>ラスタライズする</dt><dd>rasterize。三角形が覆う画素を求め、画素ごとにフラグメントを作ること</dd>
+<dt>フラグメント</dt><dd>fragment。ラスタライズが画素ごとに作る、フラグメントシェーダの 1 回ぶんの入力</dd>
+<dt>被覆率</dt><dd>coverage。画素のうち形に覆われる割合（<code>ao</code>・<code>af</code>）</dd>
+<dt>ブレンドする</dt><dd>blend。フラグメントの出力とレンダーターゲットの画素を Blend の式で混ぜて書くこと</dd>
+<dt>レンダーターゲット</dt><dd>render target。GPU が描き込むテクスチャ（バックバッファ・カメラのカラーテクスチャ・RenderTexture）</dd>
+<dt>バックバッファ</dt><dd>back buffer。画面へ出す前のフレームの画像。Present でディスプレイへ出る</dd>
+<dt>ブリット</dt><dd>blit。テクスチャを別のレンダーターゲットへ写す描画</dd>
+</dl>
+
+<h2 id="method"><span class="num">12</span>図の作り方</h2>
+<p>実データの図（図 2〜4・8・9 と表の数値）は、パッケージの <code>Core/</code> と <code>Bake/</code> のソースをそのままリンクした .NET 8 のコンソールプログラムで、インポーターと同じ <code>FontBakeSpec.Parse</code> → <code>FontSpecBaker.BuildFace</code> → <code>SdfAtlasBaker.Bake</code> を見本に対して走らせ、タイポグラフィテーブル・セル・ページの画素を書き出して描いた。ペンの位置・頂点・UV は <code>T2FontText.Rebuild</code>・<code>SdfRepresentation.WriteGeometry</code>・<code>GlyphGeometry</code> と同じ式で、フラグメントの値はシェーダ <code>T2Font/SDF</code> の <code>frag</code> と同じ式（bilinear・clamp で読んだ値・UV0.zw の微分から得た 1 表示 px・入れ子の面積の合成）を CPU で計算した。ブレンドの結果は Blend の式と sRGB の変換を同じく計算した値で、GPU が実際に書いた値ではない（GPU の補間の精度と sRGB の変換の丸めで 1 の差は出うる）。</p>
+<p>図を作ったときの見本のアトラスの <code>ComputeContentHash</code> は <code class="mono"><!-- gen:HASH -->593ec06922b6d9a89ea658d2044a2526a8ce46017c4e2197cb2485b6f926a6fc<!-- /gen --></code>（02 章の図と同じ）。ベイカーの出力が変われば値が変わるので、図が古くなったかの目安になる。</p>
+<p>流れ図・CanvasRenderer の口・バッチ・GPU の段・描画モード・フレームの順序の図は模式図。</p>
+<p>図・表の数値・画像は <code>Tools/docs-figures/03-atlas-to-screen/</code> のスクリプトが作り、本書の <code>&lt;!-- gen:名前 --&gt;</code> と <code>&lt;!-- /gen --&gt;</code> の間を書き換える（使い方は同じフォルダの README）。地の文は本書を直接直す。パッケージの Runtime・シェーダ・ベイカーを変えたら、スクリプトを走らせて図を作り直す。</p>
+
+<footer>
+<p>T2Font アーキテクチャ解説 03。契約の正典はパッケージの README（<code>Packages/info.someiyoshino.t2font/README.md</code>）、アトラスができるまでは 02 章（<code>docs/architecture/02-truetype-to-atlas.html</code>）。</p>
+</footer>
+</main>
+</div>
+</body>
+</html>

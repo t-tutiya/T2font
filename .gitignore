@@ -44,6 +44,11 @@ ExportedObj/
 # テストビルド出力は除外
 Tests/bin/
 Tests/obj/
+# 文書の図を作るコンソールプログラム（Tools/docs-figures/）の .csproj も手書きなので除外せず、ビルド出力は除外
+!Tools/docs-figures/*/Dump/*.csproj
+Tools/docs-figures/*/Dump/bin/
+Tools/docs-figures/*/Dump/obj/
+Tools/docs-figures/**/__pycache__/
 *.suo
 *.tmp
 *.user

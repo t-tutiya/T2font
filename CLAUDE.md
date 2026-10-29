@@ -57,4 +57,6 @@ Unity の版は `ProjectSettings/ProjectVersion.txt` が正典（LTS の最新�
   純 C# で外部 NUnit がリンクする。Runtime・Editor・Viewer は PR の Job B が見る。
 - **TrueType から SDF アトラスまで**（`docs/architecture/02-truetype-to-atlas.html`・契約はパッケージの README §7・§9）: 読み取り・タイポグラフィテーブル・ベイクの工程の図解。
   ベイカーの出力を変えたら図が古くなる（図の作り方と出力のハッシュは同書の末尾）。
+- **アトラスから画面まで**（`docs/architecture/03-atlas-to-screen.html`・契約はパッケージの README §4・§5）: ホストが字を置き、CanvasRenderer と Canvas を経て
+  シェーダがレンダーターゲットへ描き、画面に出るまでの図解。Runtime・シェーダ・ベイカーの出力を変えたら `Tools/docs-figures/03-atlas-to-screen/` で図を作り直す。
 - **テストの三層**（`docs/guides/testing-workflow.md`・D-TESTARCH）: 外部 NUnit／EditMode／Play Mode。安い層で表現できるものは安い層へ置く。
