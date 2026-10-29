@@ -11,3 +11,4 @@
 
 | ファイル | 対象 |
 |---|---|
+| [`vertex-color-gamma-study.md`](vertex-color-gamma-study.md) | 頂点色を gamma のまま渡す Canvas への対応（A: シェーダで直す・B: ホストで止める）の比較 |

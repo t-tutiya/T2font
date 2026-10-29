@@ -20,7 +20,7 @@ T2font の実装計画。本書は **状態別（now / 着手候補 / 小物 / �
 
 | # | 項目 | 状態 | 設計・正典 |
 |---|---|---|---|
-| 3 | Canvas の Vertex Color Always in Gamma Color Space（`Canvas.vertexColorAlwaysGammaSpace`）を有効にすると、`T2Font/SDF` が頂点色を gamma のまま受けて面の色が明るくずれる。シェーダで linear へ直すか、ホストで止めるかを決めて直す | 未着手 | 現状の動作は [`architecture/03-atlas-to-screen.html`](architecture/03-atlas-to-screen.html) §9.2。契約はパッケージの README §5 S2 |
+| 3 | Canvas の Vertex Color Always in Gamma Color Space（`Canvas.vertexColorAlwaysGammaSpace`）を有効にすると、`T2Font/SDF` が頂点色を gamma のまま受けて面の色が明るくずれる。シェーダで linear へ直すか、ホストで止めるかを決めて直す | 未着手 | 方針の比較は [`plans/vertex-color-gamma-study.md`](plans/vertex-color-gamma-study.md)。現状の動作は [`architecture/03-atlas-to-screen.html`](architecture/03-atlas-to-screen.html) §9.2。契約はパッケージの README §5 S2 |
 
 次の新規番号: 4
 
