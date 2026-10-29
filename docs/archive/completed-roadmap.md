@@ -46,9 +46,10 @@
 
 ---
 
-## 2026-10 — [`completed-roadmap/completed-roadmap-2026-10.md`](completed-roadmap/completed-roadmap-2026-10.md)（2 件）
+## 2026-10 — [`completed-roadmap/completed-roadmap-2026-10.md`](completed-roadmap/completed-roadmap-2026-10.md)（3 件）
 
 | 完了日 | 完了項目 | 決定 ID |
 |---|---|---|
+| 2026-10-29 | 頂点色を gamma のまま渡す Canvas への対応（着手候補 #3） | D-UIGAMMA |
 | 2026-10-28 | プロジェクトの初期設定を終える | D-TEMPLATE |
 | 2026-10-28 | T2Font v0.1.0 | D-T2FONT |

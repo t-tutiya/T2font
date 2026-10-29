@@ -5,6 +5,20 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-29
+
+### Added
+
+- シェーダの契約 S9（README §5）: 面の色は linear で使い、uniform `_UIVertexColorAlwaysGammaSpace` が立てば（Linear のプロジェクトで）頂点色の rgb を
+  `UIGammaToLinear` で linear に直す。**表現を足すパッケージのシェーダも S9 を満たす必要がある**（適合検査が確かめる）。
+- 適合検査 `GlyphConformance.CheckRendering` が S9 を確かめる（灰色の頂点色で、uniform が立つときと立たないときの面の色を見る）。
+
+### Fixed
+
+- Canvas の Vertex Color Always in Gamma Color Space（`Canvas.vertexColorAlwaysGammaSpace`）を有効にすると、`T2Font/SDF` が gamma のまま来た頂点色を
+  linear として扱い、面の色が明るくずれていた（sRGB の 128 が 188 に出る）。シェーダが組み込みの UI シェーダと同じ関数で linear に直し、同じ色の
+  `Image` などと揃う。
+
 ### Changed
 
 - 用語を一般的なカタカナの訳語へ揃えた（README・コメント・インポートの誤りと報告の文面・適合検査の文面）。主な言い換え: 焼く→ベイクする・
@@ -25,5 +39,6 @@
 - Viewer: 検証ビュー `T2FontText`（字ごとに 1 つの `CanvasRenderer` で描く）。
 - Conformance: 表現の適合検査 `GlyphConformance`（幾何の検査と、描いた画素でのシェーダの契約の検査）。
 
-[Unreleased]: https://github.com/t-tutiya/T2font/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/t-tutiya/T2font/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/t-tutiya/T2font/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/t-tutiya/T2font/releases/tag/v0.1.0

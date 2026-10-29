@@ -1,6 +1,6 @@
 Shader "T2Font/SDF" {
 
-// 同梱の SDF の表現のシェーダ（README §9）。§5 のシェーダの契約（S1〜S8）を満たす。
+// 同梱の SDF の表現のシェーダ（README §9）。§5 のシェーダの契約（S1〜S9）を満たす。
 // 面と縁取りの 2 つの境界それぞれに「位置」と「ぼかし」を 1 つずつ持ち、どの値も境界 1 本の位置かランプ 1 本の幅だけを
 // 動かす。値はすべて em（字の大きさに対する比・README §6.1）。AA は値ではなく、常に画面の 1px で掛ける（ぼかしはその上に足す幅）。
 // マテリアルは GlyphMaterialCache が作り、距離レンジを SdfRepresentation が、エッジスタイルの値をキャッシュが入れる。
@@ -58,6 +58,9 @@ SubShader {
 		uniform float		_OutlineWidth;
 		uniform float		_OutlineSoftness;
 		uniform float4		_ClipRect;
+		// Canvas の Vertex Color Always in Gamma Color Space（Canvas.vertexColorAlwaysGammaSpace）が有効なら、Canvas がバッチに 1 を入れ、
+		// 頂点色を gamma のまま渡す。組み込みの UI シェーダと TMP に合わせて Properties に置かない（README §5 S9）。
+		uniform int			_UIVertexColorAlwaysGammaSpace;
 
 		// 入力は POSITION・COLOR・TEXCOORD0 だけ（README §5 S1）。追加の頂点チャネルは Canvas 全体の設定なので使わない。
 		struct Attributes {
@@ -85,8 +88,13 @@ SubShader {
 			UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
 			output.position = UnityObjectToClipPos(input.position);
-			// 頂点色（rgb＝面の色・a＝フェード・README §5 S2）。色空間の扱いは uGUI の既定のまま。
+			// 頂点色（rgb＝面の色・a＝フェード・README §5 S2）。面の色は linear で使う。既定では Canvas が linear に直して渡すが、
+			// gamma のまま来たら組み込みの UI シェーダと同じ関数で直す——直さないと面の色が明るくずれる（README §5 S9）。α は直さない。
 			output.color	= input.color;
+			if (_UIVertexColorAlwaysGammaSpace && !IsGammaSpace())
+			{
+				output.color.rgb = UIGammaToLinear(output.color.rgb);
+			}
 			output.uv0		= input.uv0;
 			output.canvasPos = input.position;
 			return output;

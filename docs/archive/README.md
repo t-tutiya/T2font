@@ -20,6 +20,7 @@
 
 | ファイル | 対象 | 決定 ID |
 |---|---|---|
+| [`completed-designs/vertex-color-gamma-study.md`](completed-designs/vertex-color-gamma-study.md) | 頂点色を gamma のまま渡す Canvas への対応（A: シェーダで直す・B: ホストで止める）の比較 | D-UIGAMMA |
 | [`completed-designs/t2font-v0.1-plan.md`](completed-designs/t2font-v0.1-plan.md) | T2Font v0.1.0 の段取り（S1〜S7・各段の中身と検証） | D-T2FONT |
 
 ## evaluations/（客観評価・コードレビュー）
@@ -35,4 +36,5 @@
 
 | 日付 | 操作 | 文書 | 理由・決定 ID |
 |---|---|---|---|
+| 2026-10-29 | 退避 | `vertex-color-gamma-study.md` | 案 A を採って 0.2.0 で実装した（D-UIGAMMA・D-DOCLIFE） |
 | 2026-10-28 | 退避 | `t2font-v0.1-plan.md` | v0.1.0 の段 S1〜S7 を終えた（D-T2FONT・D-DOCLIFE） |
