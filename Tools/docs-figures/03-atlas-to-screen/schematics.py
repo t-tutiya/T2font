@@ -68,7 +68,7 @@ def fig_batch():
 def fig_gpu():
     rows=[
      (61,'バッチの頂点',['POSITION（ルートの Canvas の空間）・COLOR・TEXCOORD0（u, v, emX, emY）'],'Canvas','in'),
-     (61,'頂点シェーダ vert',['UnityObjectToClipPos(position) → クリップ空間・色と UV0 と canvasPos をそのまま渡す'],'シェーダ','step'),
+     (78,'頂点シェーダ vert',['UnityObjectToClipPos(position) → クリップ空間・UV0 と canvasPos はそのまま渡す','色は gamma のまま来たら（_UIVertexColorAlwaysGammaSpace）linear へ直して渡す'],'シェーダ','step'),
      (78,'ラスタライズ',['三角形が覆う画素の中心ごとにフラグメントを作り、varying を補間する','2×2 の画素を組にして回すので ddx・ddy が隣との差として取れる'],'GPU の固定機能','step'),
      (78,'フラグメントシェーダ frag',['tex2D(_MainTex, uv).r → 距離 s（em）・UV0.zw の微分 → 1 表示 px の em','→ 被覆率 ao・af → 面と縁取りの色 → フェード → クリップ'],'シェーダ','sdf'),
      (61,'ブレンド',['Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha・ZWrite Off・Cull Off'],'GPU の固定機能','step'),

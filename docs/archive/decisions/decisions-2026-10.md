@@ -9,6 +9,31 @@
 
 ---
 
+## 2026-10-29 頂点色を gamma のまま渡す Canvas にシェーダで対応する — D-UIGAMMA
+
+**発端**: Canvas の Vertex Color Always in Gamma Color Space（`Canvas.vertexColorAlwaysGammaSpace`）を有効にすると、Canvas は頂点色を
+gamma のまま渡し、linear への変換をシェーダに任せる。`T2Font/SDF` は変換を持たず、面の色が黙って明るくずれていた（パッケージの
+README §2.1 に反する）。両案の比較は [`../completed-designs/vertex-color-gamma-study.md`](../completed-designs/vertex-color-gamma-study.md)（凍結）。
+
+**決定**: シェーダで直す（案 A）。組み込みの UI シェーダと TMP と同じく、uniform `_UIVertexColorAlwaysGammaSpace`（Canvas がバッチに立てる・
+Properties に置かない）が立ち、Linear のプロジェクトなら、頂点色の rgb を `UnityUI.cginc` の `UIGammaToLinear` で linear に直す。これを
+シェーダの契約 S9（パッケージの README §5）として全表現の義務にし、適合検査 `CheckRendering` で確かめる。契約が増えるので版を 0.2.0 にする。
+
+**理由**: どのホストでも面の色を正しく描くことを、ホストに頼らずパッケージの中で満たせる。Unity 自身（組み込みの UI シェーダ・TMP）が同じ形で、
+文書も独自の UI シェーダに変換を求めている。組み込みの UI シェーダと同じ関数で直すので、同じ色の `Image` と揃う。
+
+**採らなかった案**: ホストで止める（案 B: 設定を有効にした Canvas の下では描かずに誤りを出す）——判定はホストごとに呼ぶしかなく
+（`GlyphMaterialCache` もシェーダも Canvas を知らない）、利用側のホストが呼び忘れると黙ってずれたままになる。この設定を使うプロジェクトで
+T2Font が使えなくなる。`UnityCG.cginc` の `GammaToLinearSpace` で直す——組み込みの UI シェーダと別の関数になり、同じ色の UI と揃う保証が無い。
+
+**前提**: Canvas が組み込みでないシェーダにも uniform を入れることは文書に無い。根拠は TMP の修正（UUM-36113: 設定を有効にしても TMP の字の色が
+変わらないことを期待し、TMP のシェーダの変更で直した）で、Unity のフォーラムに反対の主張がある。EditMode の `T2FontTextColorSpaceTests` が
+Canvas を通して描き、組み込みの UI シェーダの四角と比べて確かめる（検証の結果は PR のチェックリスト参照）。外れたと分かったら案 B へ切り替える。
+
+**守ること**: 表現を足すパッケージのシェーダも S9 を満たす。Canvas を通らない描画では uniform が立たないので、ホストは頂点色を linear で渡す。
+
+---
+
 ## 2026-10-29 用語をカタカナの一般的な訳語へ揃える — D-TERMS
 
 **発端**: パッケージのコメント・README・文書が「焼く・焼き器・取込器・墨の外接・字形・字の表・様式（縁）・距離域・超標本化」など、

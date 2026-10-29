@@ -756,7 +756,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <p>見本の文字列では、空白を除く 9 字ぶん、GameObject・<code>CanvasRenderer</code>・<code>Mesh</code> が 9 組できる。ここまでが C# の仕事で、値が変わらない限り次のフレームからは何もしない（<a href="#frame">§10</a>）。</p>
 
 <h2 id="batch"><span class="num">7</span>Canvas がバッチにまとめる</h2>
-<p><code>CanvasRenderer</code> は自分では描かない。親の Canvas が、配下の <code>CanvasRenderer</code> の幾何を集め、描く順に並べ、<b>同じマテリアル × 同じテクスチャが続く所を 1 回の描画（バッチ）にまとめる</b>（README §4.4）。このとき頂点はルートの Canvas の空間へ写され、<code>CanvasRenderer</code> の色が頂点色に入る。矩形クリップを有効にした字のバッチには、Canvas がキーワード <code>UNITY_UI_CLIP_RECT</code> と <code>_ClipRect</code> を渡す。</p>
+<p><code>CanvasRenderer</code> は自分では描かない。親の Canvas が、配下の <code>CanvasRenderer</code> の幾何を集め、描く順に並べ、<b>同じマテリアル × 同じテクスチャが続く所を 1 回の描画（バッチ）にまとめる</b>（README §4.4）。このとき頂点はルートの Canvas の空間へ写され、<code>CanvasRenderer</code> の色が頂点色に入る。矩形クリップを有効にした字のバッチには、Canvas がキーワード <code>UNITY_UI_CLIP_RECT</code> と <code>_ClipRect</code> を渡す。Vertex Color Always in Gamma Color Space を有効にした Canvas は、頂点色を gamma のまま入れ、バッチに <code>_UIVertexColorAlwaysGammaSpace</code> を立てる（<a href="#colorspace">§9.2</a>）。</p>
 <figure class="fig" id="fig-batch">
 <!-- gen:FIG_BATCH -->
 <div class="scroll"><svg class="dia" viewBox="0 0 760 322" width="760" height="322" role="img" aria-label="Canvas が同じマテリアルとテクスチャの字を 1 回の描画にまとめる図" xmlns="http://www.w3.org/2000/svg">
@@ -811,21 +811,21 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <p>Canvas は変わった所だけバッチを作り直し、変わらなければ前のフレームのバッチをそのまま描く。GPU は毎フレーム描くが、C# の側（§3〜§6）は値が変わったときしか回らない。</p>
 
 <h2 id="gpu"><span class="num">8</span>GPU で描く</h2>
-<p>バッチ 1 つが描画の呼び出し 1 回になり、GPU の上で下の段を流れる。シェーダは README §5 の契約（S1〜S8）を満たす。</p>
+<p>バッチ 1 つが描画の呼び出し 1 回になり、GPU の上で下の段を流れる。シェーダは README §5 の契約（S1〜S9）を満たす。</p>
 <figure class="fig" id="fig-gpu">
 <!-- gen:FIG_GPU -->
-<div class="scroll"><svg class="dia" viewBox="0 0 760 525" width="760" height="525" role="img" aria-label="GPU の上の段の流れ図" xmlns="http://www.w3.org/2000/svg">
+<div class="scroll"><svg class="dia" viewBox="0 0 760 542" width="760" height="542" role="img" aria-label="GPU の上の段の流れ図" xmlns="http://www.w3.org/2000/svg">
 <rect class="node in" x="40" y="16" width="680" height="61" rx="6"/><text class="node-t" x="52" y="38" text-anchor="start">バッチの頂点</text><text class="node-s" x="52" y="57" text-anchor="start">POSITION（ルートの Canvas の空間）・COLOR・TEXCOORD0（u, v, emX, emY）</text><text class="asm" x="710" y="38" text-anchor="end">Canvas</text>
 <line class="flow" x1="380" y1="77" x2="380" y2="95"/><polygon class="ah-flow" points="380,97 376.4,89 383.6,89"/>
-<rect class="node step" x="40" y="99" width="680" height="61" rx="6"/><text class="node-t" x="52" y="121" text-anchor="start">頂点シェーダ vert</text><text class="node-s" x="52" y="140" text-anchor="start">UnityObjectToClipPos(position) → クリップ空間・色と UV0 と canvasPos をそのまま渡す</text><text class="asm" x="710" y="121" text-anchor="end">シェーダ</text>
-<line class="flow" x1="380" y1="160" x2="380" y2="178"/><polygon class="ah-flow" points="380,180 376.4,172 383.6,172"/>
-<rect class="node step" x="40" y="182" width="680" height="78" rx="6"/><text class="node-t" x="52" y="204" text-anchor="start">ラスタライズ</text><text class="node-s" x="52" y="223" text-anchor="start">三角形が覆う画素の中心ごとにフラグメントを作り、varying を補間する</text><text class="node-s" x="52" y="239" text-anchor="start">2×2 の画素を組にして回すので ddx・ddy が隣との差として取れる</text><text class="asm" x="710" y="204" text-anchor="end">GPU の固定機能</text>
-<line class="flow" x1="380" y1="260" x2="380" y2="278"/><polygon class="ah-flow" points="380,280 376.4,272 383.6,272"/>
-<rect class="node sdf" x="40" y="282" width="680" height="78" rx="6"/><text class="node-t" x="52" y="304" text-anchor="start">フラグメントシェーダ frag</text><text class="node-s" x="52" y="323" text-anchor="start">tex2D(_MainTex, uv).r → 距離 s（em）・UV0.zw の微分 → 1 表示 px の em</text><text class="node-s" x="52" y="339" text-anchor="start">→ 被覆率 ao・af → 面と縁取りの色 → フェード → クリップ</text><text class="asm" x="710" y="304" text-anchor="end">シェーダ</text>
-<line class="flow" x1="380" y1="360" x2="380" y2="378"/><polygon class="ah-flow" points="380,380 376.4,372 383.6,372"/>
-<rect class="node step" x="40" y="382" width="680" height="61" rx="6"/><text class="node-t" x="52" y="404" text-anchor="start">ブレンド</text><text class="node-s" x="52" y="423" text-anchor="start">Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha・ZWrite Off・Cull Off</text><text class="asm" x="710" y="404" text-anchor="end">GPU の固定機能</text>
-<line class="flow" x1="380" y1="443" x2="380" y2="461"/><polygon class="ah-flow" points="380,463 376.4,455 383.6,455"/>
-<rect class="node host" x="40" y="465" width="680" height="44" rx="6"/><text class="node-t" x="52" y="487" text-anchor="start">レンダーターゲットの画素</text><text class="asm" x="710" y="487" text-anchor="end">§9</text>
+<rect class="node step" x="40" y="99" width="680" height="78" rx="6"/><text class="node-t" x="52" y="121" text-anchor="start">頂点シェーダ vert</text><text class="node-s" x="52" y="140" text-anchor="start">UnityObjectToClipPos(position) → クリップ空間・UV0 と canvasPos はそのまま渡す</text><text class="node-s" x="52" y="156" text-anchor="start">色は gamma のまま来たら（_UIVertexColorAlwaysGammaSpace）linear へ直して渡す</text><text class="asm" x="710" y="121" text-anchor="end">シェーダ</text>
+<line class="flow" x1="380" y1="177" x2="380" y2="195"/><polygon class="ah-flow" points="380,197 376.4,189 383.6,189"/>
+<rect class="node step" x="40" y="199" width="680" height="78" rx="6"/><text class="node-t" x="52" y="221" text-anchor="start">ラスタライズ</text><text class="node-s" x="52" y="240" text-anchor="start">三角形が覆う画素の中心ごとにフラグメントを作り、varying を補間する</text><text class="node-s" x="52" y="256" text-anchor="start">2×2 の画素を組にして回すので ddx・ddy が隣との差として取れる</text><text class="asm" x="710" y="221" text-anchor="end">GPU の固定機能</text>
+<line class="flow" x1="380" y1="277" x2="380" y2="295"/><polygon class="ah-flow" points="380,297 376.4,289 383.6,289"/>
+<rect class="node sdf" x="40" y="299" width="680" height="78" rx="6"/><text class="node-t" x="52" y="321" text-anchor="start">フラグメントシェーダ frag</text><text class="node-s" x="52" y="340" text-anchor="start">tex2D(_MainTex, uv).r → 距離 s（em）・UV0.zw の微分 → 1 表示 px の em</text><text class="node-s" x="52" y="356" text-anchor="start">→ 被覆率 ao・af → 面と縁取りの色 → フェード → クリップ</text><text class="asm" x="710" y="321" text-anchor="end">シェーダ</text>
+<line class="flow" x1="380" y1="377" x2="380" y2="395"/><polygon class="ah-flow" points="380,397 376.4,389 383.6,389"/>
+<rect class="node step" x="40" y="399" width="680" height="61" rx="6"/><text class="node-t" x="52" y="421" text-anchor="start">ブレンド</text><text class="node-s" x="52" y="440" text-anchor="start">Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha・ZWrite Off・Cull Off</text><text class="asm" x="710" y="421" text-anchor="end">GPU の固定機能</text>
+<line class="flow" x1="380" y1="460" x2="380" y2="478"/><polygon class="ah-flow" points="380,480 376.4,472 383.6,472"/>
+<rect class="node host" x="40" y="482" width="680" height="44" rx="6"/><text class="node-t" x="52" y="504" text-anchor="start">レンダーターゲットの画素</text><text class="asm" x="710" y="504" text-anchor="end">§9</text>
 </svg></div>
 <!-- /gen -->
 <figcaption><span class="fn">図 7</span>GPU の上の段。シェーダが書くのは頂点シェーダとフラグメントシェーダで、ラスタライズとブレンドは GPU の固定機能をシェーダの設定で動かす。</figcaption>
@@ -843,7 +843,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 </tbody></table></div>
 
 <h3 id="vert"><span class="num">8.2</span>頂点シェーダ</h3>
-<p>入力は POSITION・COLOR・TEXCOORD0（float4）だけ（README §5 S1）。追加の頂点チャネル（<code>Canvas.additionalShaderChannels</code>）は Canvas 全体の設定なので使わない。<code>vert</code> は位置を <code>UnityObjectToClipPos</code> でクリップ空間へ写し、色と UV0 はそのまま渡し、クリップの判定用に位置（ルートの Canvas の空間）を <code>canvasPos</code> として渡す。<code>_ClipRect</code> も同じ空間で来るので、そのまま比べられる。</p>
+<p>入力は POSITION・COLOR・TEXCOORD0（float4）だけ（README §5 S1）。追加の頂点チャネル（<code>Canvas.additionalShaderChannels</code>）は Canvas 全体の設定なので使わない。<code>vert</code> は位置を <code>UnityObjectToClipPos</code> でクリップ空間へ写し、UV0 はそのまま渡し、クリップの判定用に位置（ルートの Canvas の空間）を <code>canvasPos</code> として渡す。色は、Canvas が gamma のまま渡したとき（<code>_UIVertexColorAlwaysGammaSpace</code> が立つとき）だけ rgb を <code>UIGammaToLinear</code> で linear へ直して渡す（README §5 S9・<a href="#colorspace">§9.2</a>）。<code>_ClipRect</code> も同じ空間で来るので、そのまま比べられる。</p>
 
 <h3 id="raster"><span class="num">8.3</span>ラスタライズ</h3>
 <p>GPU は三角形が覆う画素の中心ごとにフラグメントを 1 つ作り、頂点の値（色・UV0・canvasPos）を三角形の中で補間して渡す。quad の 2 つの三角形は対角線を共有するので、境の画素は片方にだけ入る。フラグメントは 2×2 の画素を組にして回すので、<code>ddx</code>・<code>ddy</code> は隣の画素との値の差として取れる。</p>
@@ -1214,7 +1214,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <p>本プロジェクトの色空間は Linear。シェーダは linear の値で計算し、sRGB のレンダーターゲットへ書くときに GPU が linear から sRGB へ直す。ブレンドで dst を読むときは sRGB から linear へ戻すので、ブレンドも linear で行われる。§8.6 の表の 8bit の値はこの変換の後の値。</p>
 <p>色の入口は 2 つで、扱いが違う。</p>
 <ul>
-<li><b>面の色（頂点色）</b>: Linear のプロジェクトでは、Canvas がメッシュを作るときに gamma から linear へ直してからシェーダへ渡す（uGUI の既定）。Canvas の Vertex Color Always in Gamma Color Space（<code>Canvas.vertexColorAlwaysGammaSpace</code>）を有効にすると、この変換をシェーダに任せる。組み込みの UI シェーダは変換を持つが、<code>T2Font/SDF</code> は持たず、既定（無効）を前提にしている——有効にした Canvas では gamma の値を linear として扱うので、面の色が明るくずれる。</li>
+<li><b>面の色（頂点色）</b>: Linear のプロジェクトでは、Canvas がメッシュを作るときに gamma から linear へ直してからシェーダへ渡す（uGUI の既定）。Canvas の Vertex Color Always in Gamma Color Space（<code>Canvas.vertexColorAlwaysGammaSpace</code>）を有効にすると、この変換をシェーダに任せる——Canvas は頂点色を gamma のまま渡し、バッチに uniform <code>_UIVertexColorAlwaysGammaSpace</code> を立てる。<code>T2Font/SDF</code> は組み込みの UI シェーダと同じく、これが立てば <code>vert</code> で rgb を <code>UIGammaToLinear</code> で linear へ直す（README §5 S9）。どちらの設定でも面の色は同じで、同じ色の <code>Image</code> とも揃う。有効にすると、暗い色が 8bit の linear の値に潰されないぶん階調が細かくなる。α（フェード）はどちらの設定でも直さない。</li>
 <li><b>縁取りの色</b>: マテリアルの <code>Vector</code> で、Unity が変換しないので、<code>GlyphMaterialCache</code> が Linear のときに linear へ直して入れる（§5）。</li>
 </ul>
 
@@ -1222,7 +1222,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <p>フレームの描画が終わると、Unity はバックバッファ（スワップチェーンの今のフレームの画像）を Present し、ディスプレイがそれを表示する。垂直同期の設定によっては、ここで次の表示の時点まで待つ。</p>
 
 <h3 id="direct"><span class="num">9.4</span>Canvas を通らない経路</h3>
-<p>適合検査の <code>GlyphConformance.CheckRendering</code>（README §10）は、Canvas もカメラも使わずに同じシェーダで描く。<code>CommandBuffer</code> で一時の RenderTexture（ARGB32・linear）を透明にクリアし、正射影を置き、<code>DrawMesh</code> で字の Mesh を描いて、<code>ReadPixels</code> で読み戻す。<code>_MainTex</code> は <code>MaterialPropertyBlock</code> で渡し、クリップは Canvas と同じキーワードと <code>_ClipRect</code> を自分で入れる。シェーダが Canvas に依らず、描画パイプラインにも依らないことを、この経路が確かめる。</p>
+<p>適合検査の <code>GlyphConformance.CheckRendering</code>（README §10）は、Canvas もカメラも使わずに同じシェーダで描く。<code>CommandBuffer</code> で一時の RenderTexture（ARGB32・linear）を透明にクリアし、正射影を置き、<code>DrawMesh</code> で字の Mesh を描いて、<code>ReadPixels</code> で読み戻す。<code>_MainTex</code> は <code>MaterialPropertyBlock</code> で渡し、クリップは Canvas と同じキーワードと <code>_ClipRect</code> を、頂点色の色空間は <code>_UIVertexColorAlwaysGammaSpace</code> を自分で入れる（立てたときと立てないときの両方を試す）。シェーダが Canvas に依らず、描画パイプラインにも依らないことを、この経路が確かめる。</p>
 
 <h2 id="frame"><span class="num">10</span>1 フレームの中の順序</h2>
 <p>§3〜§9 は 1 フレームの中で次の順に起きる。右肩は PlayerLoop の段の名前。</p>

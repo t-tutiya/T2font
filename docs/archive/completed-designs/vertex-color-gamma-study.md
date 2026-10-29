@@ -2,8 +2,11 @@
 
 作成日: 2026-10-29
 
-roadmap の着手候補 #3 の方針を決めるための比較。現状の動作は [`../architecture/03-atlas-to-screen.html`](../architecture/03-atlas-to-screen.html) §9.2、
-契約はパッケージの README §5 S2。決めた方針と理由は decisions に記録する。
+> **凍結（2026-10-29・D-UIGAMMA）**: 案 A（シェーダで直す）を採って T2Font 0.2.0 で実装した、方針を決めるための比較の記録で、以後更新しない。
+> §1・§2 の「現状」は対応する前の動作。契約の現行の正典はパッケージの README §5 S9、版の中身は同じフォルダの CHANGELOG の 0.2.0、
+> 対応した後の動作は [`../../architecture/03-atlas-to-screen.html`](../../architecture/03-atlas-to-screen.html) §9.2、決定と採らなかった案は D-UIGAMMA。
+
+roadmap の着手候補 #3 の方針を決めるための比較。現状の動作は 03 章 §9.2、契約はパッケージの README §5 S2。決めた方針と理由は decisions に記録する。
 
 ---
 

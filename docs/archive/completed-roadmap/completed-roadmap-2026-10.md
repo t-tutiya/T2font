@@ -8,6 +8,17 @@
 
 ---
 
+## 2026-10-29 頂点色を gamma のまま渡す Canvas への対応（着手候補 #3） — D-UIGAMMA
+
+`T2Font/SDF` が、Canvas の Vertex Color Always in Gamma Color Space を有効にしたときに gamma のまま来る頂点色を linear に直すようにした。
+シェーダの契約 S9 として全表現の義務にし、T2Font 0.2.0 として出す（未リリースだった用語の変更も同じ版に入る）。
+
+- パッケージ: シェーダ `T2Font/SDF`・README §5 S9・適合検査 `CheckRendering` の S9 の検査・CHANGELOG と `package.json` の 0.2.0・導入の URL のタグ。
+- テスト: EditMode の `T2FontTextColorSpaceTests` が Canvas を通して描き、設定の有効・無効で面の色を組み込みの UI シェーダの四角と比べる（描画装置が要る）。
+- 文書: 03 章の §8.2・§9.2・図 7。方針の比較は [`../completed-designs/vertex-color-gamma-study.md`](../completed-designs/vertex-color-gamma-study.md)（凍結）。
+- 移行に効く事実: 表現を足すパッケージのシェーダは S9 を満たす——`_UIVertexColorAlwaysGammaSpace` を Properties に置かずに int で宣言し、立てば
+  （Linear のプロジェクトで）頂点色の rgb を `UIGammaToLinear` で直す。満たさないと適合検査の S9 で落ちる。
+
 ## 2026-10-28 プロジェクトの初期設定を終える — D-TEMPLATE
 
 テンプレートから作ったリポジトリの初期設定（ルートの README にあったチェックリスト 1〜9）を終え、チェックリストの節を消した。

@@ -12,15 +12,14 @@ T2font の実装計画。本書は **状態別（now / 着手候補 / 小物 / �
 
 ## いま（now / next / later）
 
-- **now**: v0.1.0 を利用側（ハッカソン用リポジトリ・T2Engine）へ写す（パッケージの README §11）。
-- **next**: 着手候補 #3（頂点色を gamma のまま渡す Canvas への対応）。大会（2026-11-02〜11-08）中に新しい表現のために要る直しが出たら、着手候補へ積み、版を上げて写し直す。
+- **now**: v0.2.0 を利用側（ハッカソン用リポジトリ・T2Engine）へ写す（タグ `v0.2.0` を打ってから・パッケージの README §11）。
+- **next**: 大会（2026-11-02〜11-08）中に新しい表現のために要る直し。出たら着手候補へ積み、版を上げて写し直す。
 - **later**: 別の表現の種類（MTSDF・画像のグリフ・ビットマップ）と、1 フォントに複数の表現を持たせる拡張。
 
 ## 着手候補（順序付きバックログ）
 
 | # | 項目 | 状態 | 設計・正典 |
 |---|---|---|---|
-| 3 | Canvas の Vertex Color Always in Gamma Color Space（`Canvas.vertexColorAlwaysGammaSpace`）を有効にすると、`T2Font/SDF` が頂点色を gamma のまま受けて面の色が明るくずれる。シェーダで linear へ直すか、ホストで止めるかを決めて直す | 未着手 | 方針の比較は [`plans/vertex-color-gamma-study.md`](plans/vertex-color-gamma-study.md)。現状の動作は [`architecture/03-atlas-to-screen.html`](architecture/03-atlas-to-screen.html) §9.2。契約はパッケージの README §5 S2 |
 
 次の新規番号: 4
 
