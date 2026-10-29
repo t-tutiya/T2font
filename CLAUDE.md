@@ -17,8 +17,10 @@
   （例: `（README §5）`）とする**。決定 ID と `docs/` のパスはパッケージの中に書かない——パッケージは他のリポジトリへフォルダごと写され、
   写した先に本リポジトリの文書は無い（D-T2FONT）。パッケージの外（`Assets/`・`Tests/`・`docs/`）は working-agreement のまま。
   `Tests/PackageIntegrityTests.cs` が検査する。
+- **用語は `docs/reference/terminology.md` の訳語に従う**（D-TERMS）。コード内コメント・例外とログの文面・テストの名前・文書・パッケージの README の
+  すべてに当てはまる。一般的でない訳語を避け、カタカナ英語か「カタカナ英語＋する」を使う。新しい用語は表に足してから使う。
 - **パッケージの契約を変えたら、パッケージの README を同じコミットで直す**（README が契約の正典）。同じ入力から出る生成物が変わる変更は、
-  焼き器の版数を上げる（README §7.5）。利用側へ出す変更は `Packages/info.someiyoshino.t2font/CHANGELOG.md` に書き、`package.json` の版を上げる。
+  ベイカーのバージョンを上げる（README §7.5）。利用側へ出す変更は `Packages/info.someiyoshino.t2font/CHANGELOG.md` に書き、`package.json` の版を上げる。
 
 # ドキュメント
 
@@ -35,7 +37,7 @@
 # プロジェクト概要
 
 Unity 6 プロジェクト「T2font」。成果物は **Unity uGUI の文字描画のためのパッケージ T2Font**（`Packages/info.someiyoshino.t2font/`・MIT）で、
-フォント資産を「字の表」（送り幅・墨の外接など、描き方によらず同じもの）と差し替えられる「字形の表現」（SDF など）に分け、表現を足しても
+フォントアセットを「タイポグラフィテーブル」（送り幅・インク境界など、描き方によらず同じもの）と差し替えられる「グリフの表現」（SDF など）に分け、表現を足しても
 字を置く側のコードが変わらない API を提供する。本リポジトリはパッケージの正本と、それを検証する Unity プロジェクトを兼ねる（D-T2FONT）。
 契約の正典はパッケージの README。
 
@@ -53,6 +55,6 @@ Unity の版は `ProjectSettings/ProjectVersion.txt` が正典（LTS の最新�
   Unity 非依存のロジックは Core（`Assets/T2font.Core/`）に置き、外部 NUnit で検査する。
 - **パッケージ T2Font**（パッケージの README・`docs/architecture/01-assemblies-and-tests.md`「パッケージ T2Font」・D-T2FONT）: Core と Bake は
   純 C# で外部 NUnit がリンクする。Runtime・Editor・Viewer は PR の Job B が見る。
-- **TrueType から SDF アトラスまで**（`docs/architecture/02-truetype-to-atlas.html`・契約はパッケージの README §7・§9）: 読取・字の表・焼きの工程の図解。
-  焼き器の出力を変えたら図が古くなる（図の作り方と出力のハッシュは同書の末尾）。
+- **TrueType から SDF アトラスまで**（`docs/architecture/02-truetype-to-atlas.html`・契約はパッケージの README §7・§9）: 読み取り・タイポグラフィテーブル・ベイクの工程の図解。
+  ベイカーの出力を変えたら図が古くなる（図の作り方と出力のハッシュは同書の末尾）。
 - **テストの三層**（`docs/guides/testing-workflow.md`・D-TESTARCH）: 外部 NUnit／EditMode／Play Mode。安い層で表現できるものは安い層へ置く。
