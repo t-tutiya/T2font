@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    docs/architecture/04-bake-spec.html の付録・表・誤りの文面の元データを書き出すコンソールプログラム（使い方は ../README.md）。
+    パッケージの Core と Bake を Tests/T2font.Tests.csproj と同じくリンクで引くので、文字セットと文面はインポーターと同じコードの出力になる。
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\..\Packages\info.someiyoshino.t2font\Core\**\*.cs" />
+    <Compile Include="..\..\..\..\Packages\info.someiyoshino.t2font\Bake\**\*.cs" />
+  </ItemGroup>
+
+</Project>
