@@ -44,11 +44,21 @@ uGUI の Canvas は、Linear のプロジェクトで頂点色をシェーダへ
   ```
 
   `UIGammaToLinear` は TMP のファイルには無く、組み込みの `UnityUI.cginc` にある。TMP の C# はこの uniform に値を入れていないので、
-  **Canvas がバッチごとに入れている**と読める。TMP はこの対応を 3.2.0-pre.6 で入れた（UUM-36113「TextMeshPro が VertexColorAlwaysGammaSpace の
-  ときに linear へ直さない」）。
+  **Canvas がバッチごとに入れている**と読める。
+- **TMP の修正（UUM-36113「TextMeshPro が VertexColorAlwaysGammaSpace のときに linear へ直さない」）**: 再現手順は「Canvas の設定を有効にしても
+  TMP の字の色が変わらない」ことを期待し、2022.2・2023.1・2023.2 で再現した。TMP 3.2.0-pre.6 で直り、修正の版にはエンジンの 2022.3.0f1・
+  2023.2.0b10・2023.3.0a8 も載っている。TMP の側の修正はシェーダの変更で、TMP の C# は uniform に触れない。エンジンの側も変えたかは分からないが、
+  どちらにしても 6000.3 はそれより後の版。なお、この設定は 2020.3・2021.3 には無かった（同じ課題の記録）。
+- **ほかの独自のシェーダ**: オープンソースの UIEffect v5（`mob-sakai/UIEffect` 5.11.7）の `UIEffect.shader` も同じ uniform で直す
+  （関数は `UnityCG.cginc` の `GammaToLinearSpace`）。頂点シェーダの形は組み込みの UI シェーダの写しなので、TMP とは独立の根拠としては弱い。
+- **反対の主張**: Unity のフォーラムのスレッド「Published "Default UI Shader" differs from actual default UI shader」に、「この設定の実装は文書に無く、
+  独自の UI シェーダでは再現できない。親の Canvas が設定を有効にしているかを知る方法が無いので、どちらかを前提にするしかない」という書き込みが
+  ある。同じスレッドには uniform で直すコードも載っている。本文はサーバがコマンドラインからの取得を拒むので、検索結果の抜粋でしか読めていない
+  ——どの書き込みが先か、誰が書いたかは分からない。TMP の修正と食い違うので、下の①は描いて確かめる（§3.1 のテスト・§7）。
 - **キーワードではなく uniform**なので、`multi_compile` も変種も増えない（README §5 S7 は関わらない）。
 - **文書で確かめられないこと**: ①Canvas が組み込みでないシェーダ（パッケージのシェーダ）にも uniform を渡すこと——TMP のシェーダがパッケージの
-  アセットであることが根拠。②入れ子の Canvas で、どの Canvas の設定が効くか。どちらもローカルで描いて確かめる（§6）。
+  アセットであること、TMP の修正がその前提で確かめられていることが根拠。反対の主張がある。②入れ子の Canvas で、どの Canvas の設定が効くか。
+  どちらも描いて確かめる（§7）。
 
 ## 3. 案 A: シェーダで直す
 
@@ -63,6 +73,7 @@ TMP・組み込みの UI シェーダと同じ仕組みを `T2Font/SDF` に足�
 | 適合検査 `GlyphConformance.CheckRendering` | S9 の検査を足す（下のコード）。`Render` に「gamma のまま渡すか」の引数を足す |
 | Runtime・検証ビューの C# | 変えない（Canvas が uniform を入れるので、ホストは何もしない） |
 | テスト | EditMode の `GlyphConformanceTests` が `CheckRendering` を空と比べているので、新しい検査もそこで回る（描画装置が無い環境では Ignore になるので、確実に回るのはローカル） |
+| テスト（Canvas を通す） | 適合検査は Canvas を通らないので、シェーダが uniform を読むことしか確かめない。Canvas が uniform を入れること（§2 の①）は、EditMode に Canvas を通して描くテストを足して確かめる: Screen Space - Camera の Canvas に、検証ビューと同じ灰色の `Image` を並べ、カメラで RenderTexture へ描き、設定の有効・無効の両方で検証ビューの面の色が `Image` と同じことを確かめる（描画装置が要るのでローカル。URP でカメラを 1 回だけ描く口は実装時に選ぶ） |
 
 ```hlsl
 // Canvas が Vertex Color Always in Gamma Color Space のバッチに入れる。TMP と組み込みの UI シェーダに合わせ、Properties に置かない（README §5 S9）。
@@ -103,7 +114,7 @@ if (!Near(converted, new Color(linear, linear, linear), 0.02f)) { /* S9: gamma �
   切り替えても、Canvas がバッチごとに uniform を入れるので追従する。変種は増えず、コストは頂点ごとの分岐 1 つ。
 - **欠点**: 表現を足す側（MTSDF・ビットマップなど）のシェーダに義務が 1 つ増える。見落としは適合検査が捕まえる。
 - **危険**: §2 の①が外れる（Canvas が独自のシェーダに uniform を渡さない）と、有効にした Canvas では今と同じく明るくずれたままになる。
-  悪くはならないが直らないので、ローカルの目視（§6）で確かめてからマージする。
+  悪くはならないが直らない。フォーラムに反対の主張があるので、§3.1 の Canvas を通すテストとローカルの目視（§7）で確かめてからマージする。
 
 ## 4. 案 B: ホストで止める
 
@@ -158,9 +169,9 @@ if (canvasProblem != null)
 | 有効にした Canvas での面の色 | 既定と同じ（暗い色は精度が上がる） | 描かない（LogError） |
 | 利用側のホスト | 何もしなくてよい | 判定を自分で呼ぶ。呼び忘れると黙ってずれる |
 | 表現を足す側 | シェーダに S9 の数行。見落としは適合検査が捕まえる | 何もしなくてよい |
-| 変える物 | シェーダ・README §5・適合検査 | Runtime の API・検証ビュー・README §4・EditMode テスト |
+| 変える物 | シェーダ・README §5・適合検査・Canvas を通す EditMode テスト | Runtime の API・検証ビュー・README §4・EditMode テスト |
 | 実行時の切り替え | そのまま追従する | ホストが見張る |
-| 文書で確かめられない前提 | Canvas が独自のシェーダにも uniform を渡す（TMP が根拠） | 入れ子の Canvas でどの設定が効くか |
+| 文書で確かめられない前提 | Canvas が独自のシェーダにも uniform を渡す（TMP の修正が根拠。フォーラムに反対の主張がある。Canvas を通すテストで確かめる） | 入れ子の Canvas でどの設定が効くか |
 | 前提が外れたとき | 今と同じく明るくずれる（悪くならない） | 判定が外れて、今と同じく明るくずれる |
 
 ## 6. 推奨: A
@@ -170,6 +181,8 @@ if (canvasProblem != null)
 - Unity 自身（組み込みの UI シェーダ・TMP）がこの形で、文書も「独自のシェーダは変換を用意する」と求めている。B はこの設定を使うプロジェクトで
   T2Font を使えなくする。
 - 表現を足す側の義務が 1 つ増えるが、数行で、適合検査が見落としを捕まえる。
+- 前提①には反対の主張があるが、外れても今より悪くならず、Canvas を通すテストで外れたことが分かる。外れたと分かったら、その時点で B へ切り替える
+  （シェーダの変更は害が無いので残してよい）。
 
 ## 7. どちらの案でも行うこと
 
@@ -178,7 +191,7 @@ if (canvasProblem != null)
 - **文書**: 03 章の §9.2（面の色）。A はさらに §8.2（`vert` の説明）と図 7 の文面（`Tools/docs-figures/03-atlas-to-screen/schematics.py` を直して作り直す）。
   roadmap の #3 を完了記録へ移す。decisions に方針と採らなかった案を記録する。
 - **確かめ方**: 外部 NUnit（Job A）・Unity のコンパイル（PR の Job B）に加えて、ローカルで次を行う。
-  1. EditMode テストを回す（A は `GlyphConformanceTests`、B は `T2FontTextTests`）。
+  1. EditMode テストを回す（A は `GlyphConformanceTests` と Canvas を通すテスト、B は `T2FontTextTests`）。
   2. 「T2font/比較の場面を作る」で場面を作り、検証ビューの面の色を灰色（たとえば 128）にして、ルートの Canvas の Vertex Color Always in Gamma Color Space を
-     切り替える。A は面の色が変わらない（同じ色の `Image` を横に置いて比べる）こと、B は字が消えて LogError が出ることを確かめる。§2 の①・②は
-     ここで確かめる。
+     切り替える。A は面の色が変わらない（同じ色の `Image` を横に置いて比べる）こと、B は字が消えて LogError が出ることを確かめる。§2 の②
+     （入れ子の Canvas）は、入れ子の Canvas を足して同じことを確かめる。
