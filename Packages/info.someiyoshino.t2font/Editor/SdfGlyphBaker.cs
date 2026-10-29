@@ -11,7 +11,7 @@ using UnityEngine;
 namespace info.someiyoshino.T2Font.Editor
 {
     /// <summary>
-    /// 同梱の SDF の表現の焼き器（README §9）。<see cref="SdfAtlasBaker"/> が焼いた距離のページをテクスチャにし、
+    /// 同梱の SDF の表現のベイカー（README §9）。<see cref="SdfAtlasBaker"/> がベイクした距離のページをテクスチャにし、
     /// <see cref="SdfRepresentation"/> を作る。
     /// </summary>
     public sealed class SdfGlyphBaker : GlyphRepresentationBaker
@@ -30,7 +30,7 @@ namespace info.someiyoshino.T2Font.Editor
         {
             if (!(settings is SdfSpecSettings sdf))
             {
-                throw new ArgumentException($"SDF の焼き器に別の種類の設定 {settings?.GetType().FullName} が渡されました。", nameof(settings));
+                throw new ArgumentException($"SDF のベイカーに別の種類の設定 {settings?.GetType().FullName} が渡されました。", nameof(settings));
             }
 
             ResolveFormat(context, sdf.Format, out var format, out var expected);
@@ -49,7 +49,7 @@ namespace info.someiyoshino.T2Font.Editor
 
             context.Report(
                 $"{pages.Length} ページ（{string.Join("・", atlas.Pages.Select(p => $"{p.Width}×{p.Height}"))}・{sdf.Format}）"
-                + $"・セル {atlas.CellWidth}×{atlas.CellHeight}（墨の箱 {atlas.CellBox}）");
+                + $"・セル {atlas.CellWidth}×{atlas.CellHeight}（インク境界 {atlas.CellBox}）");
             return SdfRepresentation.Create(shader, Kind.Effects, atlas.EmPx, atlas.Cells, pages);
         }
 
@@ -134,7 +134,7 @@ namespace info.someiyoshino.T2Font.Editor
         }
 
         // R8 はターゲットに依存しない。BC4 はデスクトップ向けだけで、選んだときだけターゲットを読む
-        // （ターゲットを読むと、ターゲットを切り替えたときに取り込み直す依存が張られる）。
+        // （ターゲットを読むと、ターゲットを切り替えたときに再インポートする依存が張られる）。
         private static void ResolveFormat(
             GlyphBakeContext context, SdfPageFormat requested, out TextureImporterFormat format, out TextureFormat expected)
         {

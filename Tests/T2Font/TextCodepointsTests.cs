@@ -7,7 +7,7 @@ namespace info.someiyoshino.T2Font.Tests
 {
     /// <summary>
     /// 文字列を字（コードポイント）の並びとして読む（<see cref="TextCodepoints"/>・パッケージの README §3.2）。
-    /// 字は字形番号へ 1 字ずつ引くので、BMP 外の字がサロゲートの 2 つに割れないことを見る。
+    /// 字はグリフインデックスへ 1 字ずつ引くので、BMP 外の字がサロゲートの 2 つに割れないことを見る。
     /// </summary>
     [TestFixture]
     public class TextCodepointsTests

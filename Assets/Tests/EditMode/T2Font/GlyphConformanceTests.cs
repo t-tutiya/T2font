@@ -9,7 +9,7 @@ namespace T2font.EditModeTests
     public class GlyphConformanceTests
     {
         [Test]
-        public void 全効果の外延は様式の外延の上限と一致する()
+        public void 全効果の外延はエッジスタイルの外延の上限と一致する()
         {
             Assert.That(GlyphConformance.OuterExtentEm(GlyphEffects.All), Is.EqualTo(GlyphEdgeStyle.MaxOuterExtentEm).Within(1e-6f));
             Assert.That(GlyphConformance.OuterExtentEm(GlyphEffects.None), Is.EqualTo(0f));

@@ -10,8 +10,8 @@ using NUnit.Framework;
 namespace info.someiyoshino.T2Font.Tests
 {
     /// <summary>
-    /// 字の表の生成（<see cref="FontFaceBuilder"/>・パッケージの README §3・§7.3）。表現によらない値（送り幅・墨の外接・縦メトリクス・
-    /// 字形番号の並び・代替字形）を、検証用の M+ 1c の表から見る。
+    /// タイポグラフィテーブルの生成（<see cref="FontFaceBuilder"/>・パッケージの README §3・§7.3）。表現によらない値（送り幅・インク境界・縦メトリクス・
+    /// グリフインデックスの並び・代替グリフ）を、検証用の M+ 1c の表から見る。
     /// </summary>
     [TestFixture]
     public class FontFaceBuilderTests
@@ -47,13 +47,13 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void 墨の外接は輪郭の外接そのもので余白を含まない()
+        public void インク境界は輪郭の境界ボックスそのもので余白を含まない()
         {
             FontFaceData face = FontFaceBuilder.Build(Font, Codepoints("Ag"));
             GlyphMetrics a = face.Glyphs[GlyphTable.IndexOf(face.Codepoints, 'A')];
             GlyphMetrics g = face.Glyphs[GlyphTable.IndexOf(face.Codepoints, 'g')];
 
-            // M+ 1c の glyf のヘッダの外接（A: 30, 0, 633, 730・g: 45, -230, 488, 530・upem 1000）。
+            // M+ 1c の glyf のヘッダの境界ボックス（A: 30, 0, 633, 730・g: 45, -230, 488, 530・upem 1000）。
             Assert.That(new[] { a.inkLeft, a.inkBottom, a.inkRight, a.inkTop }, Is.EqualTo(new[] { 0.030f, 0f, 0.633f, 0.730f }).Within(1e-6f));
             Assert.That(new[] { g.inkLeft, g.inkBottom, g.inkRight, g.inkTop }, Is.EqualTo(new[] { 0.045f, -0.230f, 0.488f, 0.530f }).Within(1e-6f));
         }
@@ -70,7 +70,7 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void 代替字形は元フォントのglyph0で字の表の末尾に置く()
+        public void 代替グリフは元フォントのglyph0でタイポグラフィテーブルの末尾に置く()
         {
             FontFaceData face = FontFaceBuilder.Build(Font, Codepoints("Aあ"));
 
@@ -83,7 +83,7 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void 字が1つも無くても代替字形はある()
+        public void 字が1つも無くても代替グリフはある()
         {
             FontFaceData face = FontFaceBuilder.Build(Font, Array.Empty<int>());
             Assert.That(face.Codepoints, Is.Empty);

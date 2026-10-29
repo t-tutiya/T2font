@@ -28,7 +28,7 @@ namespace info.someiyoshino.T2Font.Bake
 
         public override string Name => SdfEncoding.KindName;
 
-        /// <summary>距離場から縁の 4 値を全部描ける（README §6.3）。外延は距離域（<see cref="SdfEncoding.RangeEm"/>）に収まる。</summary>
+        /// <summary>距離場からエッジスタイルの 4 値を全部描ける（README §6.3）。外延は距離レンジ（<see cref="SdfEncoding.RangeEm"/>）に収まる。</summary>
         public override GlyphEffects Effects => GlyphEffects.All;
 
         public override int Version => SdfAtlasBaker.Version;
@@ -70,7 +70,7 @@ namespace info.someiyoshino.T2Font.Bake
         }
     }
 
-    /// <summary>生成仕様の SDF の節（README §9 の表）。</summary>
+    /// <summary>ベイク仕様の SDF の節（README §9 の表）。</summary>
     public sealed class SdfSpecSettings : GlyphRepresentationSettings
     {
         public SdfSpecSettings(double emPx, SdfPageFormat format, int maxPageSize, EmBox? cellBox)
@@ -92,10 +92,10 @@ namespace info.someiyoshino.T2Font.Bake
         /// <summary>1 ページの最大の幅と高さ（px）。</summary>
         public int MaxPageSize { get; }
 
-        /// <summary>セルの墨の箱（null なら依頼した字の墨の外接の和）。</summary>
+        /// <summary>セルのインク境界（null なら依頼した字のインク境界の和）。</summary>
         public EmBox? CellBox { get; }
 
-        /// <summary>生成器の設定（距離域は全フォント共通の既定のまま）。</summary>
+        /// <summary>生成器の設定（距離レンジは全フォント共通の既定のまま）。</summary>
         public SdfBakeSettings ToBakeSettings()
         {
             return new SdfBakeSettings

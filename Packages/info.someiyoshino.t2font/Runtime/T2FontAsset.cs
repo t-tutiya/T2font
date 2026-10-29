@@ -7,11 +7,11 @@ using UnityEngine;
 namespace info.someiyoshino.T2Font
 {
     /// <summary>
-    /// フォント資産＝字の表と字形の表現（README §1・§3.1）。
+    /// フォントアセット＝タイポグラフィテーブルとグリフの表現（README §1・§3.1）。
     ///
     /// <para>
-    /// <b>手で作らない</b>。生成仕様（<c>.t2font</c>）を取込器が取り込み、元フォントから焼いた生成物で、Library に作られる（README §2.4）。
-    /// 表現とそのテクスチャはこの資産の副資産で、ほかの資産を指すのは表現のシェーダの参照だけ。
+    /// <b>手で作らない</b>。ベイク仕様（<c>.t2font</c>）をインポーターがインポートし、元フォントからベイクした生成物で、Library に作られる（README §2.4）。
+    /// 表現とそのテクスチャはこのアセットのサブアセットで、ほかのアセットを指すのは表現のシェーダの参照だけ。
     /// </para>
     ///
     /// <para>
@@ -27,8 +27,8 @@ namespace info.someiyoshino.T2Font
         [SerializeField] private GlyphRepresentation? representation;
         [SerializeField] private string sourceHash = string.Empty;
 
-        // 未収録の字を報告済みか（コードポイントごとに 1 回だけ LogError を出す）。資産の実行時の状態で、直列化しない。
-        // 読み込んだ資産はドメインリロード無効の Editor 再生をまたいで生き残るので、再生の開始ごとに世代を進め、
+        // 未収録の字を報告済みか（コードポイントごとに 1 回だけ LogError を出す）。アセットの実行時の状態で、直列化しない。
+        // 読み込んだアセットはドメインリロード無効の Editor 再生をまたいで生き残るので、再生の開始ごとに世代を進め、
         // 前の再生の記録を捨てる（捨てないと、2 回目以降の再生と PlayMode テストで欠字の LogError が出なくなる）。
         private static int _reportGeneration;
         [NonSerialized] private HashSet<int>? _reportedMissing;
@@ -43,27 +43,27 @@ namespace info.someiyoshino.T2Font
         /// <summary>フォント単位の値（縦メトリクス・em）。</summary>
         public FontFaceMetrics Face => face;
 
-        /// <summary>収めた字（昇順）。添字が字形番号（README §3.2）。</summary>
+        /// <summary>収めた字（昇順）。添字がグリフインデックス（README §3.2）。</summary>
         public IReadOnlyList<int> Codepoints => codepoints;
 
-        /// <summary>字形の数（cmap を持たない字形を含む）。</summary>
+        /// <summary>グリフの数（cmap を持たないグリフを含む）。</summary>
         public int GlyphCount => glyphs.Length;
 
-        /// <summary>代替字形（元フォントの glyph 0）の字形番号。</summary>
+        /// <summary>代替グリフ（元フォントの glyph 0）のグリフインデックス。</summary>
         public int Notdef => notdef;
 
-        /// <summary>字形の表現（README §3.4）。取込が作った資産では null にならない。</summary>
+        /// <summary>グリフの表現（README §3.4）。インポートが作ったアセットでは null にならない。</summary>
         public GlyphRepresentation Representation =>
-            representation != null ? representation : throw new InvalidOperationException($"フォント '{name}' に表現がありません。取り込み直してください。");
+            representation != null ? representation : throw new InvalidOperationException($"フォント '{name}' に表現がありません。再インポートしてください。");
 
-        /// <summary>生成元（生成器の版数・生成仕様・元フォント）のハッシュ。</summary>
+        /// <summary>生成元（生成器のバージョン・ベイク仕様・元フォント）のハッシュ。</summary>
         public string SourceHash => sourceHash;
 
         /// <summary>
-        /// 取込器が焼いた結果から資産を作る（取込器専用。既存の資産を書き換える経路は持たない）。字が昇順でない・字形番号が
-        /// 字の表の外を指す・表現が字の表と合わないときは失敗する（README §2.1）。
+        /// インポーターがベイクした結果からアセットを作る（インポーター専用。既存のアセットを書き換える経路は持たない）。字が昇順でない・グリフインデックスが
+        /// タイポグラフィテーブルの外を指す・表現がタイポグラフィテーブルと合わないときは失敗する（README §2.1）。
         /// </summary>
-        /// <exception cref="ArgumentException">字の表か表現が不正。</exception>
+        /// <exception cref="ArgumentException">タイポグラフィテーブルか表現が不正。</exception>
         public static T2FontAsset Create(
             FontFaceMetrics face, int[] codepoints, GlyphMetrics[] glyphs, int notdef,
             GlyphRepresentation representation, string sourceHash)
@@ -91,12 +91,12 @@ namespace info.someiyoshino.T2Font
             if (glyphs.Length < codepoints.Length)
             {
                 throw new ArgumentException(
-                    $"字形の記録（{glyphs.Length} 個）が字（{codepoints.Length} 個）より少ない。", nameof(glyphs));
+                    $"グリフの記録（{glyphs.Length} 個）が字（{codepoints.Length} 個）より少ない。", nameof(glyphs));
             }
             if (notdef < codepoints.Length || notdef >= glyphs.Length)
             {
                 throw new ArgumentException(
-                    $"代替字形の番号 {notdef} が cmap を持たない字形の範囲（{codepoints.Length}〜{glyphs.Length - 1}）の外です。", nameof(notdef));
+                    $"代替グリフのグリフインデックス {notdef} が cmap を持たないグリフの範囲（{codepoints.Length}〜{glyphs.Length - 1}）の外です。", nameof(notdef));
             }
             var problem = representation.Validate(glyphs.Length);
             if (problem != null)
@@ -121,7 +121,7 @@ namespace info.someiyoshino.T2Font
         }
 
         /// <summary>
-        /// 字の字形番号（README §3.1）。収録していない字は代替字形を返して <paramref name="isSubstitute"/> を真にし、コードポイントごとに
+        /// 字のグリフインデックス（README §3.1）。収録していない字は代替グリフを返して <paramref name="isSubstitute"/> を真にし、コードポイントごとに
         /// 1 回 <c>LogError</c> を出す——送り幅 0 で消すと、出荷物で字が黙って消える（README §2.1）。
         /// </summary>
         public int Resolve(int codepoint, out bool isSubstitute)
@@ -141,29 +141,29 @@ namespace info.someiyoshino.T2Font
             if (_reportedMissing.Add(codepoint))
             {
                 Debug.LogError(
-                    $"[T2Font] '{name}' に字 {TextCodepoints.Display(codepoint)}（U+{codepoint:X4}）がありません。代替字形で描きます。"
-                    + "実行時に組み立てた文字列か、生成仕様の字集合の外の字です。",
+                    $"[T2Font] '{name}' に字 {TextCodepoints.Display(codepoint)}（U+{codepoint:X4}）がありません。代替グリフで描きます。"
+                    + "実行時に組み立てた文字列か、ベイク仕様の文字セットの外の字です。",
                     this);
             }
             isSubstitute = true;
             return notdef;
         }
 
-        /// <summary>字形 <paramref name="glyph"/> の字の表の記録（送り幅と墨の外接・em）。</summary>
+        /// <summary>グリフ <paramref name="glyph"/> のタイポグラフィテーブルの記録（送り幅とインク境界・em）。</summary>
         public GlyphMetrics Metrics(int glyph)
         {
             return glyphs[glyph];
         }
 
         /// <summary>
-        /// 字形 <paramref name="glyph"/> を描く表現（README §3.1）。今の版では常に <see cref="Representation"/>。1 フォントに複数の表現を
-        /// 持たせる拡張の口なので、ホストは字形ごとにこれを通して引く。
+        /// グリフ <paramref name="glyph"/> を描く表現（README §3.1）。今の版では常に <see cref="Representation"/>。1 フォントに複数の表現を
+        /// 持たせる拡張の口なので、ホストはグリフごとにこれを通して引く。
         /// </summary>
         public GlyphRepresentation RepresentationOf(int glyph)
         {
             if ((uint)glyph >= (uint)glyphs.Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(glyph), $"字形番号 {glyph} が字の表（{glyphs.Length} 個）の外です。");
+                throw new ArgumentOutOfRangeException(nameof(glyph), $"グリフインデックス {glyph} がタイポグラフィテーブル（{glyphs.Length} 個）の外です。");
             }
             return Representation;
         }

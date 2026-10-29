@@ -253,7 +253,7 @@ td.nw { white-space: nowrap; }
 .f-y { background: var(--tint-guide); }
 .f-pad { background: transparent; color: var(--muted); }
 
-/* 字形番号の並び */
+/* グリフインデックスの並び */
 .strip { display: flex; gap: 4px; overflow-x: auto; padding: 4px 0 8px; max-width: 920px; }
 .strip .g { flex: none; min-width: 56px; padding: 6px 6px 4px; border: 1px solid var(--rule); background: var(--surface); border-radius: 3px; text-align: center; }
 .strip .g b { display: block; font-size: 1.35rem; line-height: 1.3; font-weight: 400; min-height: 1.3em; }
@@ -357,11 +357,11 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <header class="masthead">
 <p class="eyebrow">T2Font アーキテクチャ解説 02 ／ パッケージ info.someiyoshino.t2font</p>
 <h1><span class="nb">TrueType</span> <span class="nb">からアトラスへ</span></h1>
-<p class="lede">生成仕様（<code>.t2font</code>）と TrueType フォントから、字の表と SDF のテクスチャアトラスが焼き上がるまでを、パッケージのコードの順に追う。途中で TrueType のデータ構造とフォントメトリクスの読み方も押さえる。</p>
+<p class="lede">ベイク仕様（<code>.t2font</code>）と TrueType フォントから、タイポグラフィテーブルと SDF のテクスチャアトラスがベイクされるまでを、パッケージのコードの順に追う。途中で TrueType のデータ構造とフォントメトリクスの読み方も押さえる。</p>
 <dl class="specimen">
-<div><dt>見本の元フォント</dt><dd><code>Assets/Authoring/Fonts/mplus-1c-regular.ttf</code><br>M+ 1c Regular・字形 8,778・unitsPerEm 1000</dd></div>
-<div><dt>見本の生成仕様</dt><dd><code>Assets/Content/Fonts/mplus-1c-sdf.t2font</code><br>Ascii ＋ 名指しの字・<code>sdf</code>・emPx 48・R8</dd></div>
-<div><dt>焼いた結果</dt><dd>206 字 ＋ .notdef ＝ 字形 207<br>1 ページ 1020×1008 px・セル 68×72 px</dd></div>
+<div><dt>見本の元フォント</dt><dd><code>Assets/Authoring/Fonts/mplus-1c-regular.ttf</code><br>M+ 1c Regular・グリフ 8,778・unitsPerEm 1000</dd></div>
+<div><dt>見本のベイク仕様</dt><dd><code>Assets/Content/Fonts/mplus-1c-sdf.t2font</code><br>Ascii ＋ 指定文字・<code>sdf</code>・emPx 48・R8</dd></div>
+<div><dt>ベイクした結果</dt><dd>206 字 ＋ .notdef ＝ グリフ 207<br>1 ページ 1020×1008 px・セル 68×72 px</dd></div>
 </dl>
 <p class="note">契約（何を守るか）の正典はパッケージの README で、本書は動作（どう動いているか）を図で補う。実データの図は、記述時点のパッケージの Bake のコードを上の見本に対して実際に走らせて作った（作り方は<a href="#method">末尾</a>）。</p>
 </header>
@@ -377,13 +377,13 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <li><a href="#cmap">cmap</a></li>
 <li><a href="#hmtx">hmtx</a></li>
 <li><a href="#glyf">loca と glyf</a></li>
-<li><a href="#simple">単純字形の符号化</a></li>
-<li><a href="#composite">複合字形</a></li>
+<li><a href="#simple">単純グリフの符号化</a></li>
+<li><a href="#composite">複合グリフ</a></li>
 </ol></li>
 <li><a href="#outline"><span class="n">3</span>輪郭と 2 次ベジエ</a></li>
 <li><a href="#metrics"><span class="n">4</span>フォントメトリクス</a></li>
-<li><a href="#face"><span class="n">5</span>字の表を作る</a></li>
-<li><a href="#sdf"><span class="n">6</span>SDF アトラスを焼く</a>
+<li><a href="#face"><span class="n">5</span>タイポグラフィテーブルを作る</a></li>
+<li><a href="#sdf"><span class="n">6</span>SDF アトラスをベイクする</a>
 <ol>
 <li><a href="#encoding">距離の符号化</a></li>
 <li><a href="#cell">セルの寸法</a></li>
@@ -391,8 +391,8 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <li><a href="#render">字ごとの工程</a></li>
 <li><a href="#parallel">並列と決定性</a></li>
 </ol></li>
-<li><a href="#texture"><span class="n">7</span>テクスチャと資産にする</a></li>
-<li><a href="#use"><span class="n">8</span>焼いた結果を描く</a></li>
+<li><a href="#texture"><span class="n">7</span>テクスチャとアセットにする</a></li>
+<li><a href="#use"><span class="n">8</span>ベイクした結果を描く</a></li>
 <li><a href="#terms"><span class="n">9</span>用語</a></li>
 <li><a href="#method"><span class="n">10</span>図の作り方</a></li>
 </ol>
@@ -401,40 +401,40 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <main>
 
 <h2 id="overview"><span class="num">1</span>全体の流れ</h2>
-<p>取込器 <code>T2FontImporter</code> は、<code>.t2font</code> を取り込むたびに下の段を順に回す（パッケージの README §7.3）。①〜④の計算は UnityEngine を参照しない純 C#（アセンブリ <code>Someiyoshino.T2Font.Bake</code>）で、Unity に触れるのはテクスチャを作る所と資産を登録する所だけ。だから外部の NUnit が、取込器と同じコードを Unity を起動せずに検査できる（01 章「パッケージ T2Font」）。</p>
+<p>インポーター <code>T2FontImporter</code> は、<code>.t2font</code> をインポートするたびに下の段を順に回す（パッケージの README §7.3）。①〜④の計算は UnityEngine を参照しない純 C#（アセンブリ <code>Someiyoshino.T2Font.Bake</code>）で、Unity に触れるのはテクスチャを作る所とアセットを登録する所だけ。だから外部の NUnit が、インポーターと同じコードを Unity を起動せずに検査できる（01 章「パッケージ T2Font」）。</p>
 
 <figure class="fig" id="fig-pipeline">
-<div class="scroll"><svg class="dia " viewBox="0 0 760 652" width="760" height="652" role="img" aria-label="取込の 5 段の流れ図" xmlns="http://www.w3.org/2000/svg">
-<rect class="node in" x="40" y="16" width="300" height="62" rx="6"/><text class="node-t" x="54" y="40" text-anchor="start">生成仕様 .t2font</text><text class="node-s" x="54" y="60" text-anchor="start">source・coverage・charsets・characters・representation</text>
+<div class="scroll"><svg class="dia " viewBox="0 0 760 652" width="760" height="652" role="img" aria-label="インポートの 5 段の流れ図" xmlns="http://www.w3.org/2000/svg">
+<rect class="node in" x="40" y="16" width="300" height="62" rx="6"/><text class="node-t" x="54" y="40" text-anchor="start">ベイク仕様 .t2font</text><text class="node-s" x="54" y="60" text-anchor="start">source・coverage・charsets・characters・representation</text>
 <rect class="node in" x="420" y="16" width="300" height="62" rx="6"/><text class="node-t" x="434" y="40" text-anchor="start">元フォント .ttf</text><text class="node-s" x="434" y="60" text-anchor="start">TrueType 輪郭（glyf）の単体のフォント</text>
 <line class="flow" x1="190" y1="78" x2="190" y2="104"/><line class="flow" x1="570" y1="78" x2="570" y2="104"/><line class="flow" x1="190" y1="104" x2="570" y2="104"/>
 <line class="flow" x1="380" y1="104" x2="380" y2="122"/><polygon class="ah-flow" points="380,124 376.4,116 383.6,116"/>
 <rect class="node host" x="40" y="124" width="680" height="44" rx="6"/><text class="node-t" x="54" y="148" text-anchor="start">T2FontImporter.OnImportAsset</text><text class="asm" x="708" y="148" text-anchor="end">Editor</text>
 <line class="flow" x1="380" y1="170" x2="380" y2="190"/><polygon class="ah-flow" points="380,192 376.4,184 383.6,184"/>
-<rect class="node step" x="40" y="192" width="680" height="61" rx="6"/><text class="node-t" x="54" y="216" text-anchor="start">① 生成仕様を読む</text><text class="node-s" x="54" y="236" text-anchor="start">FontBakeSpec.Parse — 未知のキー・型の違いで止める</text><text class="asm" x="708" y="216" text-anchor="end">Bake</text>
+<rect class="node step" x="40" y="192" width="680" height="61" rx="6"/><text class="node-t" x="54" y="216" text-anchor="start">① ベイク仕様を読む</text><text class="node-s" x="54" y="236" text-anchor="start">FontBakeSpec.Parse — 未知のキー・型の違いで止める</text><text class="asm" x="708" y="216" text-anchor="end">Bake</text>
 <line class="flow" x1="380" y1="253" x2="380" y2="273"/><polygon class="ah-flow" points="380,275 376.4,267 383.6,267"/>
 <rect class="node step" x="40" y="275" width="680" height="61" rx="6"/><text class="node-t" x="54" y="299" text-anchor="start">② フォントの表を読む</text><text class="node-s" x="54" y="319" text-anchor="start">TrueTypeFont — head・hhea・maxp・hmtx・cmap・loca・glyf</text><text class="asm" x="708" y="299" text-anchor="end">Bake</text>
 <line class="flow" x1="380" y1="336" x2="380" y2="356"/><polygon class="ah-flow" points="380,358 376.4,350 383.6,350"/>
-<rect class="node step" x="40" y="358" width="680" height="78" rx="6"/><text class="node-t" x="54" y="382" text-anchor="start">③ 字の表を作る（全表現で共通）</text><text class="node-s" x="54" y="402" text-anchor="start">FontSpecBaker.BuildFace → FontFaceBuilder.Build</text><text class="node-s" x="54" y="419" text-anchor="start">→ FontFaceData（縦メトリクス・字・送り幅・墨の外接・輪郭）</text><text class="asm" x="708" y="382" text-anchor="end">Bake</text>
+<rect class="node step" x="40" y="358" width="680" height="78" rx="6"/><text class="node-t" x="54" y="382" text-anchor="start">③ タイポグラフィテーブルを作る（全表現で共通）</text><text class="node-s" x="54" y="402" text-anchor="start">FontSpecBaker.BuildFace → FontFaceBuilder.Build</text><text class="node-s" x="54" y="419" text-anchor="start">→ FontFaceData（縦メトリクス・字・送り幅・インク境界・輪郭）</text><text class="asm" x="708" y="382" text-anchor="end">Bake</text>
 <line class="flow" x1="380" y1="436" x2="380" y2="456"/><polygon class="ah-flow" points="380,458 376.4,450 383.6,450"/>
-<rect class="node step sdf" x="40" y="458" width="680" height="78" rx="6"/><text class="node-t" x="54" y="482" text-anchor="start">④ 表現を焼く（SDF）</text><text class="node-s" x="54" y="502" text-anchor="start">SdfGlyphBaker.Bake → SdfAtlasBaker.Bake → SdfAtlas（セル・ページ）</text><text class="node-s" x="54" y="519" text-anchor="start">BuildPage → Texture2D（R8／BC4）</text><text class="asm" x="708" y="482" text-anchor="end">Bake＋Editor</text>
+<rect class="node step sdf" x="40" y="458" width="680" height="78" rx="6"/><text class="node-t" x="54" y="482" text-anchor="start">④ 表現をベイクする（SDF）</text><text class="node-s" x="54" y="502" text-anchor="start">SdfGlyphBaker.Bake → SdfAtlasBaker.Bake → SdfAtlas（セル・ページ）</text><text class="node-s" x="54" y="519" text-anchor="start">BuildPage → Texture2D（R8／BC4）</text><text class="asm" x="708" y="482" text-anchor="end">Bake＋Editor</text>
 <line class="flow" x1="380" y1="536" x2="380" y2="556"/><polygon class="ah-flow" points="380,558 376.4,550 383.6,550"/>
-<rect class="node step" x="40" y="558" width="680" height="78" rx="6"/><text class="node-t" x="54" y="582" text-anchor="start">⑤ 資産を組む</text><text class="node-s" x="54" y="602" text-anchor="start">SdfRepresentation.Create・T2FontAsset.Create</text><text class="node-s" x="54" y="619" text-anchor="start">→ AddObjectToAsset（主＝T2FontAsset・副＝表現とページ）</text><text class="asm" x="708" y="582" text-anchor="end">Runtime の型</text>
+<rect class="node step" x="40" y="558" width="680" height="78" rx="6"/><text class="node-t" x="54" y="582" text-anchor="start">⑤ アセットを組む</text><text class="node-s" x="54" y="602" text-anchor="start">SdfRepresentation.Create・T2FontAsset.Create</text><text class="node-s" x="54" y="619" text-anchor="start">→ AddObjectToAsset（主＝T2FontAsset・副＝表現とページ）</text><text class="asm" x="708" y="582" text-anchor="end">Runtime の型</text>
 </svg></div>
-<figcaption><span class="fn">図 1</span>取込の流れ。右肩はその段のコードが属するアセンブリ。④だけが表現（ここでは SDF）ごとに替わり、③までは全表現で共通。</figcaption>
+<figcaption><span class="fn">図 1</span>インポートの流れ。右肩はその段のコードが属するアセンブリ。④だけが表現（ここでは SDF）ごとに替わり、③までは全表現で共通。</figcaption>
 </figure>
 
 <div class="tbl"><table>
 <thead><tr><th>段</th><th>主な型</th><th>ファイル（パッケージ内）</th><th>出力</th></tr></thead>
 <tbody>
-<tr><td>① 生成仕様を読む</td><td><code>FontBakeSpec</code></td><td class="mono">Bake/FontBakeSpec.cs</td><td>元フォントのパス・字集合・表現の設定</td></tr>
-<tr><td>② フォントを読む</td><td><code>TrueTypeFont</code></td><td class="mono">Bake/TrueTypeFont.cs<br>Bake/GlyphOutline.cs</td><td>縦メトリクス・送り幅・cmap・輪郭を引ける読取器</td></tr>
-<tr><td>③ 字の表を作る</td><td><code>FontSpecBaker</code>・<code>FontFaceBuilder</code></td><td class="mono">Bake/FontSpecBaker.cs<br>Bake/FontFaceBuilder.cs</td><td><code>FontFaceData</code></td></tr>
-<tr><td>④ 表現を焼く</td><td><code>SdfGlyphBaker</code>・<code>SdfAtlasBaker</code>・<code>AtlasLayout</code>・<code>ScanlineRasterizer</code>・<code>DistanceTransform</code></td><td class="mono">Editor/SdfGlyphBaker.cs<br>Bake/SdfAtlasBaker.cs ほか</td><td><code>SdfAtlas</code> → <code>Texture2D</code></td></tr>
-<tr><td>⑤ 資産を組む</td><td><code>SdfRepresentation</code>・<code>T2FontAsset</code></td><td class="mono">Runtime/</td><td>主資産 <code>T2FontAsset</code> と副資産</td></tr>
+<tr><td>① ベイク仕様を読む</td><td><code>FontBakeSpec</code></td><td class="mono">Bake/FontBakeSpec.cs</td><td>元フォントのパス・文字セット・表現の設定</td></tr>
+<tr><td>② フォントを読む</td><td><code>TrueTypeFont</code></td><td class="mono">Bake/TrueTypeFont.cs<br>Bake/GlyphOutline.cs</td><td>縦メトリクス・送り幅・cmap・輪郭を引けるリーダー</td></tr>
+<tr><td>③ タイポグラフィテーブルを作る</td><td><code>FontSpecBaker</code>・<code>FontFaceBuilder</code></td><td class="mono">Bake/FontSpecBaker.cs<br>Bake/FontFaceBuilder.cs</td><td><code>FontFaceData</code></td></tr>
+<tr><td>④ 表現をベイクする</td><td><code>SdfGlyphBaker</code>・<code>SdfAtlasBaker</code>・<code>AtlasLayout</code>・<code>ScanlineRasterizer</code>・<code>DistanceTransform</code></td><td class="mono">Editor/SdfGlyphBaker.cs<br>Bake/SdfAtlasBaker.cs ほか</td><td><code>SdfAtlas</code> → <code>Texture2D</code></td></tr>
+<tr><td>⑤ アセットを組む</td><td><code>SdfRepresentation</code>・<code>T2FontAsset</code></td><td class="mono">Runtime/</td><td>メインアセット <code>T2FontAsset</code> とサブアセット</td></tr>
 </tbody></table></div>
 
-<p>どの段で誤っても資産は作らない。例外は取込の誤り（<code>LogImportError</code>）として報告され、焼き器が作りかけた副資産は取込器が捨てる。ロードは null になり、参照が明確に失敗する（README §2.1）。</p>
+<p>どの段で誤ってもアセットは作らない。例外はインポートの誤り（<code>LogImportError</code>）として報告され、ベイカーが作りかけたサブアセットはインポーターが捨てる。ロードは null になり、参照が明確に失敗する（README §2.1）。</p>
 
 <h2 id="sfnt"><span class="num">2</span>TrueType ファイルの構造</h2>
 
@@ -450,7 +450,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <tr><td class="mono">12 + 16i</td><td class="mono">tag・u32 ×3</td><td>表の記録: タグ・checkSum・offset・length</td><td>タグで辞書にする。checkSum は確かめない</td></tr>
 </tbody></table></div>
 
-<p>先頭の sfntVersion で形式を見分ける。<code>0x00010000</code> と <code>'true'</code>（Apple の TrueType）は読み、<code>'OTTO'</code>（CFF 輪郭＝多くの .otf）と <code>'ttcf'</code>（フォントコレクション）は <code>NotSupportedException</code> で止める。コレクションを読まないのは、生成仕様が書体の番号を持たず、読めばどの書体を焼くかを黙って決めることになるため。</p>
+<p>先頭の sfntVersion で形式を見分ける。<code>0x00010000</code> と <code>'true'</code>（Apple の TrueType）は読み、<code>'OTTO'</code>（CFF 輪郭＝多くの .otf）と <code>'ttcf'</code>（フォントコレクション）は <code>NotSupportedException</code> で止める。コレクションを読まないのは、ベイク仕様が書体の番号を持たず、読めばどの書体をベイクするかを黙って決めることになるため。</p>
 
 <figure class="fig" id="fig-filemap">
 <div class="scroll"><svg class="dia " viewBox="0 0 760 132" width="760" height="132" role="img" aria-label="M+ 1c Regular のファイル中の表の配置" xmlns="http://www.w3.org/2000/svg">
@@ -496,17 +496,17 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <tr class="read"><td class="mono">maxp</td><td class="num mono">440</td><td class="num mono">32</td><td><span class="yes">読む</span></td><td>numGlyphs（+4）</td></tr>
 <tr><td class="mono">OS/2</td><td class="num mono">472</td><td class="num mono">86</td><td>—</td><td>別系統の縦メトリクス・字幅の分類など</td></tr>
 <tr class="read"><td class="mono">hmtx</td><td class="num mono">560</td><td class="num mono">35,082</td><td><span class="yes">読む</span></td><td>送り幅（advanceWidth）</td></tr>
-<tr class="read"><td class="mono">cmap</td><td class="num mono">35,644</td><td class="num mono">78,182</td><td><span class="yes">読む</span></td><td>字 → 字形番号</td></tr>
+<tr class="read"><td class="mono">cmap</td><td class="num mono">35,644</td><td class="num mono">78,182</td><td><span class="yes">読む</span></td><td>字 → グリフインデックス</td></tr>
 <tr><td class="mono">fpgm</td><td class="num mono">113,828</td><td class="num mono">613</td><td>—</td><td>ヒンティング命令</td></tr>
 <tr><td class="mono">prep</td><td class="num mono">114,444</td><td class="num mono">46</td><td>—</td><td>ヒンティング命令</td></tr>
 <tr><td class="mono">cvt </td><td class="num mono">114,492</td><td class="num mono">14</td><td>—</td><td>ヒンティングの値</td></tr>
-<tr class="read"><td class="mono">loca</td><td class="num mono">114,508</td><td class="num mono">35,116</td><td><span class="yes">読む</span></td><td>字形番号 → glyf 内の範囲</td></tr>
+<tr class="read"><td class="mono">loca</td><td class="num mono">114,508</td><td class="num mono">35,116</td><td><span class="yes">読む</span></td><td>グリフインデックス → glyf 内の範囲</td></tr>
 <tr class="read"><td class="mono">glyf</td><td class="num mono">149,624</td><td class="num mono">1,512,880</td><td><span class="yes">読む</span></td><td>輪郭</td></tr>
 <tr><td class="mono">name</td><td class="num mono">1,662,504</td><td class="num mono">1,638</td><td>—</td><td>書体名・著作権表示</td></tr>
 <tr><td class="mono">post</td><td class="num mono">1,664,144</td><td class="num mono">32</td><td>—</td><td>PostScript 名</td></tr>
 <tr><td class="mono">gasp</td><td class="num mono">1,664,176</td><td class="num mono">8</td><td>—</td><td>表示サイズ別の AA の指定</td></tr>
 <tr><td class="mono">GDEF</td><td class="num mono">1,664,184</td><td class="num mono">1,572</td><td>—</td><td>GSUB／GPOS の補助</td></tr>
-<tr><td class="mono">GSUB</td><td class="num mono">1,665,756</td><td class="num mono">11,036</td><td>—</td><td>字形の置換（合字・縦書きの代替など）</td></tr>
+<tr><td class="mono">GSUB</td><td class="num mono">1,665,756</td><td class="num mono">11,036</td><td>—</td><td>グリフの置換（合字・縦書きの代替など）</td></tr>
 <tr><td class="mono">GPOS</td><td class="num mono">1,676,792</td><td class="num mono">15,582</td><td>—</td><td>位置調整（カーニングなど）</td></tr>
 <tr><td class="mono">vmtx</td><td class="num mono">1,692,376</td><td class="num mono">23,088</td><td>—</td><td>縦書きの送り</td></tr>
 <tr><td class="mono">PfEd</td><td class="num mono">1,715,464</td><td class="num mono">720</td><td>—</td><td>FontForge の編集情報</td></tr>
@@ -515,21 +515,21 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 </tbody></table></div>
 
 <h3 id="tables"><span class="num">2.2</span>T2Font が読む表</h3>
-<p>読むのは字の表と輪郭に要る表だけで、構築子（<code>new TrueTypeFont(bytes)</code>）が全部を確かめてから位置を覚える。表が無い・短すぎる・ファイルの外を指す、hmtx と loca が字形数に対して短い、などは構築の時点で <code>FormatException</code> になる。</p>
+<p>読むのはタイポグラフィテーブルと輪郭に要る表だけで、構築子（<code>new TrueTypeFont(bytes)</code>）が全部を確かめてから位置を覚える。表が無い・短すぎる・ファイルの外を指す、hmtx と loca がグリフ数に対して短い、などは構築の時点で <code>FormatException</code> になる。</p>
 <div class="tbl"><table>
 <thead><tr><th>表</th><th>読む欄（表の先頭からの位置）</th><th>使い道</th></tr></thead>
 <tbody>
 <tr><td class="mono">head</td><td>unitsPerEm（+18・u16）・indexToLocFormat（+50・i16）</td><td>em の単位数（0 なら止める）・loca の形式</td></tr>
 <tr><td class="mono">hhea</td><td>ascender（+4）・descender（+6）・lineGap（+8）・numberOfHMetrics（+34）</td><td>縦メトリクス・hmtx の組の数</td></tr>
-<tr><td class="mono">maxp</td><td>numGlyphs（+4）</td><td>字形数</td></tr>
+<tr><td class="mono">maxp</td><td>numGlyphs（+4）</td><td>グリフ数</td></tr>
 <tr><td class="mono">hmtx</td><td>advanceWidth</td><td>送り幅</td></tr>
-<tr><td class="mono">cmap</td><td>Unicode の下位表 1 つ</td><td>字 → 字形番号</td></tr>
-<tr><td class="mono">loca</td><td>字形数 ＋ 1 個のオフセット</td><td>字形番号 → glyf の中の範囲</td></tr>
-<tr><td class="mono">glyf</td><td>字形のデータ</td><td>輪郭</td></tr>
+<tr><td class="mono">cmap</td><td>Unicode の下位表 1 つ</td><td>字 → グリフインデックス</td></tr>
+<tr><td class="mono">loca</td><td>グリフ数 ＋ 1 個のオフセット</td><td>グリフインデックス → glyf の中の範囲</td></tr>
+<tr><td class="mono">glyf</td><td>グリフのデータ</td><td>輪郭</td></tr>
 </tbody></table></div>
-<p>字形の置換（GSUB）と位置調整（GPOS・kern）は読まない。字の表は置換を持たず、送り幅だけで字を並べる。ヒンティング（fpgm・prep・cvt と字形の中の命令）も読まない。表現はどれも輪郭そのものから作るので要らない。OS/2・vhea・vmtx・name・post も読まない。構築した後は状態を変えないので、焼き器の並列処理から同時に引いてよい。</p>
+<p>グリフの置換（GSUB）と位置調整（GPOS・kern）は読まない。タイポグラフィテーブルは置換を持たず、送り幅だけで字を並べる。ヒンティング（fpgm・prep・cvt とグリフの中の命令）も読まない。表現はどれも輪郭そのものから作るので要らない。OS/2・vhea・vmtx・name・post も読まない。構築した後は状態を変えないので、ベイカーの並列処理から同時に引いてよい。</p>
 
-<h3 id="cmap"><span class="num">2.3</span>cmap — 字から字形番号へ</h3>
+<h3 id="cmap"><span class="num">2.3</span>cmap — 字からグリフインデックスへ</h3>
 <p>cmap は複数の下位表を持ち、各下位表は（platform・encoding）の組で符号化を名乗る。<code>ReadCharacterMap</code> は Unicode を名乗る下位表（platform 0、または platform 3 の encoding 1／10）のうち、format 12（全 Unicode）を最優先し、無ければ format 4（BMP だけ）を選ぶ。ほかの format は読まない。</p>
 <div class="tbl"><table>
 <thead><tr><th>platform</th><th>encoding</th><th>format</th><th class="num">offset</th><th>順位</th><th>M+ 1c での扱い</th></tr></thead>
@@ -542,25 +542,25 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <tr><td class="mono">3</td><td class="mono">10</td><td class="mono">12</td><td class="num mono">30396</td><td>1 番手</td><td>platform 0／4 と同じ下位表を指す</td></tr>
 </tbody></table></div>
 
-<p>2 つの format は、連続した字の範囲を 1 行で表す点が同じで、字形番号の出し方が違う。「あ」（U+3042）の例で並べる。</p>
+<p>2 つの format は、連続した字の範囲を 1 行で表す点が同じで、グリフインデックスの出し方が違う。「あ」（U+3042）の例で並べる。</p>
 <div class="tbl"><table>
 <thead><tr><th></th><th>format 12（グループ）</th><th>format 4（区間）</th></tr></thead>
 <tbody>
 <tr><td>1 行の中身</td><td>startCharCode・endCharCode・startGlyphID（u32 ×3）</td><td>endCode・startCode・idDelta・idRangeOffset（並列の u16 配列）</td></tr>
-<tr><td>字形番号</td><td class="mono">startGlyphID + (字 − startCharCode)</td><td class="mono">idRangeOffset = 0 なら (字 + idDelta) mod 65536。それ以外は glyphIdArray を引いてから idDelta を足す</td></tr>
+<tr><td>グリフインデックス</td><td class="mono">startGlyphID + (字 − startCharCode)</td><td class="mono">idRangeOffset = 0 なら (字 + idDelta) mod 65536。それ以外は glyphIdArray を引いてから idDelta を足す</td></tr>
 <tr><td>あ の行</td><td class="mono">U+3041–U+3096 → 2805</td><td class="mono">U+3041–U+3096・idDelta −9548</td></tr>
-<tr><td>あ の字形番号</td><td class="mono">2805 + (0x3042 − 0x3041) = 2806</td><td class="mono">12354 − 9548 = 2806</td></tr>
+<tr><td>あ のグリフインデックス</td><td class="mono">2805 + (0x3042 − 0x3041) = 2806</td><td class="mono">12354 − 9548 = 2806</td></tr>
 </tbody></table></div>
-<p>字形番号 0（.notdef）と、字形数以上を指す対応は「その字は無い」として捨てる。読み終えた対応からは、全コードポイントの昇順の配列も作る（M+ 1c では 8,431 字）。</p>
+<p>グリフインデックス 0（.notdef）と、グリフ数以上を指す対応は「その字は無い」として捨てる。読み終えた対応からは、全コードポイントの昇順の配列も作る（M+ 1c では 8,431 字）。</p>
 
 <h3 id="hmtx"><span class="num">2.4</span>hmtx — 送り幅</h3>
-<p>hmtx は先頭に numberOfHMetrics 個の組（advanceWidth u16・lsb i16）を並べ、続けて残りの字形の lsb だけを並べる。番号が numberOfHMetrics 以上の字形は、最後の組の送り幅を使う（送り幅の同じ字形が後ろに続くフォントで表を縮めるための形）。M+ 1c は numberOfHMetrics 8,763・字形 8,778 で、番号 8,763 以降の 15 字形は最後の組の送り幅を使う。</p>
-<p><code>GetAdvanceWidth</code> は送り幅だけを読み、lsb（左の余白）は読まない。左の余白は輪郭の点から取る墨の外接で分かる（<a href="#metrics">§4</a>）。</p>
+<p>hmtx は先頭に numberOfHMetrics 個の組（advanceWidth u16・lsb i16）を並べ、続けて残りのグリフの lsb だけを並べる。番号が numberOfHMetrics 以上のグリフは、最後の組の送り幅を使う（送り幅の同じグリフが後ろに続くフォントで表を縮めるための形）。M+ 1c は numberOfHMetrics 8,763・グリフ 8,778 で、番号 8,763 以降の 15 グリフは最後の組の送り幅を使う。</p>
+<p><code>GetAdvanceWidth</code> は送り幅だけを読み、lsb（左の余白）は読まない。左の余白は輪郭の点から取るインク境界で分かる（<a href="#metrics">§4</a>）。</p>
 
-<h3 id="glyf"><span class="num">2.5</span>loca と glyf — 字形のデータの在処</h3>
-<p>glyf は字形のデータを詰めて並べた表で、字形の境目は loca が持つ。<code>head.indexToLocFormat</code> が 0 なら u16 に「オフセット÷2」、1 なら u32 のオフセットそのもの。字形 g のデータは glyf の <code>[loca[g], loca[g+1])</code> で、長さが 0 なら墨の無い字形になる（M+ 1c の空白 U+0020 の字形 3 は <code>loca[3] = loca[4] = 84</code>）。<code>GlyphRange</code> は終わりが始まりより前・glyf の外を指せば止める。</p>
+<h3 id="glyf"><span class="num">2.5</span>loca と glyf — グリフのデータの在処</h3>
+<p>glyf はグリフのデータを詰めて並べた表で、グリフの境目は loca が持つ。<code>head.indexToLocFormat</code> が 0 なら u16 に「オフセット÷2」、1 なら u32 のオフセットそのもの。グリフ g のデータは glyf の <code>[loca[g], loca[g+1])</code> で、長さが 0 ならインクの無いグリフになる（M+ 1c の空白 U+0020 のグリフ 3 は <code>loca[3] = loca[4] = 84</code>）。<code>GlyphRange</code> は終わりが始まりより前・glyf の外を指せば止める。</p>
 <figure class="fig" id="fig-loca">
-<div class="scroll"><svg class="dia " viewBox="0 0 760 236" width="760" height="236" role="img" aria-label="loca の値が glyf の中の字形の範囲を指す図" xmlns="http://www.w3.org/2000/svg">
+<div class="scroll"><svg class="dia " viewBox="0 0 760 236" width="760" height="236" role="img" aria-label="loca の値が glyf の中のグリフの範囲を指す図" xmlns="http://www.w3.org/2000/svg">
 <text class="lbl-b" x="20" y="22" text-anchor="start">loca（long 形式・u32）</text>
 <rect class="cellbox" x="20" y="36" width="150" height="28"/>
 <text class="lbl mono" x="30" y="55" text-anchor="start">[2374]</text>
@@ -571,15 +571,15 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <rect class="cellbox" x="20" y="104" width="150" height="28"/>
 <text class="lbl mono" x="30" y="123" text-anchor="start">[2376]</text>
 <text class="lbl mono" x="160" y="123" text-anchor="end">193,152</text>
-<text class="lbl" x="20" y="160" text-anchor="start">字形 g の範囲 ＝ glyf ＋ [loca[g], loca[g+1])</text>
+<text class="lbl" x="20" y="160" text-anchor="start">グリフ g の範囲 ＝ glyf ＋ [loca[g], loca[g+1])</text>
 <text class="lbl-s" x="20" y="180" text-anchor="start">short 形式（0）は u16 に「オフセット÷2」を入れる</text>
-<text class="lbl-s" x="20" y="198" text-anchor="start">同じ値が続けば墨の無い字形（空白など・輪郭 0 本）</text>
+<text class="lbl-s" x="20" y="198" text-anchor="start">同じ値が続けばインクの無いグリフ（空白など・輪郭 0 本）</text>
 <text class="lbl-b" x="300" y="22" text-anchor="start">glyf（ファイルの 149,624 バイト目から）</text>
 <rect class="map-bg" x="300" y="70" width="440" height="40"/>
 <rect class="glyfblk" x="371" y="70" width="127.7" height="40"/>
 <rect class="glyfblk hl" x="498.7" y="70" width="99.4" height="40"/>
 <rect class="glyfblk" x="598.1" y="70" width="141.9" height="40"/>
-<text class="lbl-s" x="434.8" y="95" text-anchor="middle">字形 2374（36 B）</text>
+<text class="lbl-s" x="434.8" y="95" text-anchor="middle">グリフ 2374（36 B）</text>
 <text class="lbl-s strong" x="548.4" y="95" text-anchor="middle">2375 ■（28 B）</text>
 <path class="leader-c" d="M170 50 C 235 50 341 140 371 112"/><polygon class="ah-ctrl" points="371,112 371.2,118.6 366.2,116.6"/>
 <path class="leader-c" d="M170 84 C 235 84 468.7 140 498.7 112"/><polygon class="ah-ctrl" points="498.7,112 499,118.6 494,116.6"/>
@@ -587,24 +587,24 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <text class="lbl-s mono" x="498.7" y="136" text-anchor="middle">193,124</text>
 <text class="lbl-s mono" x="598.1" y="150" text-anchor="middle">193,152</text>
 </svg></div>
-<figcaption><span class="fn">図 3</span>M+ 1c（loca は long 形式）で、字形 2375（■）の範囲を引く。loca の隣り合う 2 つの値が、glyf の中の 1 字形のバイト列を挟む。</figcaption>
+<figcaption><span class="fn">図 3</span>M+ 1c（loca は long 形式）で、グリフ 2375（■）の範囲を引く。loca の隣り合う 2 つの値が、glyf の中の 1 グリフのバイト列を挟む。</figcaption>
 </figure>
 
-<h3 id="simple"><span class="num">2.6</span>単純字形の符号化</h3>
-<p>字形のデータの先頭 10 バイトはヘッダ（numberOfContours と外接矩形）。numberOfContours が 0 以上なら単純字形で、輪郭の終点の番号・ヒンティング命令・点ごとのフラグ・x 座標・y 座標の順に続く。座標は直前の点からの差分で、x をすべて読み終えてから y を読む。■（U+25A0・字形 2375）の 28 バイトを全部解くと次のとおり。</p>
+<h3 id="simple"><span class="num">2.6</span>単純グリフの符号化</h3>
+<p>グリフのデータの先頭 10 バイトはヘッダ（numberOfContours とグリフ境界ボックス）。numberOfContours が 0 以上なら単純グリフで、輪郭の終点の番号・ヒンティング命令・点ごとのフラグ・x 座標・y 座標の順に続く。座標は直前の点からの差分で、x をすべて読み終えてから y を読む。■（U+25A0・グリフ 2375）の 28 バイトを全部解くと次のとおり。</p>
 
 <div class="split">
 <div class="tbl" style="margin:0"><table>
 <thead><tr><th class="num">位置</th><th>バイト</th><th>欄</th><th>値</th></tr></thead>
 <tbody>
-<tr><td class="num mono">0</td><td><span class="chip f-hdr">00 01</span></td><td class="mono">numberOfContours</td><td>1（≥ 0 なので単純字形）</td></tr>
-<tr><td class="num mono">2</td><td><span class="chip f-hdr">00 87 00 00 03 61 02 da</span></td><td class="mono">xMin・yMin・xMax・yMax</td><td>135・0・865・730（T2Font は使わず、点から外接を取る）</td></tr>
+<tr><td class="num mono">0</td><td><span class="chip f-hdr">00 01</span></td><td class="mono">numberOfContours</td><td>1（≥ 0 なので単純グリフ）</td></tr>
+<tr><td class="num mono">2</td><td><span class="chip f-hdr">00 87 00 00 03 61 02 da</span></td><td class="mono">xMin・yMin・xMax・yMax</td><td>135・0・865・730（グリフ境界ボックス。T2Font は使わず、点から取り直す）</td></tr>
 <tr><td class="num mono">10</td><td><span class="chip f-pts">00 03</span></td><td class="mono">endPtsOfContours[0]</td><td>3 → 点は 4 個（輪郭 1 本）</td></tr>
 <tr><td class="num mono">12</td><td><span class="chip f-ins">00 00</span></td><td class="mono">instructionLength</td><td>0（ヒンティング命令なし。あっても読み飛ばす）</td></tr>
 <tr><td class="num mono">14</td><td><span class="chip f-flg">33 11 21 11</span></td><td class="mono">flags[0..3]</td><td>0x33・0x11・0x21・0x11（下の表で解く）</td></tr>
 <tr><td class="num mono">18</td><td><span class="chip f-x">87 02 da</span></td><td class="mono">xCoordinates</td><td>+135（1 バイト）・同じ・+730（2 バイト）・同じ</td></tr>
 <tr><td class="num mono">21</td><td><span class="chip f-y">02 da fd 26</span></td><td class="mono">yCoordinates</td><td>同じ・+730（2 バイト）・同じ・−730（2 バイト）</td></tr>
-<tr><td class="num mono">25</td><td><span class="chip f-pad">00 00 00</span></td><td class="mono">（詰め物）</td><td>次の字形を 4 バイト境界へ揃える</td></tr>
+<tr><td class="num mono">25</td><td><span class="chip f-pad">00 00 00</span></td><td class="mono">（詰め物）</td><td>次のグリフを 4 バイト境界へ揃える</td></tr>
 </tbody></table></div>
 <figure class="fig" id="fig-square" style="margin:0">
 <svg class="dia narrow" viewBox="0 0 300 250" width="300" height="250" role="img" aria-label="■ の 4 点と輪郭の向き" xmlns="http://www.w3.org/2000/svg">
@@ -640,10 +640,10 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <tr><td class="mono">0x10</td><td class="mono">X_IS_SAME_OR_POSITIVE…</td><td>1 バイトなら正の向き。2 バイトの形なら x は省かれ差分 0</td></tr>
 <tr><td class="mono">0x20</td><td class="mono">Y_IS_SAME_OR_POSITIVE…</td><td>同じく y について</td></tr>
 </tbody></table></div>
-<p>■ の 1 点目のフラグ 0x33 は ON｜X_SHORT｜0x10｜0x20 で、「x は 1 バイトの正の差分（+0x87＝135）、y は省略（差分 0）」と読める。2 点目の 0x11 は ON｜0x10 で、「x は省略、y は 2 バイトの差分（0x02DA＝+730）」。<code>AppendSimpleGlyph</code> はこの順に読み、どの読み出しも字形の範囲の中かを確かめる（<code>RequireInGlyph</code>）。輪郭の終点の番号が昇順でなければ止める。ヒンティング命令は長さだけ読んで飛ばす。</p>
+<p>■ の 1 点目のフラグ 0x33 は ON｜X_SHORT｜0x10｜0x20 で、「x は 1 バイトの正の差分（+0x87＝135）、y は省略（差分 0）」と読める。2 点目の 0x11 は ON｜0x10 で、「x は省略、y は 2 バイトの差分（0x02DA＝+730）」。<code>AppendSimpleGlyph</code> はこの順に読み、どの読み出しもグリフの範囲の中かを確かめる（<code>RequireInGlyph</code>）。輪郭の終点の番号が昇順でなければ止める。ヒンティング命令は長さだけ読んで飛ばす。</p>
 
-<h3 id="composite"><span class="num">2.7</span>複合字形</h3>
-<p>numberOfContours が負なら複合字形で、ほかの字形（部品）を変換して重ねて 1 字形にする。部品ごとに flags・glyphIndex・2 つの引数・省略できる変換を持ち、flags の MORE_COMPONENTS（0x20）が立っている間続く。</p>
+<h3 id="composite"><span class="num">2.7</span>複合グリフ</h3>
+<p>numberOfContours が負なら複合グリフで、ほかのグリフ（部品）を変換して重ねて 1 グリフにする。部品ごとに flags・glyphIndex・2 つの引数・省略できる変換を持ち、flags の MORE_COMPONENTS（0x20）が立っている間続く。</p>
 <div class="tbl"><table>
 <thead><tr><th>flags のビット</th><th>意味</th></tr></thead>
 <tbody>
@@ -652,10 +652,10 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <tr><td class="mono">0x0008 WE_HAVE_A_SCALE<br>0x0040 …X_AND_Y_SCALE<br>0x0080 …TWO_BY_TWO</td><td>部品の線形変換。値は F2Dot14（符号付き 2.14 の固定小数点・÷16384）</td></tr>
 <tr><td class="mono">0x0800 SCALED_COMPONENT_OFFSET<br>0x1000 UNSCALED_…</td><td>ずらしにも変換の大きさを掛けるか</td></tr>
 </tbody></table></div>
-<p><code>AppendCompositeGlyph</code> は部品を再帰で展開し、部品の各点に「部品の線形変換 → ずらし → 親までの変換」を掛けて 1 つの輪郭の並びにまとめる。入れ子は 16 段まで（循環参照した壊れたフォントで止まらないための柵）。点の照合では、ここまでに組んだ点の arg1 番と部品の arg2 番が重なるようにずらしを決める。ずらしに変換を掛ける指定では、FreeType と Apple の実装と同じく軸ごとに行列の列の長さを掛ける。M+ 1c Regular の複合字形は 244 あり、どれも部品 1 つ・ずらし 0 の、ほかの字形の形を借りるだけのものになっている。</p>
+<p><code>AppendCompositeGlyph</code> は部品を再帰で展開し、部品の各点に「部品の線形変換 → ずらし → 親までの変換」を掛けて 1 つの輪郭の並びにまとめる。入れ子は 16 段まで（循環参照した壊れたフォントで止まらないための柵）。点の照合では、ここまでに組んだ点の arg1 番と部品の arg2 番が重なるようにずらしを決める。ずらしに変換を掛ける指定では、FreeType と Apple の実装と同じく軸ごとに行列の列の長さを掛ける。M+ 1c Regular の複合グリフは 244 あり、どれも部品 1 つ・ずらし 0 の、ほかのグリフの形を借りるだけのものになっている。</p>
 
 <h2 id="outline"><span class="num">3</span>輪郭と 2 次ベジエ</h2>
-<p><code>GetOutline(glyphIndex)</code> は字形を <code>GlyphOutline</code>（輪郭ごとに <code>OutlinePoint</code> の配列）にして返す。点は x・y（フォント単位・y は上向き）と、輪郭の上の点か（<code>OnCurve</code>）を持つ。輪郭は閉じていて、最後の点から最初の点へ戻る。</p>
+<p><code>GetOutline(glyphIndex)</code> はグリフを <code>GlyphOutline</code>（輪郭ごとに <code>OutlinePoint</code> の配列）にして返す。点は x・y（フォント単位・y は上向き）と、輪郭の上の点か（<code>OnCurve</code>）を持つ。輪郭は閉じていて、最後の点から最初の点へ戻る。</p>
 
 <figure class="fig" id="fig-outline">
 <div class="scroll"><svg class="dia " viewBox="0 0 520 420" width="520" height="420" role="img" aria-label="あ の輪郭の on-curve 点と off-curve 点" xmlns="http://www.w3.org/2000/svg">
@@ -738,15 +738,15 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <li><svg width="28" height="12" aria-hidden="true"><line class="ctrl-poly" x1="1" y1="6" x2="27" y2="6"/></svg>点を書かれた順に結んだ線</li>
 <li><svg width="14" height="14" aria-hidden="true"><polygon class="ah-guide" points="13,7 3,2 3,12"/></svg>輪郭の向き</li>
 </ul>
-<figcaption><span class="fn">図 5</span>M+ 1c の「あ」（字形 2806）の輪郭 3 本。ファイルにある点は 51 個で、暗黙の on-curve 点が 9 個ある。</figcaption>
+<figcaption><span class="fn">図 5</span>M+ 1c の「あ」（グリフ 2806）の輪郭 3 本。ファイルにある点は 51 個で、暗黙の on-curve 点が 9 個ある。</figcaption>
 </figure>
 
 <p>TrueType の曲線は 2 次ベジエで、off-curve 点がその制御点になる。off-curve 点が 2 つ続くと、その中点に on-curve 点が暗黙にある（ファイルには書かれない）。直線の区間は on-curve 点どうしを結ぶだけ。全点が off-curve の輪郭は、最初の 2 点の中点から始める。<code>GlyphOutline.Flatten</code> はこの規則で曲線を組み立ててから線分にする（<a href="#flatten">§6.4</a>）。</p>
 <p>輪郭の向きは意味を持つ。外周は時計回り、穴の周（「o」の内側など）は反時計回りに巡るのが TrueType の慣習で、塗るときに向きを数えて内外を決める（<a href="#fill">§6.4 塗る</a>）。</p>
-<p>外接は <code>TryGetBounds</code> が制御点を含む全点から取る。2 次ベジエは制御点の凸包の中にあるので、曲線の外接を必ず含む（保守的に広い）。glyf のヘッダにある外接矩形は使わず、展開し終えた点から取り直す。</p>
+<p>境界ボックスは <code>TryGetBounds</code> が制御点を含む全点から取る。2 次ベジエは制御点の凸包の中にあるので、曲線の境界ボックスを必ず含む（保守的に広い）。glyf のヘッダにあるグリフ境界ボックスは使わず、展開し終えた点から取り直す。</p>
 
 <h2 id="metrics"><span class="num">4</span>フォントメトリクス</h2>
-<p>字を並べるのに要る値は、行の高さを決める縦の値と、字ごとの送り幅と墨の外接の 2 種に分かれる。どちらもフォント単位で書かれていて、<code>unitsPerEm</code> で割ると em（字の大きさに対する比）になる。原点はペン原点とベースラインで、y は上向き。</p>
+<p>字を並べるのに要る値は、行の高さを決める縦の値と、字ごとの送り幅とインク境界の 2 種に分かれる。どちらもフォント単位で書かれていて、<code>unitsPerEm</code> で割ると em（字の大きさに対する比）になる。原点はペン原点とベースラインで、y は上向き。</p>
 
 <figure class="fig" id="fig-metrics">
 <div class="scroll"><svg class="dia " viewBox="0 0 752 495" width="752" height="495" role="img" aria-label="g と あ のメトリクス（フォント単位）" xmlns="http://www.w3.org/2000/svg">
@@ -785,22 +785,22 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <line class="tick" x1="318.2" y1="320.2" x2="318.2" y2="352.6"/>
 <line class="dim" x1="292" y1="348.6" x2="318.2" y2="348.6"/><polygon class="ah-dim" points="318.2,348.6 312.2,351.3 312.2,345.9"/><polygon class="ah-dim" points="292,348.6 298,345.9 298,351.3"/>
 <text class="lbl-s mono" x="294" y="363.6" text-anchor="start">左の余白 97</text>
-<text class="lbl-s ctrl" x="541.8" y="115.4" text-anchor="start">墨の外接</text>
+<text class="lbl-s ctrl" x="541.8" y="115.4" text-anchor="start">インク境界</text>
 <text class="lbl-s mono ctrl" x="541.8" y="129.4" text-anchor="start">(97, -63) – (903, 803)</text>
 <text class="lbl-s mono ctrl" x="152.2" y="396.4" text-anchor="start">(45, -230)</text>
 <text class="lbl-s" x="136" y="338.2" text-anchor="end">ペン原点</text>
 </svg></div>
-<figcaption><span class="fn">図 6</span>M+ 1c の「g」と「あ」をペン原点から順に置いた図（数値はフォント単位・1000＝1em）。破線の箱が墨の外接、青緑の点がペン原点。点線の正方形は OS/2 表の typo 値（860／−140）が置く em 正方形で、参考に描いた（T2Font は読まない）。</figcaption>
+<figcaption><span class="fn">図 6</span>M+ 1c の「g」と「あ」をペン原点から順に置いた図（数値はフォント単位・1000＝1em）。破線の箱がインク境界、青緑の点がペン原点。点線の正方形は OS/2 表の typo 値（860／−140）が置く em 正方形で、参考に描いた（T2Font は読まない）。</figcaption>
 </figure>
 
 <h3><span class="num">4.1</span>縦の値（hhea）</h3>
 <p>ascender はベースラインから行の上端まで、descender は下端まで（下が負）、lineGap は行と行の間に足す分。次の行のベースラインまでの行送りは <code>ascender − descender + lineGap</code> で、M+ 1c では (1075 + 320 + 90) / 1000 ＝ 1.485em。T2Font は hhea の 3 つの値を <code>FontFaceMetrics</code>（em・単精度）として持つ。同じ種類の値は OS/2 表にもあり（M+ 1c の typo 値は 860／−140／90、win 値は 1075／320）、フォントによって食い違うが、T2Font は hhea だけを読む。</p>
 
-<h3><span class="num">4.2</span>横の値と墨の外接</h3>
-<p>送り幅（advance）は、この字を置いた後にペンを右へ進める量で、hmtx から読む。墨の外接（ink bounds）は字形の点の外接で、左端がペン原点から墨までの左の余白、<code>送り幅 − 右端</code> が右の余白になる。墨は送り幅の外や、ペン原点の左にはみ出してもよい（「g」の墨はベースラインの下へ 0.23em 出る）。</p>
-<p>字の表は字形ごとに <code>GlyphMetrics</code>（送り幅と墨の外接・em・単精度）を持つ。見本の値を抜き出すと次のとおり。</p>
+<h3><span class="num">4.2</span>横の値とインク境界</h3>
+<p>送り幅（advance）は、この字を置いた後にペンを右へ進める量で、hmtx から読む。インク境界（ink bounds）はグリフの点の境界ボックスで、左端がペン原点からインク部までの左の余白、<code>送り幅 − 右端</code> が右の余白になる。インク部は送り幅の外や、ペン原点の左にはみ出してもよい（「g」のインク部はベースラインの下へ 0.23em 出る）。</p>
+<p>タイポグラフィテーブルはグリフごとに <code>GlyphMetrics</code>（送り幅とインク境界・em・単精度）を持つ。見本の値を抜き出すと次のとおり。</p>
 <div class="tbl"><table>
-<thead><tr><th>字</th><th class="num">字形番号</th><th class="num">advance</th><th class="num">inkLeft</th><th class="num">inkBottom</th><th class="num">inkRight</th><th class="num">inkTop</th></tr></thead>
+<thead><tr><th>字</th><th class="num">グリフインデックス</th><th class="num">advance</th><th class="num">inkLeft</th><th class="num">inkBottom</th><th class="num">inkRight</th><th class="num">inkTop</th></tr></thead>
 <tbody>
 <tr><td>あ</td><td class="num mono">101</td><td class="num mono">1</td><td class="num mono">0.097</td><td class="num mono">-0.063</td><td class="num mono">0.903</td><td class="num mono">0.803</td></tr>
 <tr><td>g</td><td class="num mono">71</td><td class="num mono">0.563</td><td class="num mono">0.045</td><td class="num mono">-0.23</td><td class="num mono">0.488</td><td class="num mono">0.53</td></tr>
@@ -809,48 +809,48 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <tr><td>.notdef</td><td class="num mono">206</td><td class="num mono">0.364</td><td class="num mono">0.033</td><td class="num mono">0</td><td class="num mono">0.298</td><td class="num mono">0.666</td></tr>
 </tbody></table></div>
 <ul>
-<li>墨の外接は描くための余白（SDF の距離域など）を含まない。余白は表現の持ち物で、字の表に入れると表現を替えたときに値が変わる（README §3.3）。</li>
-<li>墨の無い字（空白）は ink が全部 0 で、送り幅だけを持つ。</li>
-<li>字の表へは単精度に丸めた値を入れ、焼き器は丸める前の倍精度の箱（<code>EmBox</code>）で焼く。</li>
+<li>インク境界は描くための余白（SDF の距離レンジなど）を含まない。余白は表現の持ち物で、タイポグラフィテーブルに入れると表現を替えたときに値が変わる（README §3.3）。</li>
+<li>インクの無い字（空白）は ink が全部 0 で、送り幅だけを持つ。</li>
+<li>タイポグラフィテーブルへは単精度に丸めた値を入れ、ベイカーは丸める前の倍精度の箱（<code>EmBox</code>）でベイクする。</li>
 </ul>
 
-<h2 id="face"><span class="num">5</span>字の表を作る</h2>
-<p><code>FontSpecBaker.BuildFace</code> は、生成仕様の字集合（<code>charsets</code>）と名指しの字（<code>characters</code>）の和を作り、<code>FontFaceBuilder.Build</code> に渡す。名指しの字が元フォントに無ければ取込を止める。固定の字集合は上限の集合なので、元フォントに無い字は件数だけを報告して続ける（README §7.1）。</p>
+<h2 id="face"><span class="num">5</span>タイポグラフィテーブルを作る</h2>
+<p><code>FontSpecBaker.BuildFace</code> は、ベイク仕様の文字セット（<code>charsets</code>）と指定文字（<code>characters</code>）の和を作り、<code>FontFaceBuilder.Build</code> に渡す。指定文字が元フォントに無ければインポートを止める。固定の文字セットは上限の集合なので、元フォントに無い字は件数だけを報告して続ける（README §7.1）。</p>
 <p><code>FontFaceBuilder.Build</code> の手順:</p>
 <ol>
 <li>字が Unicode のスカラー値か確かめる（サロゲートと U+10FFFF を超える値は止める）。</li>
-<li>昇順に並べ、字ごとに cmap で字形番号を引く。無い字は <code>Missing</code> に載せて飛ばす。</li>
-<li>ある字は、輪郭・送り幅（÷ unitsPerEm）・墨の外接を読んで、<code>GlyphMetrics</code>・輪郭・<code>EmBox</code> を積む。</li>
+<li>昇順に並べ、字ごとに cmap でグリフインデックスを引く。無い字は <code>Missing</code> に載せて飛ばす。</li>
+<li>ある字は、輪郭・送り幅（÷ unitsPerEm）・インク境界を読んで、<code>GlyphMetrics</code>・輪郭・<code>EmBox</code> を積む。</li>
 <li>最後に元フォントの glyph 0（.notdef）を足す。輪郭が空なら、0.08〜0.52em × 0〜0.72em の枠（外周と逆向きの内周）を合成し、送り幅を 0.6em 以上にする。</li>
 <li>hhea の縦の値を em にして <code>FontFaceMetrics</code> にする。</li>
 </ol>
 
 <figure class="fig" id="fig-strip">
 <div class="strip"><div class="g"><b>␠</b><span>0</span><span>U+0020</span></div><div class="g"><b>!</b><span>1</span><span>U+0021</span></div><div class="g"><b>&quot;</b><span>2</span><span>U+0022</span></div><span class="gap">…</span><div class="g"><b>~</b><span>94</span><span>U+007E</span></div><div class="g"><b>■</b><span>95</span><span>U+25A0</span></div><div class="g"><b>□</b><span>96</span><span>U+25A1</span></div><div class="g"><b>、</b><span>97</span><span>U+3001</span></div><span class="gap">…</span><div class="g"><b>あ</b><span>101</span><span>U+3042</span></div><div class="g"><b>い</b><span>102</span><span>U+3044</span></div><span class="gap">…</span><div class="g"><b>ー</b><span>175</span><span>U+30FC</span></div><div class="g"><b>一</b><span>176</span><span>U+4E00</span></div><div class="g"><b>三</b><span>177</span><span>U+4E09</span></div><span class="gap">…</span><div class="g"><b>香</b><span>205</span><span>U+9999</span></div><div class="g nd"><b>□</b><span>206</span><span>.notdef</span></div></div>
-<figcaption><span class="fn">図 7</span>見本の字の表の字形番号の並び。番号は字の昇順の添字そのもので、.notdef は末尾（番号＝字の数）。元フォントの字形番号（■ は 2375、あ は 2806）とは別の番号になる。</figcaption>
+<figcaption><span class="fn">図 7</span>見本のタイポグラフィテーブルのグリフインデックスの並び。番号は字の昇順の添字そのもので、.notdef は末尾（番号＝字の数）。元フォントのグリフインデックス（■ は 2375、あ は 2806）とは別の番号になる。</figcaption>
 </figure>
 
-<p>字形番号は字の表の配列の添字そのもので、間接の表は無い。実行時は <code>T2FontAsset.Resolve</code> が字を二分探索して字形番号を引き、収録していない字は .notdef の番号を返す（README §3.1・§3.2）。字の表はどの表現でも同じ読取器と同じ手順で作るので、表現を替えても送り幅と行は動かない（README §2.3）。</p>
+<p>グリフインデックスはタイポグラフィテーブルの配列の添字そのもので、間接の表は無い。実行時は <code>T2FontAsset.Resolve</code> が字を二分探索してグリフインデックスを引き、収録していない字は .notdef の番号を返す（README §3.1・§3.2）。タイポグラフィテーブルはどの表現でも同じリーダーと同じ手順で作るので、表現を替えても送り幅と行は動かない（README §2.3）。</p>
 
-<h2 id="sdf"><span class="num">6</span>SDF アトラスを焼く</h2>
-<p>同梱の表現 SDF（signed distance field）では、<code>SdfGlyphBaker</code> が <code>SdfAtlasBaker.Bake(face, settings)</code> を呼ぶ。設定のうち生成仕様で選べるのは emPx・maxPageSize・cellBox（と、テクスチャの形式）だけで、ほかは全フォントで固定。</p>
+<h2 id="sdf"><span class="num">6</span>SDF アトラスをベイクする</h2>
+<p>同梱の表現 SDF（signed distance field）では、<code>SdfGlyphBaker</code> が <code>SdfAtlasBaker.Bake(face, settings)</code> を呼ぶ。設定のうちベイク仕様で選べるのは emPx・maxPageSize・cellBox（と、テクスチャの形式）だけで、ほかは全フォントで固定。</p>
 <div class="tbl"><table>
 <thead><tr><th>設定（<code>SdfBakeSettings</code>）</th><th>見本の値</th><th>出所</th><th>意味</th></tr></thead>
 <tbody>
-<tr><td class="mono">EmPx</td><td class="mono">48</td><td>生成仕様 <code>emPx</code></td><td>アトラス上の 1em の px</td></tr>
-<tr><td class="mono">RangeEm</td><td class="mono">0.1875</td><td>固定（<code>SdfEncoding.RangeEm</code>）</td><td>片側の距離域。emPx 48 で 9 px</td></tr>
+<tr><td class="mono">EmPx</td><td class="mono">48</td><td>ベイク仕様 <code>emPx</code></td><td>アトラス上の 1em の px</td></tr>
+<tr><td class="mono">RangeEm</td><td class="mono">0.1875</td><td>固定（<code>SdfEncoding.RangeEm</code>）</td><td>片側の距離レンジ。emPx 48 で 9 px</td></tr>
 <tr><td class="mono">Supersample</td><td class="mono">8</td><td>固定</td><td>字を emPx × 8 の格子で塗ってから距離を取る</td></tr>
-<tr><td class="mono">CellBox</td><td class="mono">null</td><td>生成仕様 <code>cellBox</code></td><td>セルの墨の箱。null なら依頼した字の墨の外接の和</td></tr>
-<tr><td class="mono">MaxPageWidth／Height</td><td class="mono">8192</td><td>生成仕様 <code>maxPageSize</code></td><td>1 ページの最大寸法</td></tr>
-<tr><td class="mono">FlattenTolerance</td><td class="mono">0.1</td><td>固定</td><td>曲線を線分にする許容誤差（超標本化後の px）</td></tr>
+<tr><td class="mono">CellBox</td><td class="mono">null</td><td>ベイク仕様 <code>cellBox</code></td><td>セルのインク境界。null なら依頼した字のインク境界の和</td></tr>
+<tr><td class="mono">MaxPageWidth／Height</td><td class="mono">8192</td><td>ベイク仕様 <code>maxPageSize</code></td><td>1 ページの最大寸法</td></tr>
+<tr><td class="mono">FlattenTolerance</td><td class="mono">0.1</td><td>固定</td><td>曲線を線分にする許容誤差（スーパーサンプリング後の px）</td></tr>
 <tr><td class="mono">Parallel</td><td class="mono">true</td><td>固定</td><td>字ごとの計算を並列にする（結果は直列と同じ）</td></tr>
 </tbody></table></div>
 
 <h3 id="encoding"><span class="num">6.1</span>距離を 8bit に符号化する</h3>
-<p>SDF のアトラスの texel は、その位置から輪郭までの符号付き距離（墨の内側が正）を持つ。描画は値を bilinear で補間して読み、0.5 の等値線を輪郭として塗るので、texel の格子より細かい位置に輪郭を再構成できる。値は次の式で 0〜255 に符号化する。</p>
-<p class="formula">d = 0.5 + 距離(px) / (2 × 距離域(px))　→　round(clamp(d, 0, 1) × 255)</p>
+<p>SDF のアトラスの texel は、その位置から輪郭までの符号付き距離（インク領域の内側が正）を持つ。描画は値を bilinear で補間して読み、0.5 の等値線を輪郭として塗るので、texel の格子より細かい位置に輪郭を再構成できる。値は次の式で 0〜255 に符号化する。</p>
+<p class="formula">d = 0.5 + 距離(px) / (2 × 距離レンジ(px))　→　round(clamp(d, 0, 1) × 255)</p>
 <figure class="fig" id="fig-encoding">
-<div class="scroll"><svg class="dia " viewBox="0 0 760 300" width="760" height="300" role="img" aria-label="距離を 8bit へ符号化する曲線" xmlns="http://www.w3.org/2000/svg">
+<div class="scroll"><svg class="dia " viewBox="0 0 800 300" width="800" height="300" role="img" aria-label="距離を 8bit へ符号化する曲線" xmlns="http://www.w3.org/2000/svg">
 <line class="grid" x1="70" y1="240" x2="630" y2="240"/>
 <text class="lbl-s mono" x="62" y="244" text-anchor="end">0</text>
 <line class="grid" x1="70" y1="187.3" x2="630" y2="187.3"/>
@@ -891,7 +891,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <text class="lbl-s mono" x="590" y="259" text-anchor="middle">+12</text>
 <line class="tick" x1="630" y1="240" x2="630" y2="245"/>
 <text class="lbl-s mono" x="630" y="259" text-anchor="middle">+14</text>
-<text class="lbl-s" x="350" y="280" text-anchor="middle">輪郭までの符号付き距離（アトラス px・墨の内側が正）</text>
+<text class="lbl-s" x="350" y="280" text-anchor="middle">輪郭までの符号付き距離（アトラス px・インク領域の内側が正）</text>
 <text class="lbl-s" x="24" y="18" text-anchor="start">texel の値</text>
 <rect class="band-aa" x="171.7" y="30" width="178.3" height="210"/>
 <rect class="band-ext" x="206" y="30" width="144" height="210"/>
@@ -902,27 +902,27 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <text class="lbl-s" x="166" y="232" text-anchor="end">−9 px で 0 に飽和</text>
 <text class="lbl-s" x="630" y="22" text-anchor="end">+9 px で 255 に飽和</text>
 <rect class="band-ext" x="646" y="38" width="14" height="14"/>
-<text class="lbl-s" x="666" y="49" text-anchor="start">様式の外延</text>
+<text class="lbl-s" x="666" y="49" text-anchor="start">エッジスタイルの外延</text>
 <text class="lbl-s mono" x="666" y="65" text-anchor="start">0.15em = 7.2 px</text>
 <rect class="band-aa" x="646" y="80" width="14" height="14"/>
 <text class="lbl-s" x="666" y="91" text-anchor="start">＋14px 表示の</text>
 <text class="lbl-s" x="666" y="107" text-anchor="start">AA の半分</text>
 <text class="lbl-s mono" x="666" y="123" text-anchor="start">= 1.71 px</text>
 <text class="lbl-s mono strong" x="646" y="154" text-anchor="start">計 8.91 px</text>
-<text class="lbl-s mono strong" x="646" y="170" text-anchor="start">≤ 距離域 9 px</text>
+<text class="lbl-s mono strong" x="646" y="170" text-anchor="start">≤ 距離レンジ 9 px</text>
 </svg></div>
-<figcaption><span class="fn">図 8</span>emPx 48 の符号化。距離域（0.1875em＝9 px）の外は 0 か 255 に飽和する。縁取りなどの様式が外へ広がれる上限 0.15em に、表示 14px での AA の半分を足しても距離域に収まる（README §6.2・§9）。</figcaption>
+<figcaption><span class="fn">図 8</span>emPx 48 の符号化。距離レンジ（0.1875em＝9 px）の外は 0 か 255 に飽和する。縁取りなどのエッジスタイルが外へ広がれる上限 0.15em に、表示 14px での AA の半分を足しても距離レンジに収まる（README §6.2・§9）。</figcaption>
 </figure>
-<p>距離域は全フォントで 1 つの値で、生成仕様では選べない。様式（縁）の値は em で書くので、フォントごとに距離域が違うと、同じ様式でもフォントによって縁が描けたり切れたりする。</p>
+<p>距離レンジは全フォントで 1 つの値で、ベイク仕様では選べない。エッジスタイルの値は em で書くので、フォントごとに距離レンジが違うと、同じエッジスタイルでもフォントによって縁が描けたり切れたりする。</p>
 
 <h3 id="cell"><span class="num">6.2</span>セルの寸法</h3>
-<p>全字を同じ大きさのセルに入れる。セルの寸法は <code>ComputeCell</code> が、セルの墨の箱（既定は依頼した全字の墨の外接の和）から決める。</p>
+<p>全字を同じ大きさのセルに入れる。セルの寸法は <code>ComputeCell</code> が、セルのインク境界（既定は依頼した全字のインク境界の和）から決める。</p>
 <ol>
-<li>余白 ＝ ⌈距離域 px⌉ ＋ 1 ＝ ⌈9⌉ ＋ 1 ＝ 10 px を四方に取る。＋1 texel はガードで、quad の縁で bilinear が矩形の外を半 texel 読んでも、読むのは同じ字の飽和した値になり、隣のセルの字がにじまない。</li>
+<li>余白 ＝ ⌈距離レンジ px⌉ ＋ 1 ＝ ⌈9⌉ ＋ 1 ＝ 10 px を四方に取る。＋1 texel はガードで、quad の縁で bilinear が矩形の外を半 texel 読んでも、読むのは同じ字の飽和した値になり、隣のセルの字がにじまない。</li>
 <li>幅 ＝ ⌈箱の幅 × emPx⌉ ＋ 2 × 余白 を 4 の倍数へ切り上げる（高さも同じ）。BC4 の 4×4 のブロックが 2 字にまたがらないようにするため。</li>
 <li>セルの左下からペン原点までの距離 ＝ 余白 − 箱の左端（下端）× emPx。</li>
 </ol>
-<p>見本では、墨の箱 (−0.01, −0.23, 0.982, 0.842)em が 47.616 × 51.456 px で、切り上げて 48 × 52、余白を足して 68 × 72 px（どちらも 4 の倍数なのでそのまま）。ペン原点はセルの左下から (10.48, 21.04) px。</p>
+<p>見本では、インク境界 (−0.01, −0.23, 0.982, 0.842)em が 47.616 × 51.456 px で、切り上げて 48 × 52、余白を足して 68 × 72 px（どちらも 4 の倍数なのでそのまま）。ペン原点はセルの左下から (10.48, 21.04) px。</p>
 <figure class="fig" id="fig-cell">
 <div class="scroll"><svg class="dia " viewBox="0 0 753.6 460.4" width="753.6" height="460.4" role="img" aria-label="SDF のセルの寸法と原点" xmlns="http://www.w3.org/2000/svg">
 <rect class="cell" x="150" y="26" width="353.6" height="374.4"/>
@@ -979,13 +979,13 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <line class="dim" x1="306" y1="400.4" x2="306" y2="348.4"/><polygon class="ah-dim" points="306,348.4 308.7,354.4 303.3,354.4"/><polygon class="ah-dim" points="306,400.4 303.3,394.4 308.7,394.4"/>
 <text class="lbl-s mono" x="311" y="378.4" text-anchor="start">10</text>
 <rect class="cellink" x="563.6" y="46" width="22" height="14"/>
-<text class="lbl-s" x="593.6" y="58" text-anchor="start">墨の箱</text>
-<text class="lbl-s" x="593.6" y="73" text-anchor="start">＝依頼した字の墨の外接の和</text>
+<text class="lbl-s" x="593.6" y="58" text-anchor="start">セルのインク境界</text>
+<text class="lbl-s" x="593.6" y="73" text-anchor="start">＝依頼した字のインク境界の和</text>
 <rect class="inkbox" x="563.6" y="86" width="22" height="14"/>
-<text class="lbl-s" x="593.6" y="98" text-anchor="start">あ の墨の外接</text>
+<text class="lbl-s" x="593.6" y="98" text-anchor="start">あ のインク境界</text>
 <rect class="glyphrect" x="563.6" y="126" width="22" height="14"/>
 <text class="lbl-s" x="593.6" y="138" text-anchor="start">あ の矩形</text>
-<text class="lbl-s" x="593.6" y="153" text-anchor="start">（墨＋距離域・外向きに丸め）</text>
+<text class="lbl-s" x="593.6" y="153" text-anchor="start">（インク境界＋距離レンジ・外向きに丸め）</text>
 <circle class="origin" cx="574.6" cy="173" r="4.5"/>
 <text class="lbl-s" x="593.6" y="178" text-anchor="start">ペン原点（ベースライン上）</text>
 <text class="lbl-s mono" x="593.6" y="193" text-anchor="start">セルの左下から (10.48, 21.04) px</text>
@@ -994,14 +994,14 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <text class="lbl-s" x="12" y="30" text-anchor="start">セルの上端</text>
 <text class="lbl-s" x="150" y="444.4" text-anchor="start">1 マス＝4 texel。あ の矩形は 57×60 texel（セルの中の [6, 63) × [9, 69)）</text>
 </svg></div>
-<figcaption><span class="fn">図 9</span>見本のセル（68×72 px）に「あ」を置いた図。アトラスに焼くのは青緑の矩形（墨の外接に距離域を足し、texel の格子へ外向きに丸めた範囲）だけで、その外はページの初期値 0 のまま。</figcaption>
+<figcaption><span class="fn">図 9</span>見本のセル（68×72 px）に「あ」を置いた図。アトラスにベイクするのは青緑の矩形（インク境界に距離レンジを足し、texel の格子へ外向きに丸めた範囲）だけで、その外はページの初期値 0 のまま。</figcaption>
 </figure>
-<p>cellBox を明示した場合、箱からはみ出す字があれば取込を止め、はみ出した字を（40 字まで）名指す。切って収めると縁が欠けるため。</p>
+<p>cellBox を明示した場合、箱からはみ出す字があればインポートを止め、はみ出した字を（40 字まで）名指す。切って収めると縁が欠けるため。</p>
 
 <h3 id="layout"><span class="num">6.3</span>並べる順とページ</h3>
-<p>墨のある字形だけがセルを使う（空白はセルを持たない）。並べる順は「優先の級」→「字」で、.notdef は字を −1 と数えるのでページ 0 の先頭に来る。</p>
+<p>インクのあるグリフだけがセルを使う（空白はセルを持たない）。並べる順は「優先クラス」→「字」で、.notdef は字を −1 と数えるのでページ 0 の先頭に来る。</p>
 <div class="tbl"><table>
-<thead><tr><th>級</th><th>字</th><th class="num">見本の字形数</th></tr></thead>
+<thead><tr><th>優先クラス</th><th>字</th><th class="num">見本のグリフ数</th></tr></thead>
 <tbody>
 <tr><td class="nw"><span class="sw" style="background:var(--atl-0)"></span> 0</td><td>漢字以外（英数・記号・.notdef）</td><td class="num">101</td></tr>
 <tr><td class="nw"><span class="sw" style="background:var(--atl-1)"></span> 1</td><td>かな（ひらがな・カタカナ）</td><td class="num">75</td></tr>
@@ -1011,7 +1011,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 </tbody></table></div>
 <p><code>AtlasLayout.Plan</code> は並べた順に 0 ページから詰める。1 ページに入るセルの数は「最大幅に入る列数 × 最大高さに入る行数」で、超えたときだけ次のページへ進む。ページの形は正方形にせず、入る字が少なければ正方形に近い列数（<code>⌈√(セル数 × セルの高さ ÷ セルの幅)⌉</code>）、多ければ最大幅まで横に広げ、決まった行数に要る最小の列数へ戻す。寸法は 4 の倍数へ切り上げる。見本は 206 セルで、√(206 × 72 ÷ 68) ≈ 14.8 → 15 列 → 14 行、ページは 15 × 68 ＝ 1020 px × 14 × 72 ＝ 1008 px。</p>
 <figure class="fig dark-plate" id="fig-atlas">
-<svg class="dia atlas" viewBox="0 0 1020 1008" width="1020" height="1008" role="img" aria-label="焼いたアトラスのページとセルの区割り" xmlns="http://www.w3.org/2000/svg">
+<svg class="dia atlas" viewBox="0 0 1020 1008" width="1020" height="1008" role="img" aria-label="ベイクしたアトラスのページとセルの区割り" xmlns="http://www.w3.org/2000/svg">
 <image href="02-truetype-to-atlas/atlas-page.png" x="0" y="0" width="1020" height="1008"/>
 <rect class="slot c0" x="69" y="937" width="66" height="70"/>
 <rect class="qrect" x="75" y="942" width="23" height="54"/>
@@ -1427,17 +1427,17 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <rect class="qrect" x="3" y="945" width="31" height="51"/>
 <path class="fillorder" d="M8 1000 L980 1000"/><polygon class="ah-amber" points="990,1000 972,1008.1 972,991.9"/>
 </svg>
-<figcaption><span class="fn">図 10</span>焼いた見本のページ（R8・1020×1008 px を縮小表示）。色の枠が級（黄＝0・水色＝1・桃＝2）ごとのセル、白の破線がその字の矩形（quad が覆う範囲）。ページは左下原点で、0 番目のセルは左下。</figcaption>
+<figcaption><span class="fn">図 10</span>ベイクした見本のページ（R8・1020×1008 px を縮小表示）。色の枠が優先クラス（黄＝0・水色＝1・桃＝2）ごとのセル、白の破線がその字の矩形（quad が覆う範囲）。ページは左下原点で、0 番目のセルは左下。</figcaption>
 </figure>
 
 <h3 id="render"><span class="num">6.4</span>字ごとの工程</h3>
-<p><code>RenderGlyph</code> が 1 字ずつ、字の矩形を決めてから、平らにする → 塗る → 距離を取る → 標本を取り符号化する、の順に処理する。字の矩形は墨の外接に距離域を足して texel の格子へ外向きに丸めた範囲（セルの中に収める）で、矩形の外の texel は輪郭から距離域より遠い＝符号化すると 0 に飽和するので計算しない。「あ」の矩形は 57 × 60 texel、8 倍の超標本化の格子では 456 × 480 になる。</p>
+<p><code>RenderGlyph</code> が 1 字ずつ、字の矩形を決めてから、フラット化する → 塗る → 距離を取る → サンプリングして符号化する、の順に処理する。字の矩形はインク境界に距離レンジを足して texel の格子へ外向きに丸めた範囲（セルの中に収める）で、矩形の外の texel は輪郭から距離レンジより遠い＝符号化すると 0 に飽和するので計算しない。「あ」の矩形は 57 × 60 texel、8 倍のスーパーサンプリングの格子では 456 × 480 になる。</p>
 
-<h4 id="flatten">平らにする（<code>GlyphOutline.Flatten</code>）</h4>
-<p>輪郭の点を超標本化の格子の座標へ写しながら（<code>x × scale + offset</code>。scale ＝ emPx × 8 ÷ unitsPerEm ＝ 0.384 px／単位）、曲線を線分に分ける。2 次ベジエを n 等分した折れ線と曲線のずれは <code>|p0 − 2·p1 + p2| / (4n²)</code> 以下なので、ずれが許容誤差（0.1 px）以下になる最小の n を区間ごとに選ぶ。</p>
+<h4 id="flatten">フラット化する（<code>GlyphOutline.Flatten</code>）</h4>
+<p>輪郭の点をスーパーサンプリングの格子の座標へ写しながら（<code>x × scale + offset</code>。scale ＝ emPx × 8 ÷ unitsPerEm ＝ 0.384 px／単位）、曲線を線分に分ける。2 次ベジエを n 等分した折れ線と曲線のずれは <code>|p0 − 2·p1 + p2| / (4n²)</code> 以下なので、ずれが許容誤差（0.1 px）以下になる最小の n を区間ごとに選ぶ。</p>
 <p class="formula">n = max(1, ⌈√( |p0 − 2·p1 + p2| / (4 × 許容誤差) )⌉)</p>
 <figure class="fig" id="fig-flatten">
-<div class="scroll"><svg class="dia " viewBox="0 0 760 198.8" width="760" height="198.8" role="img" aria-label="o の曲線を線分へ平らにする図" xmlns="http://www.w3.org/2000/svg">
+<div class="scroll"><svg class="dia " viewBox="0 0 760 198.8" width="760" height="198.8" role="img" aria-label="o の曲線を線分へフラット化する図" xmlns="http://www.w3.org/2000/svg">
 <text class="lbl-b" x="30" y="24" text-anchor="start">曲線そのもの（制御点 p1）</text>
 <path class="ctrl-poly" d="M268.8 142.8 L128.8 142.8 L50 54"/>
 <path class="curve" d="M268.8 142.8 Q128.8 142.8 50 54"/>
@@ -1479,7 +1479,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <rect class="pt-on" x="546.5" y="50.5" width="7" height="7"/>
 <text class="lbl-s mono" x="558" y="48" text-anchor="start">p2</text>
 </svg></div>
-<figcaption><span class="fn">図 11</span>「o」の外周で最も曲がりの大きい曲線（フォント単位）。中と右は違いが見えるよう許容誤差を大きくした例。実際の焼き（0.384 px／単位・許容誤差 0.1 px）では、この曲線は 10 本の線分になる。「あ」全体では 191 本。</figcaption>
+<figcaption><span class="fn">図 11</span>「o」の外周で最も曲がりの大きい曲線（フォント単位）。中と右は違いが見えるよう許容誤差を大きくした例。実際のベイク（0.384 px／単位・許容誤差 0.1 px）では、この曲線は 10 本の線分になる。「あ」全体では 191 本。</figcaption>
 </figure>
 
 <h4 id="fill">塗る（<code>ScanlineRasterizer.Fill</code>）</h4>
@@ -1490,7 +1490,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <li>行ごとに交点を x の順に並べ、左から巻き数を足していく。和が 0 でない区間に中心が入る画素を塗る（非ゼロ巻き数）。</li>
 </ol>
 <figure class="fig" id="fig-rastercrop">
-<div class="scroll"><svg class="dia " viewBox="0 0 760 468" width="760" height="468" role="img" aria-label="あ の超標本化の格子を走査線で塗る拡大図" xmlns="http://www.w3.org/2000/svg">
+<div class="scroll"><svg class="dia " viewBox="0 0 760 468" width="760" height="468" role="img" aria-label="あ のスーパーサンプリングの格子を走査線で塗る拡大図" xmlns="http://www.w3.org/2000/svg">
 <clipPath id="crop"><rect x="20" y="20" width="720" height="432"/></clipPath>
 <rect class="px-in" x="434" y="434" width="18" height="18"/>
 <rect class="px-in" x="452" y="434" width="18" height="18"/>
@@ -2306,7 +2306,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <circle class="xing" cx="185.24" cy="227" r="4.5"/>
 <text class="lbl-s mono strong" x="185.2" y="218" text-anchor="middle">+1</text>
 </svg></div>
-<figcaption><span class="fn">図 12</span>「あ」の輪郭の一部を、超標本化の格子（1 マス＝1/8 texel）の 40×24 マスの窓で拡大した実データ。桃の折れ線が平らにした輪郭、色の付いたマスが塗った画素。黄の線は行 112 の走査線（中心 y＝112.5）で、交点（◯）から右の画素の中心（•）が和 +1 の区間に入るので塗られる。</figcaption>
+<figcaption><span class="fn">図 12</span>「あ」の輪郭の一部を、スーパーサンプリングの格子（1 マス＝1/8 texel）の 40×24 マスの窓で拡大した実データ。桃の折れ線がフラット化した輪郭、色の付いたマスが塗った画素。黄の線は行 112 の走査線（中心 y＝112.5）で、交点（◯）から右の画素の中心（•）が和 +1 の区間に入るので塗られる。</figcaption>
 </figure>
 <figure class="fig" id="fig-winding">
 <div class="scroll"><svg class="dia " viewBox="0 0 760 320" width="760" height="320" role="img" aria-label="非ゼロ巻き数の数え方と偶奇規則との違い" xmlns="http://www.w3.org/2000/svg">
@@ -2435,12 +2435,12 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 </svg></div>
 <figcaption><span class="fn">図 14</span>1 次元の距離変換（説明用の 22 画素の行）。各目標 q に放物線 (x − q)² を立て、その下包絡を左から積み上げる。包絡の値が距離の 2 乗になる。</figcaption>
 </figure>
-<p>焼き器は全画素を解く <code>Compute</code> ではなく <code>ComputeAt</code> を使う。SDF に要るのは texel の中心を挟む標本の行と列の交点だけなので、縦方向は「列の中で最寄りの目標」を上向きと下向きの 2 回の走査で求めて選んだ行だけ残し（2 値の格子では包絡が要らない）、横方向は選んだ行だけを包絡で解いて、選んだ列でだけ平方根を取る。値は全画素を解いた場合と同じ（どちらも厳密）。目標を替えて 2 回呼ぶ: 墨の外の標本には「最寄りの墨の画素まで」、墨の中の標本には「最寄りの地の画素まで」。</p>
+<p>ベイカーは全画素を解く <code>Compute</code> ではなく <code>ComputeAt</code> を使う。SDF に要るのは texel の中心を挟むサンプルの行と列の交点だけなので、縦方向は「列の中で最寄りの目標」を上向きと下向きの 2 回の走査で求めて選んだ行だけ残し（2 値の格子では包絡が要らない）、横方向は選んだ行だけを包絡で解いて、選んだ列でだけ平方根を取る。値は全画素を解いた場合と同じ（どちらも厳密）。目標を替えて 2 回呼ぶ: インク部の外のサンプルには「最寄りのインク部の画素まで」、インク部の中のサンプルには「最寄りの背景の画素まで」。</p>
 
-<h4 id="sample">標本を取り符号化する</h4>
-<p>texel 1 つは超標本化の 8 × 8 画素に当たる。その中央の 2 × 2 の標本（3 番目と 4 番目の行・列）の平均を、texel の中心での距離とする。ブロック全体の平均は取らない。角の近くの非線形な距離場をならして角を丸めてしまうため。</p>
+<h4 id="sample">サンプリングして符号化する</h4>
+<p>texel 1 つはスーパーサンプリングの 8 × 8 画素に当たる。その中央の 2 × 2 のサンプル（3 番目と 4 番目の行・列）の平均を、texel の中心での距離とする。ブロック全体の平均は取らない。角の近くの非線形な距離場をならして角を丸めてしまうため。</p>
 <figure class="fig" id="fig-taps">
-<div class="scroll"><svg class="dia " viewBox="0 0 760 260" width="760" height="260" role="img" aria-label="超標本化の格子から texel の中心の標本を取る図" xmlns="http://www.w3.org/2000/svg">
+<div class="scroll"><svg class="dia " viewBox="0 0 760 260" width="760" height="260" role="img" aria-label="スーパーサンプリングの格子から texel の中心でサンプリングする図" xmlns="http://www.w3.org/2000/svg">
 <rect class="texel" x="40" y="30" width="176" height="176"/>
 <rect class="texel mid" x="216" y="30" width="176" height="176"/>
 <rect class="texel" x="392" y="30" width="176" height="176"/>
@@ -2493,33 +2493,33 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <rect class="tap" x="482" y="98" width="18" height="18"/>
 <rect class="tap" x="482" y="120" width="18" height="18"/>
 <circle class="texc" cx="480" cy="118" r="4"/>
-<text class="lbl-s" x="304" y="232" text-anchor="middle">中央の 2×2 の標本（3 番目と 4 番目の行・列）の平均 ＝ texel の中心（•）での距離</text>
+<text class="lbl-s" x="304" y="232" text-anchor="middle">中央の 2×2 のサンプル（3 番目と 4 番目の行・列）の平均 ＝ texel の中心（•）での距離</text>
 <text class="lbl-s mono" x="128" y="20" text-anchor="middle">texel t − 1</text>
 <text class="lbl-s mono" x="304" y="20" text-anchor="middle">texel t</text>
 <text class="lbl-s mono" x="480" y="20" text-anchor="middle">texel t + 1</text>
-<text class="lbl-s" x="580" y="122" text-anchor="start">超標本化 8 倍</text>
+<text class="lbl-s" x="580" y="122" text-anchor="start">スーパーサンプリング 8 倍</text>
 <text class="lbl-s" x="580" y="138" text-anchor="start">1 texel ＝ 8×8</text>
 </svg></div>
-<figcaption><span class="fn">図 15</span>標本の取り方。倍率が偶数なら中央の 2 × 2、奇数なら中央の 1 つを使う。</figcaption>
+<figcaption><span class="fn">図 15</span>サンプルの取り方。倍率が偶数なら中央の 2 × 2、奇数なら中央の 1 つを使う。</figcaption>
 </figure>
-<p>画素の中心どうしの距離から、輪郭までの距離へ直す。輪郭は隣り合う中心の中間にあるので 0.5 画素を引き、墨の中を正にする。</p>
-<p class="formula">標本の距離 ＝ 墨の中なら (地までの距離 − 0.5)、墨の外なら −(墨までの距離 − 0.5)<br>距離(px) ＝ 4 標本の平均 ÷ 8　→　d ＝ 0.5 ＋ 距離 ÷ (2 × 9)</p>
-<p>符号化した値は、ページの「セルの置き場 ＋ 字の矩形の中の位置」へ直接書く。最後に字形のセルの記録 <code>SdfGlyphCell</code> を返す。</p>
+<p>画素の中心どうしの距離から、輪郭までの距離へ直す。輪郭は隣り合う中心の中間にあるので 0.5 画素を引き、インク部の中を正にする。</p>
+<p class="formula">サンプルの距離 ＝ インク部の中なら (背景までの距離 − 0.5)、インク部の外なら −(インク部までの距離 − 0.5)<br>距離(px) ＝ 4 サンプルの平均 ÷ 8　→　d ＝ 0.5 ＋ 距離 ÷ (2 × 9)</p>
+<p>符号化した値は、ページの「セルの置き場 ＋ 字の矩形の中の位置」へ直接書く。最後にグリフのセルの記録 <code>SdfGlyphCell</code> を返す。</p>
 
 <div class="quad" id="fig-stages">
 <figure><img class="inv" src="02-truetype-to-atlas/a-supersampled.png" width="456" height="480" alt="あ を 8 倍の格子で 2 値に塗った画像"><figcaption>① 塗った 2 値（456×480）</figcaption></figure>
-<figure><img src="02-truetype-to-atlas/a-signed-distance.png" width="456" height="480" alt="あ の符号付き距離を色で表した画像"><figcaption>② 符号付き距離（青緑＝中・桃＝外。白線 3 texel ごと、黄線＝距離域 ±9、黒線＝輪郭）</figcaption></figure>
+<figure><img src="02-truetype-to-atlas/a-signed-distance.png" width="456" height="480" alt="あ の符号付き距離を色で表した画像"><figcaption>② 符号付き距離（青緑＝中・桃＝外。白線 3 texel ごと、黄線＝距離レンジ ±9、黒線＝輪郭）</figcaption></figure>
 <figure><img class="pixel" src="02-truetype-to-atlas/a-encoded.png" width="342" height="360" alt="あ の 57×60 texel の符号化した値"><figcaption>③ 符号化した texel（57×60・6 倍に拡大）</figcaption></figure>
 <figure><img class="inv" src="02-truetype-to-atlas/a-reconstructed.png" width="273" height="287" alt="符号化した値から 200px で再構成した あ"><figcaption>④ ③ を bilinear で読み、0.5 を輪郭として 200px で描いたもの</figcaption></figure>
 </div>
 <p style="margin-top:14px">セルの記録は同じ矩形を 2 つの座標系で持つ。<code>atlas*</code> はページの px（左下原点・右と上は含まない）、<code>plane*</code> は em（ペン原点とベースライン基準）で、<code>atlas ＝ 原点 ＋ plane × emPx</code> が厳密に成り立つ。「あ」は atlas [754, 811) × [441, 501)、plane (−0.0933, −0.2508)–(1.0942, 0.9992)em。描画は plane を quad にし、atlas から UV を作るので、配置の方式を知らなくてよい。</p>
 
 <h3 id="parallel"><span class="num">6.5</span>並列と決定性</h3>
-<p>字ごとの計算は <code>Parallel.For</code> で並列に回す。スレッドごとに作業領域（<code>GlyphWorkspace</code>: 線分の並び・ラスタライザ・距離変換・超標本化したセルの大きさの配列）を 1 つ持って使い回す。各字はページの自分の矩形にしか書かないので、並列でも直列でも同じバイト列になる。</p>
-<p><code>SdfAtlas.ComputeContentHash</code> は距離域・全セル・全ページの画素の SHA-256 で、外部 NUnit はこれで「同じ入力から出る出力が変わったのに版数を上げていない」ことを検出する（README §7.5）。</p>
+<p>字ごとの計算は <code>Parallel.For</code> で並列に回す。スレッドごとに作業領域（<code>GlyphWorkspace</code>: 線分の並び・ラスタライザ・距離変換・スーパーサンプリングしたセルの大きさの配列）を 1 つ持って使い回す。各字はページの自分の矩形にしか書かないので、並列でも直列でも同じバイト列になる。</p>
+<p><code>SdfAtlas.ComputeContentHash</code> は距離レンジ・全セル・全ページの画素の SHA-256 で、外部 NUnit はこれで「同じ入力から出る出力が変わったのにバージョンを上げていない」ことを検出する（README §7.5）。</p>
 
-<h2 id="texture"><span class="num">7</span>テクスチャと資産にする</h2>
-<p><code>SdfGlyphBaker.Bake</code>（Editor）は、ページの形式を決め、シェーダ <code>T2Font/SDF</code> を読み、<code>SdfAtlasBaker.Bake</code> を呼んでから、ページを 1 枚ずつ <code>BuildPage</code> でテクスチャにする。R8 はどのビルドターゲットでも使え、BC4 はデスクトップ向けのターゲットでだけ使える（BC4 を選んだときだけターゲットを読むので、ターゲットを切り替えると取り込み直す依存が張られる）。</p>
+<h2 id="texture"><span class="num">7</span>テクスチャとアセットにする</h2>
+<p><code>SdfGlyphBaker.Bake</code>（Editor）は、ページの形式を決め、シェーダ <code>T2Font/SDF</code> を読み、<code>SdfAtlasBaker.Bake</code> を呼んでから、ページを 1 枚ずつ <code>BuildPage</code> でテクスチャにする。R8 はどのビルドターゲットでも使え、BC4 はデスクトップ向けのターゲットでだけ使える（BC4 を選んだときだけターゲットを読むので、ターゲットを切り替えると再インポートする依存が張られる）。</p>
 <div class="tbl"><table>
 <thead><tr><th>BuildPage の設定</th><th>値</th><th>理由</th></tr></thead>
 <tbody>
@@ -2529,55 +2529,62 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <tr><td>wrapMode・filterMode</td><td class="mono">Clamp・Bilinear</td><td>補間した距離から輪郭を再構成する</td></tr>
 <tr><td>npotScale</td><td class="mono">None</td><td>2 の冪へ縮めない（1020×1008 のまま）</td></tr>
 <tr><td>maxTextureSize</td><td class="mono">16384</td><td>既定の 2048 では大きいページが黙って縮む</td></tr>
-<tr><td>format</td><td class="mono">R8（非圧縮）／BC4（CompressedHQ・品質 100）</td><td>生成仕様の <code>format</code></td></tr>
+<tr><td>format</td><td class="mono">R8（非圧縮）／BC4（CompressedHQ・品質 100）</td><td>ベイク仕様の <code>format</code></td></tr>
 <tr><td>readable</td><td class="mono">false</td><td>実行時に CPU で読まない</td></tr>
 </tbody></table></div>
-<p>8bit の値 v は <code>Color32(v, v, v, v)</code> にして <code>TextureGenerator.GenerateTexture</code> へ渡す（どの成分を取り出しても同じ値になるように）。出来たテクスチャの形式・寸法・ミップの数・Readable が期待と違えば取込を止める。取込で黙って圧縮・縮小されると距離の値が壊れるため（README §4.4）。</p>
-<p>焼き器は <code>SdfRepresentation.Create(shader, effects, emPx, cells, pages)</code> で表現を作って返す。取込器は、表現の種類の名前と描ける効果が種類の記述子の宣言と一致するかを確かめ、<code>T2FontAsset.Create</code> で字の表と表現をまとめて、資産として登録する。</p>
+<p>8bit の値 v は <code>Color32(v, v, v, v)</code> にして <code>TextureGenerator.GenerateTexture</code> へ渡す（どの成分を取り出しても同じ値になるように）。出来たテクスチャの形式・寸法・ミップの数・Readable が期待と違えばインポートを止める。インポートで黙って圧縮・縮小されると距離の値が壊れるため（README §4.4）。</p>
+<p>ベイカーは <code>SdfRepresentation.Create(shader, effects, emPx, cells, pages)</code> で表現を作って返す。インポーターは、表現の種類の名前と描ける効果が種類の記述子の宣言と一致するかを確かめ、<code>T2FontAsset.Create</code> でタイポグラフィテーブルと表現をまとめて、アセットとして登録する。</p>
 <div class="tbl"><table>
 <thead><tr><th>識別子（AddObjectToAsset）</th><th>物</th></tr></thead>
 <tbody>
-<tr><td class="mono">font</td><td><code>T2FontAsset</code>（主資産・<code>SetMainObject</code>）</td></tr>
+<tr><td class="mono">font</td><td><code>T2FontAsset</code>（メインアセット・<code>SetMainObject</code>）</td></tr>
 <tr><td class="mono">representation</td><td><code>SdfRepresentation</code>（セルの配列・emPx・シェーダ・ページの参照）</td></tr>
 <tr><td class="mono">representation/page0 …</td><td>ページの <code>Texture2D</code></td></tr>
 </tbody></table></div>
-<p>取込が終わると、コンソールに次の形の報告が出る（見本の値・秒数は環境で変わる）。</p>
-<pre><code>[T2Font] Assets/Content/Fonts/mplus-1c-sdf.t2font: 206 字・字形 207・sdf・1 ページ（1020×1008・R8）・セル 68×72（墨の箱 (-0.01, -0.23, 0.982, 0.842)）・… 秒</code></pre>
-<p>資産の <code>sourceHash</code> は、字の表の生成の版数・表現の種類とその版数・生成仕様の本文・元フォントのバイト列の SHA-256 で、どの入力から作った資産かを追える。生成仕様・元フォント・表現のシェーダ・表現の種類の版数（カスタム依存 <code>info.someiyoshino.t2font/representation/sdf</code>）のどれかが変われば Unity が取り込み直す（README §7.5）。</p>
+<p>インポートが終わると、コンソールに次の形の報告が出る（見本の値・秒数は環境で変わる）。</p>
+<pre><code>[T2Font] Assets/Content/Fonts/mplus-1c-sdf.t2font: 206 字・グリフ 207・sdf・1 ページ（1020×1008・R8）・セル 68×72（インク境界 (-0.01, -0.23, 0.982, 0.842)）・… 秒</code></pre>
+<p>アセットの <code>sourceHash</code> は、タイポグラフィテーブルの生成のバージョン・表現の種類とそのバージョン・ベイク仕様の本文・元フォントのバイト列の SHA-256 で、どの入力から作ったアセットかを追える。ベイク仕様・元フォント・表現のシェーダ・表現の種類のバージョン（カスタム依存 <code>info.someiyoshino.t2font/representation/sdf</code>）のどれかが変われば Unity が再インポートする（README §7.5）。</p>
 
-<h2 id="use"><span class="num">8</span>焼いた結果を描く</h2>
-<p>実行時、<code>SdfRepresentation.WriteGeometry</code> は字形のセルの plane（em）を quad にし、atlas の矩形をページの寸法で割って UV0.xy にする。シェーダは <code>(tex.r − 0.5) × 2 × _RangeEm</code> で em の距離に戻し、UV0.zw（頂点の em 座標）の微分から 1 表示 px が何 em かを得て、AA の幅を常に画面の 1px にする（README §5 S3）。補間した距離から輪郭を作り直すので、1 枚のアトラス（emPx 48）から小さい字も大きい字も描ける。</p>
+<h2 id="use"><span class="num">8</span>ベイクした結果を描く</h2>
+<p>実行時、<code>SdfRepresentation.WriteGeometry</code> はグリフのセルの plane（em）を quad にし、atlas の矩形をページの寸法で割って UV0.xy にする。シェーダは <code>(tex.r − 0.5) × 2 × _RangeEm</code> で em の距離に戻し、UV0.zw（頂点の em 座標）の微分から 1 表示 px が何 em かを得て、AA の幅を常に画面の 1px にする（README §5 S3）。補間した距離から輪郭を作り直すので、1 枚のアトラス（emPx 48）から小さい字も大きい字も描ける。</p>
 <figure class="fig render-plate" id="fig-render">
 <img src="02-truetype-to-atlas/render-sizes.png" width="740" height="456" alt="同じアトラスから 14・24・48・96 px と縁取り付き 64 px で描いた 字形表現あいう">
 <figcaption><span class="fn">図 16</span>見本のアトラスから 14・24・48・96 px で描き、最後の行は 64px に縁取り 0.08em とずらし 0.02em を足した例。シェーダと同じ式（bilinear で読んだ値・1 表示 px の AA・面と縁取りの入れ子の合成）を CPU で計算した画像。</figcaption>
 </figure>
 
 <h2 id="terms"><span class="num">9</span>用語</h2>
-<p>パッケージのコードと README は日本語の用語で書かれている。一般の英語の用語との対応は次のとおり。</p>
+<p>T2font では、一般的でない訳語を避け、カタカナ英語かカタカナ英語＋「する」を使う（訳語の正典はリポジトリの <code>docs/reference/terminology.md</code>）。本書に出る主な用語と英語の対応は次のとおり。</p>
 <dl class="defs">
-<dt>字の表</dt><dd>typography table。縦メトリクス・字・字形ごとの送り幅と墨の外接。表現によらず同じ</dd>
-<dt>表現</dt><dd>glyph representation。墨の描き方（SDF・曲線・ビットマップなど）とそのデータ</dd>
-<dt>焼く・焼き器</dt><dd>bake・baker。元フォントから生成物を作ること・作るコード</dd>
-<dt>生成仕様</dt><dd>bake spec（<code>.t2font</code>）。何をどう焼くかを書いた JSON</dd>
-<dt>字形番号</dt><dd>glyph index。T2Font では字の表の配列の添字（元フォントの番号とは別）</dd>
+<dt>タイポグラフィテーブル</dt><dd>typography table。縦メトリクス・字・グリフごとの送り幅とインク境界。表現によらず同じ</dd>
+<dt>表現</dt><dd>glyph representation。インクの描き方（SDF・曲線・ビットマップなど）とそのデータ</dd>
+<dt>ベイクする・ベイカー</dt><dd>bake・baker。元フォントから生成物を作ること・作るコード</dd>
+<dt>ベイク仕様</dt><dd>bake spec（<code>.t2font</code>）。何をどうベイクするかを書いた JSON</dd>
+<dt>インポートする・インポーター</dt><dd>import・importer。ベイク仕様を Unity のアセットにすること・する <code>T2FontImporter</code></dd>
+<dt>リーダー</dt><dd>reader。TrueType のリーダー <code>TrueTypeFont</code>。読む行為は「読み取り」</dd>
+<dt>アセット・サブアセット</dt><dd>asset・sub-asset。<code>T2FontAsset</code> がメインアセットで、表現とページはそのサブアセット</dd>
+<dt>グリフ・グリフインデックス</dt><dd>glyph・glyph index。T2Font のグリフインデックスはタイポグラフィテーブルの配列の添字（元フォントの番号とは別）</dd>
+<dt>インク・インク部・インク領域</dt><dd>ink。グリフが実際に塗る部分（部分を指すときはインク部、範囲を指すときはインク領域）</dd>
+<dt>インク境界</dt><dd>ink bounds。インクの境界ボックスで、描くための余白を含まない</dd>
+<dt>グリフ境界ボックス</dt><dd>glyph bounding box（略してグリフ境界）。glyf のヘッダの xMin…yMax。T2Font は読まず、点から取り直す</dd>
 <dt>送り幅</dt><dd>advance width</dd>
-<dt>墨の外接</dt><dd>ink bounds（glyph bounding box）。描くための余白を含まない</dd>
 <dt>ペン原点</dt><dd>pen origin。字を置く基準点（ベースライン上）</dd>
 <dt>em</dt><dd>字の大きさを 1 とする単位。フォント単位 ÷ unitsPerEm</dd>
 <dt>on-curve／off-curve 点</dt><dd>輪郭の上の点／2 次ベジエの制御点</dd>
-<dt>平らにする</dt><dd>flatten。曲線を線分の並びに直すこと</dd>
+<dt>フラット化する</dt><dd>flatten。曲線を線分の並びに直すこと</dd>
 <dt>非ゼロ巻き数</dt><dd>nonzero winding rule。巻き数の和が 0 でない所を内側とする塗りの規則</dd>
-<dt>超標本化</dt><dd>supersampling。目標の解像度より細かい格子で計算してから縮めること</dd>
-<dt>距離域</dt><dd>distance range（spread）。SDF が値を持つ輪郭からの片側の距離</dd>
+<dt>スーパーサンプリング</dt><dd>supersampling。目標の解像度より細かい格子で計算してから縮めること。格子の 1 点の値はサンプル</dd>
+<dt>距離レンジ</dt><dd>distance range（spread）。SDF が値を持つ輪郭からの片側の距離</dd>
+<dt>文字セット・指定文字</dt><dd>character set（<code>charsets</code>）・ベイク仕様で名前を挙げて足す字（<code>characters</code>）</dd>
 <dt>セル・ページ</dt><dd>アトラスの中の 1 字の区画・アトラスのテクスチャ 1 枚</dd>
-<dt>優先の級</dt><dd>アトラスに並べる順を決める字の分類（漢字以外・かな・第 1 水準・第 2 水準・その他）</dd>
-<dt>様式（縁）</dt><dd>edge style。面のずらし・ぼかし・縁取り（README §6）</dd>
+<dt>優先クラス</dt><dd>priority class。アトラスに並べる順を決める字の分類（漢字以外・かな・第 1 水準・第 2 水準・その他）</dd>
+<dt>エッジスタイル</dt><dd>edge style。面のずらし・ぼかし・縁取り（README §6）</dd>
+<dt>バージョン</dt><dd>version。ベイカーの出力が変わったら上げる値（README §7.5）</dd>
 </dl>
 
 <h2 id="method"><span class="num">10</span>図の作り方</h2>
-<p>本書の実データの図は、パッケージの <code>Core/</code> と <code>Bake/</code> のソースをそのままリンクした .NET 8 のコンソールプログラムで、取込器と同じ <code>FontBakeSpec.Parse</code> → <code>FontSpecBaker.BuildFace</code> → <code>SdfAtlasBaker.Bake</code> を見本に対して走らせ、セル・ページ・輪郭を書き出して描いた。超標本化の 2 値の格子は、同じ規則を Python で独立に組み直したものと画素単位で一致することを確かめてある。ファイルの表の目録と ■ のバイト列は、元フォントのバイト列を直接読んだもの。</p>
-<p>図を作ったときの見本のアトラスの <code>ComputeContentHash</code> は <code class="mono">593ec06922b6d9a89ea658d2044a2526a8ce46017c4e2197cb2485b6f926a6fc</code>。焼き器の出力が変われば値が変わるので、図が古くなったかの目安になる。</p>
-<p>流れ図・標本の取り方の図は模式図で、巻き数の図の B と放物線の図は説明用に作った値。ほかの図の数値と画像は見本の実データ。</p>
+<p>本書の実データの図は、パッケージの <code>Core/</code> と <code>Bake/</code> のソースをそのままリンクした .NET 8 のコンソールプログラムで、インポーターと同じ <code>FontBakeSpec.Parse</code> → <code>FontSpecBaker.BuildFace</code> → <code>SdfAtlasBaker.Bake</code> を見本に対して走らせ、セル・ページ・輪郭を書き出して描いた。スーパーサンプリングの 2 値の格子は、同じ規則を Python で独立に組み直したものと画素単位で一致することを確かめてある。ファイルの表の目録と ■ のバイト列は、元フォントのバイト列を直接読んだもの。</p>
+<p>図を作ったときの見本のアトラスの <code>ComputeContentHash</code> は <code class="mono">593ec06922b6d9a89ea658d2044a2526a8ce46017c4e2197cb2485b6f926a6fc</code>。ベイカーの出力が変われば値が変わるので、図が古くなったかの目安になる。</p>
+<p>流れ図・サンプルの取り方の図は模式図で、巻き数の図の B と放物線の図は説明用に作った値。ほかの図の数値と画像は見本の実データ。</p>
 
 <footer>
 <p>T2Font アーキテクチャ解説 02。契約の正典はパッケージの README（<code>Packages/info.someiyoshino.t2font/README.md</code>）、アセンブリの構成は 01 章（<code>docs/architecture/01-assemblies-and-tests.md</code>）。</p>

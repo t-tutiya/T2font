@@ -9,8 +9,8 @@ using NUnit.Framework;
 namespace info.someiyoshino.T2Font.Tests
 {
     /// <summary>
-    /// 本プロジェクトの生成仕様（<c>Assets/</c> の下の <c>*.t2font</c>）が、Unity の取込器と同じ純 C# の手順（生成仕様の読取・字の表の生成・
-    /// SDF の焼き）を通ること。取込の失敗を Unity を開く前に見つける。
+    /// 本プロジェクトのベイク仕様（<c>Assets/</c> の下の <c>*.t2font</c>）が、Unity のインポーターと同じ純 C# の手順（ベイク仕様の読み取り・タイポグラフィテーブルの生成・
+    /// SDF のベイク）を通ること。インポートの失敗を Unity を開く前に見つける。
     /// </summary>
     [TestFixture]
     public class ProjectFontSpecTests
@@ -22,13 +22,13 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void 生成仕様がある()
+        public void ベイク仕様がある()
         {
             Assert.That(SpecPaths(), Is.Not.Empty);
         }
 
         [TestCaseSource(nameof(SpecPaths))]
-        public void 生成仕様は取込の純CSharpの手順を通る(string path)
+        public void ベイク仕様はインポートの純CSharpの手順を通る(string path)
         {
             var name = "Assets/" + Path.GetRelativePath(Path.Combine(RepoRoot.Find(), "Assets"), path).Replace('\\', '/');
             var spec = FontBakeSpec.Parse(File.ReadAllText(path), name, TestFonts.Kinds);

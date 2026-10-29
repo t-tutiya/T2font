@@ -12,8 +12,8 @@ using Object = UnityEngine.Object;
 namespace info.someiyoshino.T2Font.Editor
 {
     /// <summary>
-    /// 焼き器が取込の文脈に触れる口（README §7.3 の 4）。副資産の受け渡し・シェーダの読み込みと依存・取込の報告を持つ。
-    /// 焼き器は <c>AssetImportContext</c> に直接触れない——取込が途中で失敗したとき、作りかけの副資産を取込器がまとめて捨てるため。
+    /// ベイカーがインポートの文脈に触れる口（README §7.3 の 4）。サブアセットの受け渡し・シェーダの読み込みと依存・インポートの報告を持つ。
+    /// ベイカーは <c>AssetImportContext</c> に直接触れない——インポートが途中で失敗したとき、作りかけのサブアセットをインポーターがまとめて捨てるため。
     /// </summary>
     public sealed class GlyphBakeContext
     {
@@ -27,14 +27,14 @@ namespace info.someiyoshino.T2Font.Editor
             BaseName = baseName;
         }
 
-        /// <summary>取り込んでいる生成仕様のパス（誤りの文面の頭に付ける）。</summary>
+        /// <summary>インポートしているベイク仕様のパス（誤りの文面の頭に付ける）。</summary>
         public string AssetPath => _ctx.assetPath;
 
-        /// <summary>資産の名前（生成仕様のファイル名から拡張子を除いたもの）。副資産の名前の頭に使う。</summary>
+        /// <summary>アセットの名前（ベイク仕様のファイル名から拡張子を除いたもの）。サブアセットの名前の頭に使う。</summary>
         public string BaseName { get; }
 
         /// <summary>
-        /// 取り込みの対象のビルドターゲット。<b>読むとターゲットを切り替えたときに取り込み直す依存が張られる</b>ので、ターゲットで
+        /// インポートの対象のビルドターゲット。<b>読むとターゲットを切り替えたときに再インポートする依存が張られる</b>ので、ターゲットで
         /// 出力が変わるときだけ読む。
         /// </summary>
         public BuildTarget SelectedBuildTarget => _ctx.selectedBuildTarget;
@@ -44,7 +44,7 @@ namespace info.someiyoshino.T2Font.Editor
         internal IReadOnlyList<string> ReportLines => _report;
 
         /// <summary>
-        /// パッケージ <paramref name="packageName"/> の中の <paramref name="relativePath"/> の資産パス（<c>Packages/…</c>）。
+        /// パッケージ <paramref name="packageName"/> の中の <paramref name="relativePath"/> のアセットパス（<c>Packages/…</c>）。
         /// 表現のパッケージが自分のシェーダを指すのに使う——導入の方法（git URL か写しか・README §11）によらず同じパスになる。
         /// </summary>
         /// <exception cref="FontBakeException">そのパッケージが登録されていない（Packages/ の下に無い）。</exception>
@@ -68,7 +68,7 @@ namespace info.someiyoshino.T2Font.Editor
         }
 
         /// <summary>
-        /// シェーダを読み、その取込結果への依存を張る（シェーダが変われば取り込み直す）。
+        /// シェーダを読み、そのインポート結果への依存を張る（シェーダが変われば再インポートする）。
         /// </summary>
         /// <exception cref="FontBakeException">そのパスにシェーダが無い。</exception>
         public Shader LoadShader(string assetPath)
@@ -86,16 +86,16 @@ namespace info.someiyoshino.T2Font.Editor
             }
             if (File.Exists(FileUtil.GetPhysicalPath(assetPath)))
             {
-                // ファイルはあるが、まだ取り込まれていない（新しく開いたプロジェクトで、取込の順がシェーダより先になった）。依存は
-                // 張ってあるので、シェーダの取込の後に Unity がこのフォントを取り込み直す。
-                throw new GlyphBakeDeferredException($"{AssetPath}: シェーダ {assetPath} の取込を待ちます（取込の後に取り込み直されます）。");
+                // ファイルはあるが、まだインポートされていない（新しく開いたプロジェクトで、インポートの順がシェーダより先になった）。依存は
+                // 張ってあるので、シェーダのインポートの後に Unity がこのフォントを再インポートする。
+                throw new GlyphBakeDeferredException($"{AssetPath}: シェーダ {assetPath} のインポートを待ちます（インポートの後に再インポートされます）。");
             }
             throw new FontBakeException($"{AssetPath}: シェーダ {assetPath} がありません。");
         }
 
         /// <summary>
-        /// 副資産（テクスチャなど）を渡す。<paramref name="identifier"/> は表現の中で一意な名前。取込が成功したときだけ資産に加わり、
-        /// 失敗したときは取込器が破棄する。
+        /// サブアセット（テクスチャなど）を渡す。<paramref name="identifier"/> は表現の中で一意な名前。インポートが成功したときだけアセットに加わり、
+        /// 失敗したときはインポーターが破棄する。
         /// </summary>
         public void AddObject(string identifier, Object obj)
         {
@@ -111,13 +111,13 @@ namespace info.someiyoshino.T2Font.Editor
             {
                 if (pair.Key == identifier)
                 {
-                    throw new ArgumentException($"副資産の名前 '{identifier}' が重複しています。", nameof(identifier));
+                    throw new ArgumentException($"サブアセットの名前 '{identifier}' が重複しています。", nameof(identifier));
                 }
             }
             _objects.Add(new KeyValuePair<string, Object>(identifier, obj));
         }
 
-        /// <summary>取込の報告（Console に 1 行で出す）に足す文。</summary>
+        /// <summary>インポートの報告（Console に 1 行で出す）に足す文。</summary>
         public void Report(string text)
         {
             _report.Add(text ?? throw new ArgumentNullException(nameof(text)));
@@ -136,7 +136,7 @@ namespace info.someiyoshino.T2Font.Editor
         }
     }
 
-    /// <summary>取込に要る別の資産がまだ取り込まれていない（依存は張ってあり、その取込の後に取り込み直される）。</summary>
+    /// <summary>インポートに要る別のアセットがまだインポートされていない（依存は張ってあり、そのインポートの後に再インポートされる）。</summary>
     internal sealed class GlyphBakeDeferredException : Exception
     {
         public GlyphBakeDeferredException(string message)

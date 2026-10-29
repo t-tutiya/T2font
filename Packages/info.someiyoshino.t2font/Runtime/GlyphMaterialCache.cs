@@ -9,16 +9,16 @@ using Object = UnityEngine.Object;
 namespace info.someiyoshino.T2Font
 {
     /// <summary>
-    /// 字形のマテリアルの置き場（README §4.5）。（表現の <see cref="GlyphRepresentation.MaterialScope"/>・縁の様式）ごとに 1 つ作って共有する。
+    /// グリフのマテリアルの置き場（README §4.5）。（表現の <see cref="GlyphRepresentation.MaterialScope"/>・エッジスタイル）ごとに 1 つ作って共有する。
     ///
     /// <para>
     /// 作る時点は<b>フォントを読んだ時点</b>にするのがよい（<see cref="Prewarm"/>）——描画中に作るとヒッチになる。面の色とフェードは頂点色で
-    /// マテリアルに持たせないので（README §5 S2）、色違いの様式はマテリアルを共有する。テクスチャは <c>CanvasRenderer.SetTexture</c> で字ごとに
+    /// マテリアルに持たせないので（README §5 S2）、色違いのエッジスタイルはマテリアルを共有する。テクスチャは <c>CanvasRenderer.SetTexture</c> で字ごとに
     /// 渡すので、<c>MaterialScope</c> がシェーダの表現（SDF など）ではフォントが違ってもマテリアルを共有する。
     /// </para>
     ///
     /// <para>
-    /// マテリアルは Unity のネイティブの資産で、参照を手放しても GC では回収されない。所有者は破棄のときに <see cref="Dispose"/> を呼び、
+    /// マテリアルは Unity のネイティブのオブジェクトで、参照を手放しても GC では回収されない。所有者は破棄のときに <see cref="Dispose"/> を呼び、
     /// フォントを外すときは <see cref="Release"/> でそのフォントに属するマテリアルを捨てる。
     /// </para>
     /// </summary>
@@ -36,10 +36,10 @@ namespace info.someiyoshino.T2Font
         public int Count => _materials.Count;
 
         /// <summary>
-        /// <paramref name="representation"/> で <paramref name="style"/> を描くマテリアル。無ければ作る。様式が範囲の外か、表現の描けない
+        /// <paramref name="representation"/> で <paramref name="style"/> を描くマテリアル。無ければ作る。エッジスタイルが範囲の外か、表現の描けない
         /// 効果を使うなら止める（README §6.1・§6.3）——黙って近似すると、表現によって見た目が変わる。
         /// </summary>
-        /// <exception cref="ArgumentException">様式が範囲の外か、表現が描けない効果を使う。</exception>
+        /// <exception cref="ArgumentException">エッジスタイルが範囲の外か、表現が描けない効果を使う。</exception>
         public Material Get(GlyphRepresentation representation, in GlyphEdgeStyle style)
         {
             if (representation == null)
@@ -91,7 +91,7 @@ namespace info.someiyoshino.T2Font
         }
 
         /// <summary>
-        /// 様式を表現で描けるか。描けなければ理由の文面、描けるなら null（README §6.3）。ホストが様式をフォントに使う前の検査に使う。
+        /// エッジスタイルを表現で描けるか。描けなければ理由の文面、描けるなら null（README §6.3）。ホストがエッジスタイルをフォントに使う前の検査に使う。
         /// </summary>
         public static string? Check(GlyphRepresentation representation, in GlyphEdgeStyle style)
         {
@@ -102,7 +102,7 @@ namespace info.someiyoshino.T2Font
             var outOfRange = style.FindOutOfRange();
             if (outOfRange != null)
             {
-                return $"様式の値が範囲の外です: {outOfRange}。";
+                return $"エッジスタイルの値が範囲の外です: {outOfRange}。";
             }
             var missing = style.Uses & ~representation.Effects;
             if (missing != GlyphEffects.None)
@@ -144,7 +144,7 @@ namespace info.someiyoshino.T2Font
             _materials.Clear();
         }
 
-        // 縁の値は em のまま 1 対 1 で uniform へ入れる（README §6.1）。縁取りの色は sRGB で持つので、シェーダが linear で合成する
+        // エッジスタイルの値は em のまま 1 対 1 で uniform へ入れる（README §6.1）。縁取りの色は sRGB で持つので、シェーダが linear で合成する
         // プロジェクトではここで明示的に直して Vector で渡す（Vector は色空間の変換を受けない＝プロパティの属性に頼る暗黙の変換を
         // 持たない）。α は不透明度なので直さない。
         private static void WriteEdgeStyle(Material material, in GlyphEdgeStyle style)

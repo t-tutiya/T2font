@@ -5,7 +5,7 @@ using System;
 namespace info.someiyoshino.T2Font
 {
     /// <summary>
-    /// 様式（縁）の効果の種類（README §6.3）。表現は描ける効果をこれで宣言し、ホストは様式が使う効果
+    /// エッジスタイルの効果の種類（README §6.3）。表現は描ける効果をこれで宣言し、ホストはエッジスタイルが使う効果
     /// （<see cref="GlyphEdgeStyle.Uses"/>）と照合する。
     /// </summary>
     [Flags]

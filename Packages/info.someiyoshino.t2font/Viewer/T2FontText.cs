@@ -6,17 +6,17 @@ using UnityEngine;
 namespace info.someiyoshino.T2Font.Viewer
 {
     /// <summary>
-    /// 検証ビュー（README §10）。文字列 1 本を、字ごとに 1 つの <c>CanvasRenderer</c> で描く。フォントと様式（README §6.1）を Inspector で替えられる。
+    /// 検証ビュー（README §10）。文字列 1 本を、字ごとに 1 つの <c>CanvasRenderer</c> で描く。フォントとエッジスタイル（README §6.1）を Inspector で替えられる。
     ///
     /// <para>
     /// 1 字 1 レンダラにしてあるのは、テクスチャとマテリアルの束縛・クリップ・α の扱いを、利用側の一般的なテキスト描画と同じ条件で試すため。
-    /// 表現の具体型を知らないホストの最小の実装でもある（README §4.1）: 字形番号を引き、表現に幾何を書かせ、テクスチャとマテリアルを貼るだけ。
+    /// 表現の具体型を知らないホストの最小の実装でもある（README §4.1）: グリフインデックスを引き、表現に幾何を書かせ、テクスチャとマテリアルを貼るだけ。
     /// 行送りは改行（U+000A）だけで、折り返し・カーニング・縦書きは持たない。
     /// </para>
     ///
     /// <para>
     /// 字の GameObject・Mesh・マテリアルは実行時に作る物で、シーンに保存しない（<c>HideFlags.DontSave</c>）。値が変わるか有効に戻ると
-    /// 次の <c>LateUpdate</c> で作り直し、無効になると描画を消してマテリアルを捨てる。Mesh とマテリアルはネイティブの資産で GC では
+    /// 次の <c>LateUpdate</c> で作り直し、無効になると描画を消してマテリアルを捨てる。Mesh とマテリアルはネイティブのオブジェクトで GC では
     /// 回収されないので、明示的に破棄する。
     /// </para>
     /// </summary>
@@ -106,7 +106,7 @@ namespace info.someiyoshino.T2Font.Viewer
             }
         }
 
-        /// <summary>縁の様式（README §6.1）。</summary>
+        /// <summary>エッジスタイル（README §6.1）。</summary>
         public GlyphEdgeStyle EdgeStyle
         {
             get => new GlyphEdgeStyle(
@@ -133,7 +133,7 @@ namespace info.someiyoshino.T2Font.Viewer
             }
         }
 
-        /// <summary>描いている字の GameObject（墨のある字だけ・文字列の順）。検査用。</summary>
+        /// <summary>描いている字の GameObject（インクのある字だけ・文字列の順）。検査用。</summary>
         public IReadOnlyList<GameObject> GlyphObjects => _glyphObjects;
 
         private RectTransform RectTransform => _rectTransform != null ? _rectTransform : (_rectTransform = (RectTransform)transform);
@@ -153,7 +153,7 @@ namespace info.someiyoshino.T2Font.Viewer
             var problem = GlyphMaterialCache.Check(representation, style);
             if (problem != null)
             {
-                // 描けない様式を黙って近似しない（README §6.3）。
+                // 描けないエッジスタイルを黙って近似しない（README §6.3）。
                 Debug.LogError($"[T2FontText] '{font.name}': {problem}", this);
                 return;
             }

@@ -15,7 +15,7 @@ namespace info.someiyoshino.T2Font.Tests
             return Path.Combine(RepoRoot.Find(), "Assets", "Authoring", "Fonts", "mplus-1c-regular.ttf");
         }
 
-        /// <summary>生成仕様の source（プロジェクトパス）を実ファイルのパスにする。</summary>
+        /// <summary>ベイク仕様の source（プロジェクトパス）を実ファイルのパスにする。</summary>
         public static string ProjectPath(string projectPath)
         {
             return Path.Combine(RepoRoot.Find(), projectPath.Replace('/', Path.DirectorySeparatorChar));

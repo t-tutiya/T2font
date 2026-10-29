@@ -5,17 +5,17 @@ using UnityEngine;
 
 namespace T2font.EditModeTests
 {
-    /// <summary>EditMode のテストが読む、取込済みのフォント資産。</summary>
+    /// <summary>EditMode のテストが読む、インポート済みのフォントアセット。</summary>
     internal static class TestFontAssets
     {
-        /// <summary>検証用の M+ 1c を SDF で焼いた資産の生成仕様。</summary>
+        /// <summary>検証用の M+ 1c を SDF でベイクしたアセットのベイク仕様。</summary>
         public const string Mplus1cSdfPath = "Assets/Content/Fonts/mplus-1c-sdf.t2font";
 
-        /// <summary>検証用の M+ 1c（SDF）。取込が失敗していればその旨で落とす。</summary>
+        /// <summary>検証用の M+ 1c（SDF）。インポートが失敗していればその旨で落とす。</summary>
         public static T2FontAsset Mplus1cSdf()
         {
             var font = AssetDatabase.LoadAssetAtPath<T2FontAsset>(Mplus1cSdfPath);
-            Assert.That(font, Is.Not.Null, $"{Mplus1cSdfPath} の取込が失敗しています（Console の取込の誤りを見る）。");
+            Assert.That(font, Is.Not.Null, $"{Mplus1cSdfPath} のインポートが失敗しています（Console のインポートの誤りを見る）。");
             return font;
         }
 

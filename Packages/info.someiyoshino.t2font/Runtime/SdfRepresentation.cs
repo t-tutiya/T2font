@@ -7,12 +7,12 @@ using UnityEngine;
 namespace info.someiyoshino.T2Font
 {
     /// <summary>
-    /// 同梱の SDF の表現（README §9）。字形ごとのセル（<see cref="SdfGlyphCell"/>）と、単チャネルの距離のページを持つ。
+    /// 同梱の SDF の表現（README §9）。グリフごとのセル（<see cref="SdfGlyphCell"/>）と、単チャネルの距離のページを持つ。
     ///
     /// <para>
-    /// quad はセルの plane（墨の外接＋距離域の余白・em）で、UV0.xy は同じ矩形のページ上の px ÷ ページの寸法。ページは左下原点で、Unity の
-    /// UV と同じ向き。距離域は全フォント共通（<see cref="SdfEncoding.RangeEm"/>）なので、マテリアルはフォントに依らず、全 SDF フォントが
-    /// 様式ごとに 1 つのマテリアルを共有する（<see cref="GlyphRepresentation.MaterialScope"/> は既定のシェーダのまま・README §4.5）。
+    /// quad はセルの plane（インク境界＋距離レンジの余白・em）で、UV0.xy は同じ矩形のページ上の px ÷ ページの寸法。ページは左下原点で、Unity の
+    /// UV と同じ向き。距離レンジは全フォント共通（<see cref="SdfEncoding.RangeEm"/>）なので、マテリアルはフォントに依らず、全 SDF フォントが
+    /// エッジスタイルごとに 1 つのマテリアルを共有する（<see cref="GlyphRepresentation.MaterialScope"/> は既定のシェーダのまま・README §4.5）。
     /// </para>
     /// </summary>
     public sealed class SdfRepresentation : GlyphRepresentation
@@ -25,17 +25,17 @@ namespace info.someiyoshino.T2Font
 
         public override string Kind => SdfEncoding.KindName;
 
-        /// <summary>ページ上の 1em の px（生成仕様の <c>emPx</c>）。</summary>
+        /// <summary>ページ上の 1em の px（ベイク仕様の <c>emPx</c>）。</summary>
         public float EmPx => emPx;
 
-        /// <summary>字形番号順のセル。</summary>
+        /// <summary>グリフインデックス順のセル。</summary>
         public IReadOnlyList<SdfGlyphCell> Cells => cells;
 
         /// <summary>距離のページ（単チャネル・linear・ミップ無し）。</summary>
         public IReadOnlyList<Texture2D> Pages => pages;
 
         /// <summary>
-        /// 焼き器が焼いた結果から表現を作る（焼き器専用）。<paramref name="effects"/> は種類の記述子の宣言を写す（README §6.3）。
+        /// ベイカーがベイクした結果から表現を作る（ベイカー専用）。<paramref name="effects"/> は種類の記述子の宣言を写す（README §6.3）。
         /// 健全性は <c>T2FontAsset.Create</c> が <see cref="Validate"/> で検査する。
         /// </summary>
         public static SdfRepresentation Create(
@@ -98,7 +98,7 @@ namespace info.someiyoshino.T2Font
             }
             if (cells.Length != glyphCount)
             {
-                return $"SDF のセル（{cells.Length} 個）が字の表の字形（{glyphCount} 個）と合いません。";
+                return $"SDF のセル（{cells.Length} 個）がタイポグラフィテーブルのグリフ（{glyphCount} 個）と合いません。";
             }
             for (var i = 0; i < pages.Length; i++)
             {
@@ -116,12 +116,12 @@ namespace info.someiyoshino.T2Font
                 }
                 if (cell.page < 0 || cell.page >= pages.Length)
                 {
-                    return $"字形 {glyph} のページ番号 {cell.page} がページの外です（{pages.Length} 枚）。";
+                    return $"グリフ {glyph} のページ番号 {cell.page} がページの外です（{pages.Length} 枚）。";
                 }
                 var page = pages[cell.page];
                 if (cell.atlasLeft < 0 || cell.atlasBottom < 0 || cell.atlasRight > page.width || cell.atlasTop > page.height)
                 {
-                    return $"字形 {glyph} のセルがページ {cell.page}（{page.width}×{page.height}）からはみ出しています。";
+                    return $"グリフ {glyph} のセルがページ {cell.page}（{page.width}×{page.height}）からはみ出しています。";
                 }
             }
             return null;

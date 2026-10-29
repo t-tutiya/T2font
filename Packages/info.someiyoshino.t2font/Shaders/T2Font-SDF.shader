@@ -3,11 +3,11 @@ Shader "T2Font/SDF" {
 // 同梱の SDF の表現のシェーダ（README §9）。§5 のシェーダの契約（S1〜S8）を満たす。
 // 面と縁取りの 2 つの境界それぞれに「位置」と「ぼかし」を 1 つずつ持ち、どの値も境界 1 本の位置かランプ 1 本の幅だけを
 // 動かす。値はすべて em（字の大きさに対する比・README §6.1）。AA は値ではなく、常に画面の 1px で掛ける（ぼかしはその上に足す幅）。
-// マテリアルは GlyphMaterialCache が作り、距離域を SdfRepresentation が、縁の値をキャッシュが入れる。
+// マテリアルは GlyphMaterialCache が作り、距離レンジを SdfRepresentation が、エッジスタイルの値をキャッシュが入れる。
 Properties {
 	[NoScaleOffset]_MainTex	("Distance Page", 2D) = "white" {}
 
-	// SDF の片側距離域（em）。SdfRepresentation.ConfigureMaterial が SdfEncoding.RangeEm を入れる。既定値はキャッシュを通らない
+	// SDF の片側距離レンジ（em）。SdfRepresentation.ConfigureMaterial が SdfEncoding.RangeEm を入れる。既定値はキャッシュを通らない
 	// マテリアル（手で作ったもの）のためのもので、SdfEncoding.RangeEm と一致させる。
 	_RangeEm			("SDF Range (em)", Float) = 0.1875
 
@@ -94,12 +94,12 @@ SubShader {
 
 		float4 frag(Varyings input) : SV_Target
 		{
-			// 輪郭からの距離（em・墨の内側が正）。ページは単チャネル（R8／BC4）で、値は .r に入る（README §9）。
-			// 距離は焼くときに非ゼロ巻き数で塗った形から取ってあるので、輪郭が重なる字も抜けない（README §5 S8）。
+			// 輪郭からの距離（em・インク領域の内側が正）。ページは単チャネル（R8／BC4）で、値は .r に入る（README §9）。
+			// 距離はベイクするときに非ゼロ巻き数で塗った形から取ってあるので、輪郭が重なる字も抜けない（README §5 S8）。
 			float s = (tex2D(_MainTex, input.uv0.xy).r - 0.5) * (2.0 * _RangeEm);
 
 			// 画面 1px が何 em か（README §5 S3）。em 座標は quad の中で線形なので、その微分は正確で quad の中で一定
-			// （回転・拡縮しても 1 表示 px が保たれる）。標本値 s の fwidth は bilinear で区分的になり、距離域の外で 0 になるので使わない。
+			// （回転・拡縮しても 1 表示 px が保たれる）。サンプル値 s の fwidth は bilinear で区分的になり、距離レンジの外で 0 になるので使わない。
 			float emPerPx = 0.5 * (length(float2(ddx(input.uv0.z), ddy(input.uv0.z)))
 								 + length(float2(ddx(input.uv0.w), ddy(input.uv0.w))));
 			emPerPx = max(emPerPx, 1e-6);

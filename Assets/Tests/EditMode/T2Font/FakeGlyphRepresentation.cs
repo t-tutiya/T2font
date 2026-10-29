@@ -4,7 +4,7 @@ using UnityEngine;
 namespace T2font.EditModeTests
 {
     /// <summary>
-    /// 描ける効果を選べる、何も描かない表現（マテリアルの置き場と資産の検査を、表現の具体型に依らずに試すため）。
+    /// 描ける効果を選べる、何も描かない表現（マテリアルの置き場とアセットの検査を、表現の具体型に依らずに試すため）。
     /// ScriptableObject なのでクラス名とファイル名を一致させてある。
     /// </summary>
     public sealed class FakeGlyphRepresentation : GlyphRepresentation

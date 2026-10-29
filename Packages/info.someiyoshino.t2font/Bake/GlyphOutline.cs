@@ -38,7 +38,7 @@ namespace info.someiyoshino.T2Font.Bake
     }
 
     /// <summary>
-    /// 字形の輪郭（フォント単位・y 上向き）。TrueType の輪郭は on-curve 点と、2 次ベジエの制御点（off-curve）の並びで、
+    /// グリフの輪郭（フォント単位・y 上向き）。TrueType の輪郭は on-curve 点と、2 次ベジエの制御点（off-curve）の並びで、
     /// 連続する 2 つの off-curve 点の間には中点の on-curve 点が暗黙にある（TrueType の仕様）。
     /// </summary>
     public sealed class GlyphOutline
@@ -56,7 +56,7 @@ namespace info.someiyoshino.T2Font.Bake
         /// <summary>輪郭（読み取り専用の扱い）。</summary>
         public IReadOnlyList<OutlinePoint[]> Contours => _contours;
 
-        /// <summary>墨が無い（輪郭 0 本か、点が 1 つも無い）か。</summary>
+        /// <summary>インクが無い（輪郭 0 本か、点が 1 つも無い）か。</summary>
         public bool IsEmpty
         {
             get
@@ -73,8 +73,8 @@ namespace info.someiyoshino.T2Font.Bake
         }
 
         /// <summary>
-        /// 制御点を含む全点の外接矩形（フォント単位）。2 次ベジエは制御点の凸包の中にあるので、曲線の外接矩形を
-        /// 必ず含む（保守的）。墨が無ければ false。
+        /// 制御点を含む全点の境界ボックス（フォント単位）。2 次ベジエは制御点の凸包の中にあるので、曲線の境界ボックスを
+        /// 必ず含む（保守的）。インクが無ければ false。
         /// </summary>
         public bool TryGetBounds(out double xMin, out double yMin, out double xMax, out double yMax)
         {
@@ -100,7 +100,7 @@ namespace info.someiyoshino.T2Font.Bake
         }
 
         /// <summary>
-        /// 輪郭を線分へ平らにする。点は <c>(x × scale + offsetX, y × scale + offsetY)</c> へ写す（ピクセル座標）。
+        /// 輪郭を線分へフラット化する。点は <c>(x × scale + offsetX, y × scale + offsetY)</c> へ写す（ピクセル座標）。
         /// 曲線は、弦と曲線の最大のずれが <paramref name="tolerance"/>（ピクセル）以下になる本数の線分に等分する。
         /// 2 次ベジエを n 等分したときのずれは <c>|p0 − 2·p1 + p2| / (4·n²)</c> 以下なので、本数はそこから決まる。
         /// </summary>
@@ -247,7 +247,7 @@ namespace info.someiyoshino.T2Font.Bake
     }
 
     /// <summary>
-    /// 2 次元のアフィン変換 <c>x' = A·x + C·y + E</c>・<c>y' = B·x + D·y + F</c>（TrueType の複合字形の部品配置）。
+    /// 2 次元のアフィン変換 <c>x' = A·x + C·y + E</c>・<c>y' = B·x + D·y + F</c>（TrueType の複合グリフの部品配置）。
     /// </summary>
     internal readonly struct Affine
     {
@@ -280,7 +280,7 @@ namespace info.someiyoshino.T2Font.Bake
             var det = (A * D) - (B * C);
             if (Math.Abs(det) < 1e-12)
             {
-                throw new FormatException("複合字形の変換行列が退化していて、点の照合ができません。");
+                throw new FormatException("複合グリフの変換行列が退化していて、点の照合ができません。");
             }
             var ia = D / det;
             var ib = -B / det;

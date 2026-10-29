@@ -13,24 +13,24 @@ using Object = UnityEngine.Object;
 namespace info.someiyoshino.T2Font.Editor
 {
     /// <summary>
-    /// 生成仕様（<c>*.t2font</c>）の取込器（README §7）。元フォントから字の表を作り、表現の種類の焼き器に表現を作らせて、
-    /// <see cref="T2FontAsset"/>（主）と表現・テクスチャ（副資産）を作る。
+    /// ベイク仕様（<c>*.t2font</c>）のインポーター（README §7）。元フォントからタイポグラフィテーブルを作り、表現の種類のベイカーに表現を作らせて、
+    /// <see cref="T2FontAsset"/>（主）と表現・テクスチャ（サブアセット）を作る。
     ///
     /// <para>
-    /// 生成物は Library に作られ、リポジトリには置かない（README §2.4）。生成仕様・元フォント（<c>DependsOnSourceAsset</c>）・表現のシェーダ
-    /// （<c>DependsOnArtifact</c>）・表現の種類の版数（カスタム依存）のどれかが変われば Unity が取り込み直す。<b>字の表の出力が変わったら
-    /// <see cref="FontFaceBuilder.Version"/> を、表現の出力が変わったらその種類の版数を上げる</b>（README §7.5）。
+    /// 生成物は Library に作られ、リポジトリには置かない（README §2.4）。ベイク仕様・元フォント（<c>DependsOnSourceAsset</c>）・表現のシェーダ
+    /// （<c>DependsOnArtifact</c>）・表現の種類のバージョン（カスタム依存）のどれかが変われば Unity が再インポートする。<b>タイポグラフィテーブルの出力が変わったら
+    /// <see cref="FontFaceBuilder.Version"/> を、表現の出力が変わったらその種類のバージョンを上げる</b>（README §7.5）。
     /// </para>
     ///
     /// <para>
-    /// 誤り（生成仕様の誤り・元フォントが無い・名指しの字が元フォントに無い・焼き器の誤り・テクスチャが期待の形にならない）は取込の失敗に
-    /// して資産を作らない（README §2.1・§7.3）。実行時のロードは null になり、参照が明確に失敗する。
+    /// 誤り（ベイク仕様の誤り・元フォントが無い・指定文字が元フォントに無い・ベイカーの誤り・テクスチャが期待の形にならない）はインポートの失敗に
+    /// してアセットを作らない（README §2.1・§7.3）。実行時のロードは null になり、参照が明確に失敗する。
     /// </para>
     /// </summary>
     [ScriptedImporter(ImporterVersion, "t2font")]
     public sealed class T2FontImporter : ScriptedImporter
     {
-        /// <summary>取込器の版数（字の表の生成の版数 × 100 ＋ 取込器自身の改訂）。表現の版数は種類ごとのカスタム依存が持つ。</summary>
+        /// <summary>インポーターのバージョン（タイポグラフィテーブルの生成のバージョン × 100 ＋ インポーター自身の改訂）。表現のバージョンは種類ごとのカスタム依存が持つ。</summary>
         public const int ImporterVersion = (FontFaceBuilder.Version * 100) + 1;
 
         public override void OnImportAsset(AssetImportContext ctx)
@@ -38,7 +38,7 @@ namespace info.someiyoshino.T2Font.Editor
             var bakers = GlyphRepresentationBakers.Load();
             if (bakers.Problems.Count > 0)
             {
-                ctx.LogImportError($"{ctx.assetPath}: 表現の焼き器を集められません: {string.Join(" ", bakers.Problems)}");
+                ctx.LogImportError($"{ctx.assetPath}: 表現のベイカーを集められません: {string.Join(" ", bakers.Problems)}");
                 return;
             }
 
@@ -54,7 +54,7 @@ namespace info.someiyoshino.T2Font.Editor
                 return;
             }
 
-            // 依存は失敗の判定より先に張る（元フォントを置き直せば・表現の版数が変われば取り込み直される）。
+            // 依存は失敗の判定より先に張る（元フォントを置き直せば・表現のバージョンが変われば再インポートされる）。
             var kind = spec.Representation.Kind;
             var baker = bakers.Find(kind.Name)!;
             ctx.DependsOnCustomDependency(GlyphRepresentationBakers.DependencyName(kind.Name));
@@ -93,11 +93,11 @@ namespace info.someiyoshino.T2Font.Editor
                 representation = baker.Bake(context, face.Face, spec.Representation);
                 if (representation == null)
                 {
-                    throw new FontBakeException($"焼き器 {baker.GetType().FullName} が表現を返しませんでした。");
+                    throw new FontBakeException($"ベイカー {baker.GetType().FullName} が表現を返しませんでした。");
                 }
                 if (representation.Kind != kind.Name)
                 {
-                    throw new FontBakeException($"焼き器 {baker.GetType().FullName} の表現が種類 \"{representation.Kind}\" を名乗っています（期待は \"{kind.Name}\"）。");
+                    throw new FontBakeException($"ベイカー {baker.GetType().FullName} の表現が種類 \"{representation.Kind}\" を名乗っています（期待は \"{kind.Name}\"）。");
                 }
                 if (representation.Effects != kind.Effects)
                 {
@@ -135,7 +135,7 @@ namespace info.someiyoshino.T2Font.Editor
             Debug.Log(Report(ctx.assetPath, face, kind.Name, context, watch.Elapsed.TotalSeconds));
         }
 
-        // 取込を失敗させるときは、作りかけの副資産を残さない（ctx に渡していない物は誰も破棄しない）。
+        // インポートを失敗させるときは、作りかけのサブアセットを残さない（ctx に渡していない物は誰も破棄しない）。
         private static void Discard(GlyphBakeContext context, GlyphRepresentation? representation)
         {
             context.DestroyObjects();
@@ -145,7 +145,7 @@ namespace info.someiyoshino.T2Font.Editor
             }
         }
 
-        // 焼き器の誤りは生成仕様の名を持たないことがあるので、どの仕様の誤りか分かるよう前に付ける。
+        // ベイカーの誤りはベイク仕様の名を持たないことがあるので、どの仕様の誤りか分かるよう前に付ける。
         private static string Prefixed(string assetPath, string message)
         {
             return message.StartsWith(assetPath, StringComparison.Ordinal) ? message : $"{assetPath}: {message}";
@@ -154,7 +154,7 @@ namespace info.someiyoshino.T2Font.Editor
         private static string Report(string assetPath, FontSpecFace face, string kind, GlyphBakeContext context, double seconds)
         {
             var text = new StringBuilder();
-            text.Append($"[T2Font] {assetPath}: {face.Face.Codepoints.Length} 字・字形 {face.Face.GlyphCount}・{kind}");
+            text.Append($"[T2Font] {assetPath}: {face.Face.Codepoints.Length} 字・グリフ {face.Face.GlyphCount}・{kind}");
             foreach (var line in context.ReportLines)
             {
                 text.Append("・").Append(line);
@@ -162,8 +162,8 @@ namespace info.someiyoshino.T2Font.Editor
             text.Append($"・{seconds:0.0} 秒");
             if (face.MissingFromCharsets.Count > 0)
             {
-                // 固定の字集合は上限集合なので、欠けは件数だけを知らせる（警告にしない・README §7.1）。
-                text.Append($"・固定の字集合のうち元フォントに無い字 {face.MissingFromCharsets.Count} 字");
+                // 固定の文字セットは上限集合なので、欠けは件数だけを知らせる（警告にしない・README §7.1）。
+                text.Append($"・固定の文字セットのうち元フォントに無い字 {face.MissingFromCharsets.Count} 字");
             }
             return text.ToString();
         }

@@ -13,7 +13,7 @@ namespace T2font.EditModeTests
         private static readonly GlyphEdgeStyle Outlined = new GlyphEdgeStyle(0.2f, 0.4f, 0.6f, 1f, 0.01f, 0.02f, 0.05f, 0.03f);
 
         [Test]
-        public void 同じシェーダの表現は様式が同じならマテリアルを共有する()
+        public void 同じシェーダの表現はエッジスタイルが同じならマテリアルを共有する()
         {
             var shader = TestFontAssets.SdfShader();
             var a = FakeGlyphRepresentation.Create(shader, GlyphEffects.All);
@@ -35,7 +35,7 @@ namespace T2font.EditModeTests
         }
 
         [Test]
-        public void 縁の値をemのままuniformへ入れ_SDFは距離域を入れる()
+        public void エッジスタイルの値をemのままuniformへ入れ_SDFは距離レンジを入れる()
         {
             var font = TestFontAssets.Mplus1cSdf();
             using (var cache = new GlyphMaterialCache())
@@ -58,7 +58,7 @@ namespace T2font.EditModeTests
         }
 
         [Test]
-        public void 範囲の外の様式と描けない効果は止める()
+        public void 範囲の外のエッジスタイルと描けない効果は止める()
         {
             var plain = FakeGlyphRepresentation.Create(TestFontAssets.SdfShader(), GlyphEffects.FaceDilate);
             using (var cache = new GlyphMaterialCache())
