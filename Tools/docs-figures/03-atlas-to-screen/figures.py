@@ -99,7 +99,7 @@ def fig_pipeline():
 def strip_html():
     s=['<div class="strip" role="list" aria-label="字とグリフインデックス">']
     for g in GL:
-        ch=g['ch'] if g['ch']!=' ' else '␣'
+        ch=g['ch'] if g['ch']!=' ' else '␠'
         s.append(f'<div class="g" role="listitem"><b>{ch}</b><span>U+{g["cp"]:04X}</span><span>→ {g["glyph"]}</span></div>')
     s.append('</div>')
     return '\n'.join(s)
@@ -203,7 +203,7 @@ def vertex_rows():
 def layout_rows():
     rows=[]
     for g,px in zip(GL,PENX):
-        ch=g['ch'] if g['ch']!=' ' else '␣（空白）'
+        ch=g['ch'] if g['ch']!=' ' else '␠（空白）'
         q='—' if g['empty'] else f"[{f(px+g['planeLeft']*F)}, {f(px+g['planeRight']*F)}]"
         rows.append(f'<tr><td>{ch}</td><td class="num">{g["glyph"]}</td><td class="num mono">{f(px)}</td><td class="num mono">{g["advance"]:.3f}</td><td class="num mono">{f(g["advance"]*F)}</td><td class="mono">{q}</td></tr>')
     return '\n'.join(rows)
