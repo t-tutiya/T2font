@@ -12,6 +12,7 @@ Claude との認識合わせにも使う。構造や動作が変わったら該�
 | [`01-assemblies-and-tests.md`](01-assemblies-and-tests.md) | アセンブリ（asmdef）の構成・2 つのコンパイル世界・テストの置き場 |
 | [`02-truetype-to-atlas.html`](02-truetype-to-atlas.html) | TrueType の構造とフォントメトリクス・タイポグラフィテーブルの生成・SDF アトラスをベイクする工程（図解の HTML。画像は `02-truetype-to-atlas/`） |
 | [`03-atlas-to-screen.html`](03-atlas-to-screen.html) | アセットの読み込み・字の配置と幾何・マテリアル・CanvasRenderer とバッチ・シェーダがレンダーターゲットへ描いて画面に出るまで（図解の HTML。画像は `03-atlas-to-screen/`、図を作るスクリプトは `Tools/docs-figures/03-atlas-to-screen/`） |
+| [`04-bake-spec.html`](04-bake-spec.html) | ベイク仕様（`.t2font`）の書き方・フォントアセットを作る手順・インポートの失敗と直し方・文字セットの中身と付録の文字リスト（HTML。表と付録を作るスクリプトは `Tools/docs-figures/04-bake-spec/`） |
 
 ## 書き方の約束
 
