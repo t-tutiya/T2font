@@ -2546,7 +2546,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <p>アセットの <code>sourceHash</code> は、タイポグラフィテーブルの生成のバージョン・表現の種類とそのバージョン・ベイク仕様の本文・元フォントのバイト列の SHA-256 で、どの入力から作ったアセットかを追える。ベイク仕様・元フォント・表現のシェーダ・表現の種類のバージョン（カスタム依存 <code>info.someiyoshino.t2font/representation/sdf</code>）のどれかが変われば Unity が再インポートする（README §7.5）。</p>
 
 <h2 id="use"><span class="num">8</span>ベイクした結果を描く</h2>
-<p>実行時、<code>SdfRepresentation.WriteGeometry</code> はグリフのセルの plane（em）を quad にし、atlas の矩形をページの寸法で割って UV0.xy にする。シェーダは <code>(tex.r − 0.5) × 2 × _RangeEm</code> で em の距離に戻し、UV0.zw（頂点の em 座標）の微分から 1 表示 px が何 em かを得て、AA の幅を常に画面の 1px にする（README §5 S3）。補間した距離から輪郭を作り直すので、1 枚のアトラス（emPx 48）から小さい字も大きい字も描ける。</p>
+<p>実行時、<code>SdfRepresentation.WriteGeometry</code> はグリフのセルの plane（em）を quad にし、atlas の矩形をページの寸法で割って UV0.xy にする。シェーダは <code>(tex.r − 0.5) × 2 × _RangeEm</code> で em の距離に戻し、UV0.zw（頂点の em 座標）の微分から 1 表示 px が何 em かを得て、AA の幅を常に画面の 1px にする（README §5 S3）。補間した距離から輪郭を作り直すので、1 枚のアトラス（emPx 48）から小さい字も大きい字も描ける。アセットを読んでから画面に出るまでの流れは 03 章（<a href="03-atlas-to-screen.html">アトラスから画面へ</a>）。</p>
 <figure class="fig render-plate" id="fig-render">
 <img src="02-truetype-to-atlas/render-sizes.png" width="740" height="456" alt="同じアトラスから 14・24・48・96 px と縁取り付き 64 px で描いた 字形表現あいう">
 <figcaption><span class="fn">図 16</span>見本のアトラスから 14・24・48・96 px で描き、最後の行は 64px に縁取り 0.08em とずらし 0.02em を足した例。シェーダと同じ式（bilinear で読んだ値・1 表示 px の AA・面と縁取りの入れ子の合成）を CPU で計算した画像。</figcaption>

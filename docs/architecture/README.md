@@ -11,6 +11,7 @@ Claude との認識合わせにも使う。構造や動作が変わったら該�
 |---|---|
 | [`01-assemblies-and-tests.md`](01-assemblies-and-tests.md) | アセンブリ（asmdef）の構成・2 つのコンパイル世界・テストの置き場 |
 | [`02-truetype-to-atlas.html`](02-truetype-to-atlas.html) | TrueType の構造とフォントメトリクス・タイポグラフィテーブルの生成・SDF アトラスをベイクする工程（図解の HTML。画像は `02-truetype-to-atlas/`） |
+| [`03-atlas-to-screen.html`](03-atlas-to-screen.html) | アセットの読み込み・字の配置と幾何・マテリアル・CanvasRenderer とバッチ・シェーダがレンダーターゲットへ描いて画面に出るまで（図解の HTML。画像は `03-atlas-to-screen/`） |
 
 ## 書き方の約束
 
