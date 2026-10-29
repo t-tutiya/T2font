@@ -53,7 +53,7 @@ namespace info.someiyoshino.T2Font.Tests
             GlyphMetrics a = face.Glyphs[GlyphTable.IndexOf(face.Codepoints, 'A')];
             GlyphMetrics g = face.Glyphs[GlyphTable.IndexOf(face.Codepoints, 'g')];
 
-            // M+ 1c の glyf のヘッダの境界ボックス（A: 30, 0, 633, 730・g: 45, -230, 488, 530・upem 1000）。
+            // M+ 1c の glyf のヘッダのグリフ境界ボックス（A: 30, 0, 633, 730・g: 45, -230, 488, 530・upem 1000）。
             Assert.That(new[] { a.inkLeft, a.inkBottom, a.inkRight, a.inkTop }, Is.EqualTo(new[] { 0.030f, 0f, 0.633f, 0.730f }).Within(1e-6f));
             Assert.That(new[] { g.inkLeft, g.inkBottom, g.inkRight, g.inkTop }, Is.EqualTo(new[] { 0.045f, -0.230f, 0.488f, 0.530f }).Within(1e-6f));
         }

@@ -65,7 +65,7 @@ namespace info.someiyoshino.T2Font.Tests
             Assert.That(Font.GetAdvanceWidth(gid), Is.EqualTo(expected));
         }
 
-        // 境界ボックスの期待値は glyf のヘッダ（このフォントは全点の境界ボックスをヘッダに書いている）。
+        // 境界ボックスの期待値は glyf のヘッダのグリフ境界ボックス（このフォントは全点の境界ボックスをヘッダに書いている）。
         [TestCase('A', 2, 30, 0, 633, 730)]
         [TestCase('g', 2, 45, -230, 488, 530)]
         [TestCase('あ', 3, 97, -63, 903, 803)]
