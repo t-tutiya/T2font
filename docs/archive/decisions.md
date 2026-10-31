@@ -19,10 +19,11 @@
 
 ---
 
-## 2026-10 — [`decisions/decisions-2026-10.md`](decisions/decisions-2026-10.md)（19 件）
+## 2026-10 — [`decisions/decisions-2026-10.md`](decisions/decisions-2026-10.md)（20 件）
 
 | 日付 | 決定 |
 |---|---|
+| 2026-10-31 | **本リポジトリを v0.2.0 で凍結する — D-T2FFREEZE** — 開発は利用側へ移った |
 | 2026-10-29 | **頂点色を gamma のまま渡す Canvas にシェーダで対応する — D-UIGAMMA** — 契約 S9・版 0.2.0 |
 | 2026-10-29 | **用語をカタカナの一般的な訳語へ揃える — D-TERMS** — 正典は reference の用語表 |
 | 2026-10-28 | **パッケージを git URL でも導入できるようにする — D-T2FONTGIT** — 写すのは外部 NUnit を持つ利用側 |
