@@ -19,6 +19,12 @@
 
 ---
 
+## 2026-11 — [`decisions/decisions-2026-11.md`](decisions/decisions-2026-11.md)（1 件）
+
+| 日付 | 決定 |
+|---|---|
+| 2026-11-06 | **「表現」をグリフ表現と書き、用語の表に訳語を足す — D-TERMS2** — 正典は reference の用語表 |
+
 ## 2026-10 — [`decisions/decisions-2026-10.md`](decisions/decisions-2026-10.md)（19 件）
 
 | 日付 | 決定 |
