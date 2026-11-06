@@ -15,7 +15,7 @@ namespace T2font.EditModeTests
     public class T2FontAssetTests
     {
         [Test]
-        public void インポーターはタイポグラフィテーブルとSDFの表現とページを作る()
+        public void インポーターはタイポグラフィテーブルとSDFのグリフ表現とページを作る()
         {
             var font = TestFontAssets.Mplus1cSdf();
 
@@ -45,7 +45,7 @@ namespace T2font.EditModeTests
         }
 
         [Test]
-        public void 送り幅はタイポグラフィテーブルの値で表現に依らない()
+        public void 送り幅はタイポグラフィテーブルの値でグリフ表現に依らない()
         {
             var font = TestFontAssets.Mplus1cSdf();
             var glyph = font.Resolve('A', out var isSubstitute);
@@ -94,7 +94,7 @@ namespace T2font.EditModeTests
         }
 
         [Test]
-        public void Createはシェーダの無い表現を拒む()
+        public void Createはシェーダの無いグリフ表現を拒む()
         {
             var representation = FakeGlyphRepresentation.Create(null, GlyphEffects.None);
             try

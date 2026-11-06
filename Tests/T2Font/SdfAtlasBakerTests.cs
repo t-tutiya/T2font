@@ -287,7 +287,7 @@ namespace info.someiyoshino.T2Font.Tests
             Assert.That(inked, Is.GreaterThan(20));
         }
 
-        // 生成器の出力が変わったら SdfAtlasBaker.Version（タイポグラフィテーブルが変わったなら FontFaceBuilder.Version）を上げ、この値も
+        // ジェネレーターの出力が変わったら SdfAtlasBaker.Version（タイポグラフィテーブルが変わったなら FontFaceBuilder.Version）を上げ、この値も
         // 合わせて直す（バージョンを上げないと古いインポートの結果が使われ続ける・パッケージの README §7.5）。golden は CoreCLR x64 で取ったもの
         // ——浮動小数の末尾が違いうる Mono では比べない。
         private const string Golden =

@@ -45,7 +45,7 @@ namespace info.someiyoshino.T2Font.Editor
 
         /// <summary>
         /// パッケージ <paramref name="packageName"/> の中の <paramref name="relativePath"/> のアセットパス（<c>Packages/…</c>）。
-        /// 表現のパッケージが自分のシェーダを指すのに使う——導入の方法（git URL か写しか・README §11）によらず同じパスになる。
+        /// グリフ表現のパッケージが自分のシェーダを指すのに使う——導入の方法（git URL か写しか・README §11）によらず同じパスになる。
         /// </summary>
         /// <exception cref="FontBakeException">そのパッケージが登録されていない（Packages/ の下に無い）。</exception>
         public string PackageAssetPath(string packageName, string relativePath)
@@ -62,7 +62,7 @@ namespace info.someiyoshino.T2Font.Editor
             if (package == null)
             {
                 throw new FontBakeException(
-                    $"{AssetPath}: パッケージ {packageName} が登録されていません。表現のパッケージは Packages/ の下へフォルダごと置いてください。");
+                    $"{AssetPath}: パッケージ {packageName} が登録されていません。グリフ表現のパッケージは Packages/ の下へフォルダごと置いてください。");
             }
             return package.assetPath + "/" + relativePath;
         }
@@ -94,7 +94,7 @@ namespace info.someiyoshino.T2Font.Editor
         }
 
         /// <summary>
-        /// サブアセット（テクスチャなど）を渡す。<paramref name="identifier"/> は表現の中で一意な名前。インポートが成功したときだけアセットに加わり、
+        /// サブアセット（テクスチャなど）を渡す。<paramref name="identifier"/> はグリフ表現の中で一意な名前。インポートが成功したときだけアセットに加わり、
         /// 失敗したときはインポーターが破棄する。
         /// </summary>
         public void AddObject(string identifier, Object obj)

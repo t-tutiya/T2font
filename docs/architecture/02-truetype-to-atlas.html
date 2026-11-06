@@ -415,22 +415,22 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <line class="flow" x1="380" y1="253" x2="380" y2="273"/><polygon class="ah-flow" points="380,275 376.4,267 383.6,267"/>
 <rect class="node step" x="40" y="275" width="680" height="61" rx="6"/><text class="node-t" x="54" y="299" text-anchor="start">② フォントの表を読む</text><text class="node-s" x="54" y="319" text-anchor="start">TrueTypeFont — head・hhea・maxp・hmtx・cmap・loca・glyf</text><text class="asm" x="708" y="299" text-anchor="end">Bake</text>
 <line class="flow" x1="380" y1="336" x2="380" y2="356"/><polygon class="ah-flow" points="380,358 376.4,350 383.6,350"/>
-<rect class="node step" x="40" y="358" width="680" height="78" rx="6"/><text class="node-t" x="54" y="382" text-anchor="start">③ タイポグラフィテーブルを作る（全表現で共通）</text><text class="node-s" x="54" y="402" text-anchor="start">FontSpecBaker.BuildFace → FontFaceBuilder.Build</text><text class="node-s" x="54" y="419" text-anchor="start">→ FontFaceData（縦メトリクス・字・送り幅・インク境界・輪郭）</text><text class="asm" x="708" y="382" text-anchor="end">Bake</text>
+<rect class="node step" x="40" y="358" width="680" height="78" rx="6"/><text class="node-t" x="54" y="382" text-anchor="start">③ タイポグラフィテーブルを作る（全グリフ表現で共通）</text><text class="node-s" x="54" y="402" text-anchor="start">FontSpecBaker.BuildFace → FontFaceBuilder.Build</text><text class="node-s" x="54" y="419" text-anchor="start">→ FontFaceData（縦メトリクス・字・送り幅・インク境界・輪郭）</text><text class="asm" x="708" y="382" text-anchor="end">Bake</text>
 <line class="flow" x1="380" y1="436" x2="380" y2="456"/><polygon class="ah-flow" points="380,458 376.4,450 383.6,450"/>
-<rect class="node step sdf" x="40" y="458" width="680" height="78" rx="6"/><text class="node-t" x="54" y="482" text-anchor="start">④ 表現をベイクする（SDF）</text><text class="node-s" x="54" y="502" text-anchor="start">SdfGlyphBaker.Bake → SdfAtlasBaker.Bake → SdfAtlas（セル・ページ）</text><text class="node-s" x="54" y="519" text-anchor="start">BuildPage → Texture2D（R8／BC4）</text><text class="asm" x="708" y="482" text-anchor="end">Bake＋Editor</text>
+<rect class="node step sdf" x="40" y="458" width="680" height="78" rx="6"/><text class="node-t" x="54" y="482" text-anchor="start">④ グリフ表現をベイクする（SDF）</text><text class="node-s" x="54" y="502" text-anchor="start">SdfGlyphBaker.Bake → SdfAtlasBaker.Bake → SdfAtlas（セル・ページ）</text><text class="node-s" x="54" y="519" text-anchor="start">BuildPage → Texture2D（R8／BC4）</text><text class="asm" x="708" y="482" text-anchor="end">Bake＋Editor</text>
 <line class="flow" x1="380" y1="536" x2="380" y2="556"/><polygon class="ah-flow" points="380,558 376.4,550 383.6,550"/>
-<rect class="node step" x="40" y="558" width="680" height="78" rx="6"/><text class="node-t" x="54" y="582" text-anchor="start">⑤ アセットを組む</text><text class="node-s" x="54" y="602" text-anchor="start">SdfRepresentation.Create・T2FontAsset.Create</text><text class="node-s" x="54" y="619" text-anchor="start">→ AddObjectToAsset（主＝T2FontAsset・副＝表現とページ）</text><text class="asm" x="708" y="582" text-anchor="end">Runtime の型</text>
+<rect class="node step" x="40" y="558" width="680" height="78" rx="6"/><text class="node-t" x="54" y="582" text-anchor="start">⑤ アセットを組む</text><text class="node-s" x="54" y="602" text-anchor="start">SdfRepresentation.Create・T2FontAsset.Create</text><text class="node-s" x="54" y="619" text-anchor="start">→ AddObjectToAsset（主＝T2FontAsset・副＝グリフ表現とページ）</text><text class="asm" x="708" y="582" text-anchor="end">Runtime の型</text>
 </svg></div>
-<figcaption><span class="fn">図 1</span>インポートの流れ。右肩はその段のコードが属するアセンブリ。④だけが表現（ここでは SDF）ごとに替わり、③までは全表現で共通。</figcaption>
+<figcaption><span class="fn">図 1</span>インポートの流れ。右肩はその段のコードが属するアセンブリ。④だけがグリフ表現（ここでは SDF）ごとに替わり、③までは全グリフ表現で共通。</figcaption>
 </figure>
 
 <div class="tbl"><table>
 <thead><tr><th>段</th><th>主な型</th><th>ファイル（パッケージ内）</th><th>出力</th></tr></thead>
 <tbody>
-<tr><td>① ベイク仕様を読む</td><td><code>FontBakeSpec</code></td><td class="mono">Bake/FontBakeSpec.cs</td><td>元フォントのパス・文字セット・表現の設定</td></tr>
+<tr><td>① ベイク仕様を読む</td><td><code>FontBakeSpec</code></td><td class="mono">Bake/FontBakeSpec.cs</td><td>元フォントのパス・文字セット・グリフ表現の設定</td></tr>
 <tr><td>② フォントを読む</td><td><code>TrueTypeFont</code></td><td class="mono">Bake/TrueTypeFont.cs<br>Bake/GlyphOutline.cs</td><td>縦メトリクス・送り幅・cmap・輪郭を引けるリーダー</td></tr>
 <tr><td>③ タイポグラフィテーブルを作る</td><td><code>FontSpecBaker</code>・<code>FontFaceBuilder</code></td><td class="mono">Bake/FontSpecBaker.cs<br>Bake/FontFaceBuilder.cs</td><td><code>FontFaceData</code></td></tr>
-<tr><td>④ 表現をベイクする</td><td><code>SdfGlyphBaker</code>・<code>SdfAtlasBaker</code>・<code>AtlasLayout</code>・<code>ScanlineRasterizer</code>・<code>DistanceTransform</code></td><td class="mono">Editor/SdfGlyphBaker.cs<br>Bake/SdfAtlasBaker.cs ほか</td><td><code>SdfAtlas</code> → <code>Texture2D</code></td></tr>
+<tr><td>④ グリフ表現をベイクする</td><td><code>SdfGlyphBaker</code>・<code>SdfAtlasBaker</code>・<code>AtlasLayout</code>・<code>ScanlineRasterizer</code>・<code>DistanceTransform</code></td><td class="mono">Editor/SdfGlyphBaker.cs<br>Bake/SdfAtlasBaker.cs ほか</td><td><code>SdfAtlas</code> → <code>Texture2D</code></td></tr>
 <tr><td>⑤ アセットを組む</td><td><code>SdfRepresentation</code>・<code>T2FontAsset</code></td><td class="mono">Runtime/</td><td>メインアセット <code>T2FontAsset</code> とサブアセット</td></tr>
 </tbody></table></div>
 
@@ -527,7 +527,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <tr><td class="mono">loca</td><td>グリフ数 ＋ 1 個のオフセット</td><td>グリフインデックス → glyf の中の範囲</td></tr>
 <tr><td class="mono">glyf</td><td>グリフのデータ</td><td>輪郭</td></tr>
 </tbody></table></div>
-<p>グリフの置換（GSUB）と位置調整（GPOS・kern）は読まない。タイポグラフィテーブルは置換を持たず、送り幅だけで字を並べる。ヒンティング（fpgm・prep・cvt とグリフの中の命令）も読まない。表現はどれも輪郭そのものから作るので要らない。OS/2・vhea・vmtx・name・post も読まない。構築した後は状態を変えないので、ベイカーの並列処理から同時に引いてよい。</p>
+<p>グリフの置換（GSUB）と位置調整（GPOS・kern）は読まない。タイポグラフィテーブルは置換を持たず、送り幅だけで字を並べる。ヒンティング（fpgm・prep・cvt とグリフの中の命令）も読まない。グリフ表現はどれも輪郭そのものから作るので要らない。OS/2・vhea・vmtx・name・post も読まない。構築した後は状態を変えないので、ベイカーの並列処理から同時に引いてよい。</p>
 
 <h3 id="cmap"><span class="num">2.3</span>cmap — 字からグリフインデックスへ</h3>
 <p>cmap は複数の下位表を持ち、各下位表は（platform・encoding）の組で符号化を名乗る。<code>ReadCharacterMap</code> は Unicode を名乗る下位表（platform 0、または platform 3 の encoding 1／10）のうち、format 12（全 Unicode）を最優先し、無ければ format 4（BMP だけ）を選ぶ。ほかの format は読まない。</p>
@@ -809,7 +809,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <tr><td>.notdef</td><td class="num mono">206</td><td class="num mono">0.364</td><td class="num mono">0.033</td><td class="num mono">0</td><td class="num mono">0.298</td><td class="num mono">0.666</td></tr>
 </tbody></table></div>
 <ul>
-<li>インク境界は描くための余白（SDF の距離レンジなど）を含まない。余白は表現の持ち物で、タイポグラフィテーブルに入れると表現を替えたときに値が変わる（README §3.3）。</li>
+<li>インク境界は描くための余白（SDF の距離レンジなど）を含まない。余白はグリフ表現の持ち物で、タイポグラフィテーブルに入れるとグリフ表現を替えたときに値が変わる（README §3.3）。</li>
 <li>インクの無い字（空白）は ink が全部 0 で、送り幅だけを持つ。</li>
 <li>タイポグラフィテーブルへは単精度に丸めた値を入れ、ベイカーは丸める前の倍精度の箱（<code>EmBox</code>）でベイクする。</li>
 </ul>
@@ -830,10 +830,10 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <figcaption><span class="fn">図 7</span>見本のタイポグラフィテーブルのグリフインデックスの並び。番号は字の昇順の添字そのもので、.notdef は末尾（番号＝字の数）。元フォントのグリフインデックス（■ は 2375、あ は 2806）とは別の番号になる。</figcaption>
 </figure>
 
-<p>グリフインデックスはタイポグラフィテーブルの配列の添字そのもので、間接の表は無い。実行時は <code>T2FontAsset.Resolve</code> が字を二分探索してグリフインデックスを引き、収録していない字は .notdef の番号を返す（README §3.1・§3.2）。タイポグラフィテーブルはどの表現でも同じリーダーと同じ手順で作るので、表現を替えても送り幅と行は動かない（README §2.3）。</p>
+<p>グリフインデックスはタイポグラフィテーブルの配列の添字そのもので、間接の表は無い。実行時は <code>T2FontAsset.Resolve</code> が字を二分探索してグリフインデックスを引き、収録していない字は .notdef の番号を返す（README §3.1・§3.2）。タイポグラフィテーブルはどのグリフ表現でも同じリーダーと同じ手順で作るので、グリフ表現を替えても送り幅と行は動かない（README §2.3）。</p>
 
 <h2 id="sdf"><span class="num">6</span>SDF アトラスをベイクする</h2>
-<p>同梱の表現 SDF（signed distance field）では、<code>SdfGlyphBaker</code> が <code>SdfAtlasBaker.Bake(face, settings)</code> を呼ぶ。設定のうちベイク仕様で選べるのは emPx・maxPageSize・cellBox（と、テクスチャの形式）だけで、ほかは全フォントで固定。</p>
+<p>同梱のグリフ表現 SDF（signed distance field）では、<code>SdfGlyphBaker</code> が <code>SdfAtlasBaker.Bake(face, settings)</code> を呼ぶ。設定のうちベイク仕様で選べるのは emPx・maxPageSize・cellBox（と、テクスチャの形式）だけで、ほかは全フォントで固定。</p>
 <div class="tbl"><table>
 <thead><tr><th>設定（<code>SdfBakeSettings</code>）</th><th>見本の値</th><th>出所</th><th>意味</th></tr></thead>
 <tbody>
@@ -2306,7 +2306,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <circle class="xing" cx="185.24" cy="227" r="4.5"/>
 <text class="lbl-s mono strong" x="185.2" y="218" text-anchor="middle">+1</text>
 </svg></div>
-<figcaption><span class="fn">図 12</span>「あ」の輪郭の一部を、スーパーサンプリングの格子（1 マス＝1/8 texel）の 40×24 マスの窓で拡大した実データ。桃の折れ線がフラット化した輪郭、色の付いたマスが塗った画素。黄の線は行 112 の走査線（中心 y＝112.5）で、交点（◯）から右の画素の中心（•）が和 +1 の区間に入るので塗られる。</figcaption>
+<figcaption><span class="fn">図 12</span>「あ」の輪郭の一部を、スーパーサンプリングの格子（1 マス＝1/8 texel）の 40×24 マスの範囲を拡大した実データ。桃の折れ線がフラット化した輪郭、色の付いたマスが塗った画素。黄の線は行 112 の走査線（中心 y＝112.5）で、交点（◯）から右の画素の中心（•）が和 +1 の区間に入るので塗られる。</figcaption>
 </figure>
 <figure class="fig" id="fig-winding">
 <div class="scroll"><svg class="dia " viewBox="0 0 760 320" width="760" height="320" role="img" aria-label="非ゼロ巻き数の数え方と偶奇規則との違い" xmlns="http://www.w3.org/2000/svg">
@@ -2533,7 +2533,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <tr><td>readable</td><td class="mono">false</td><td>実行時に CPU で読まない</td></tr>
 </tbody></table></div>
 <p>8bit の値 v は <code>Color32(v, v, v, v)</code> にして <code>TextureGenerator.GenerateTexture</code> へ渡す（どの成分を取り出しても同じ値になるように）。出来たテクスチャの形式・寸法・ミップの数・Readable が期待と違えばインポートを止める。インポートで黙って圧縮・縮小されると距離の値が壊れるため（README §4.4）。</p>
-<p>ベイカーは <code>SdfRepresentation.Create(shader, effects, emPx, cells, pages)</code> で表現を作って返す。インポーターは、表現の種類の名前と描ける効果が種類の記述子の宣言と一致するかを確かめ、<code>T2FontAsset.Create</code> でタイポグラフィテーブルと表現をまとめて、アセットとして登録する。</p>
+<p>ベイカーは <code>SdfRepresentation.Create(shader, effects, emPx, cells, pages)</code> でグリフ表現を作って返す。インポーターは、グリフ表現の種類の名前と描ける効果が種類の記述子の宣言と一致するかを確かめ、<code>T2FontAsset.Create</code> でタイポグラフィテーブルとグリフ表現をまとめて、アセットとして登録する。</p>
 <div class="tbl"><table>
 <thead><tr><th>識別子（AddObjectToAsset）</th><th>物</th></tr></thead>
 <tbody>
@@ -2543,7 +2543,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 </tbody></table></div>
 <p>インポートが終わると、コンソールに次の形の報告が出る（見本の値・秒数は環境で変わる）。</p>
 <pre><code>[T2Font] Assets/Content/Fonts/mplus-1c-sdf.t2font: 206 字・グリフ 207・sdf・1 ページ（1020×1008・R8）・セル 68×72（インク境界 (-0.01, -0.23, 0.982, 0.842)）・… 秒</code></pre>
-<p>アセットの <code>sourceHash</code> は、タイポグラフィテーブルの生成のバージョン・表現の種類とそのバージョン・ベイク仕様の本文・元フォントのバイト列の SHA-256 で、どの入力から作ったアセットかを追える。ベイク仕様・元フォント・表現のシェーダ・表現の種類のバージョン（カスタム依存 <code>info.someiyoshino.t2font/representation/sdf</code>）のどれかが変われば Unity が再インポートする（README §7.5）。</p>
+<p>アセットの <code>sourceHash</code> は、タイポグラフィテーブルの生成のバージョン・グリフ表現の種類とそのバージョン・ベイク仕様の本文・元フォントのバイト列の SHA-256 で、どの入力から作ったアセットかを追える。ベイク仕様・元フォント・グリフ表現のシェーダ・グリフ表現の種類のバージョン（カスタム依存 <code>info.someiyoshino.t2font/representation/sdf</code>）のどれかが変われば Unity が再インポートする（README §7.5）。</p>
 
 <h2 id="use"><span class="num">8</span>ベイクした結果を描く</h2>
 <p>実行時、<code>SdfRepresentation.WriteGeometry</code> はグリフのセルの plane（em）を quad にし、atlas の矩形をページの寸法で割って UV0.xy にする。シェーダは <code>(tex.r − 0.5) × 2 × _RangeEm</code> で em の距離に戻し、UV0.zw（頂点の em 座標）の微分から 1 表示 px が何 em かを得て、AA の幅を常に画面の 1px にする（README §5 S3）。補間した距離から輪郭を作り直すので、1 枚のアトラス（emPx 48）から小さい字も大きい字も描ける。アセットを読んでから画面に出るまでの流れは 03 章（<a href="03-atlas-to-screen.html">アトラスから画面へ</a>）。</p>
@@ -2555,13 +2555,13 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <h2 id="terms"><span class="num">9</span>用語</h2>
 <p>T2font では、一般的でない訳語を避け、カタカナ英語かカタカナ英語＋「する」を使う（訳語の正典はリポジトリの <code>docs/reference/terminology.md</code>）。本書に出る主な用語と英語の対応は次のとおり。</p>
 <dl class="defs">
-<dt>タイポグラフィテーブル</dt><dd>typography table。縦メトリクス・字・グリフごとの送り幅とインク境界。表現によらず同じ</dd>
-<dt>表現</dt><dd>glyph representation。インクの描き方（SDF・曲線・ビットマップなど）とそのデータ</dd>
+<dt>タイポグラフィテーブル</dt><dd>typography table。縦メトリクス・字・グリフごとの送り幅とインク境界。グリフ表現によらず同じ</dd>
+<dt>グリフ表現</dt><dd>glyph representation。インクの描き方（SDF・曲線・ビットマップなど）とそのデータ</dd>
 <dt>ベイクする・ベイカー</dt><dd>bake・baker。元フォントから生成物を作ること・作るコード</dd>
 <dt>ベイク仕様</dt><dd>bake spec（<code>.t2font</code>）。何をどうベイクするかを書いた JSON</dd>
 <dt>インポートする・インポーター</dt><dd>import・importer。ベイク仕様を Unity のアセットにすること・する <code>T2FontImporter</code></dd>
 <dt>リーダー</dt><dd>reader。TrueType のリーダー <code>TrueTypeFont</code>。読む行為は「読み取り」</dd>
-<dt>アセット・サブアセット</dt><dd>asset・sub-asset。<code>T2FontAsset</code> がメインアセットで、表現とページはそのサブアセット</dd>
+<dt>アセット・サブアセット</dt><dd>asset・sub-asset。<code>T2FontAsset</code> がメインアセットで、グリフ表現とページはそのサブアセット</dd>
 <dt>グリフ・グリフインデックス</dt><dd>glyph・glyph index。T2Font のグリフインデックスはタイポグラフィテーブルの配列の添字（元フォントの番号とは別）</dd>
 <dt>インク・インク部・インク領域</dt><dd>ink。グリフが実際に塗る部分（部分を指すときはインク部、範囲を指すときはインク領域）</dd>
 <dt>インク境界</dt><dd>ink bounds。インクの境界ボックスで、描くための余白を含まない</dd>

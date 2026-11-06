@@ -37,7 +37,7 @@
 
 | ドキュメント | 生成元 |
 |---|---|
-| [`generated/assembly-reference.md`](generated/assembly-reference.md) | `Assets/` 配下の `.asmdef`（生成器は `Tests/AssemblyReferenceDocTests.cs`） |
+| [`generated/assembly-reference.md`](generated/assembly-reference.md) | `Assets/` 配下の `.asmdef`（ジェネレーターは `Tests/AssemblyReferenceDocTests.cs`） |
 
 ## 作業手順（`guides/`）
 

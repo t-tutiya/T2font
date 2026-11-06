@@ -16,7 +16,7 @@ namespace info.someiyoshino.T2Font.Bake
         BC4,
     }
 
-    /// <summary>同梱の SDF の表現の種類（<c>"kind": "sdf"</c>・README §9）。全効果を描ける。</summary>
+    /// <summary>同梱の SDF のグリフ表現の種類（<c>"kind": "sdf"</c>・README §9）。全効果を描ける。</summary>
     public sealed class SdfRepresentationKind : GlyphRepresentationKind
     {
         /// <summary>唯一の実体。</summary>
@@ -95,7 +95,7 @@ namespace info.someiyoshino.T2Font.Bake
         /// <summary>セルのインク境界（null なら依頼した字のインク境界の和）。</summary>
         public EmBox? CellBox { get; }
 
-        /// <summary>生成器の設定（距離レンジは全フォント共通の既定のまま）。</summary>
+        /// <summary>ジェネレーターの設定（距離レンジは全フォント共通の既定のまま）。</summary>
         public SdfBakeSettings ToBakeSettings()
         {
             return new SdfBakeSettings

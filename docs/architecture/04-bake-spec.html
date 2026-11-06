@@ -359,8 +359,8 @@ h2[id], h3[id], h4[id], .case[id] { scroll-margin-top: 20px; }
 <main>
 
 <h2 id="overview"><span class="num">1</span>ベイク仕様とは</h2>
-<p>ベイク仕様（<code>.t2font</code>）は、<b>どの元フォントから・どの字を・どの表現で</b>ベイクするかを書いた JSON のテキストファイル。Unity がこのファイルを見つけると、パッケージのインポーター <code>T2FontImporter</code>（拡張子 <code>t2font</code> の ScriptedImporter）がインポートし、<code>T2FontAsset</code>（メインアセット）と、表現とページのテクスチャ（サブアセット）を作る。</p>
-<p>アセットは生成物で、Unity の Library に作られる。リポジトリに置くのはベイク仕様と元フォントだけ（README §2.4）。実行時に元フォントは要らない——<code>T2FontAsset</code> はタイポグラフィテーブルと表現を自分で持ち、元フォントを参照しない。</p>
+<p>ベイク仕様（<code>.t2font</code>）は、<b>どの元フォントから・どの字を・どのグリフ表現で</b>ベイクするかを書いた JSON のテキストファイル。Unity がこのファイルを見つけると、パッケージのインポーター <code>T2FontImporter</code>（拡張子 <code>t2font</code> の ScriptedImporter）がインポートし、<code>T2FontAsset</code>（メインアセット）と、グリフ表現とページのテクスチャ（サブアセット）を作る。</p>
+<p>アセットは生成物で、Unity の Library に作られる。リポジトリに置くのはベイク仕様と元フォントだけ（README §2.4）。実行時に元フォントは要らない——<code>T2FontAsset</code> はタイポグラフィテーブルとグリフ表現を自分で持ち、元フォントを参照しない。</p>
 
 <figure class="fig" id="fig-overview">
 <div class="scroll"><svg class="dia" viewBox="0 0 760 360" width="760" height="360" role="img" aria-label="元フォントとベイク仕様からインポーターが T2FontAsset を作る流れ" xmlns="http://www.w3.org/2000/svg">
@@ -389,10 +389,10 @@ h2[id], h3[id], h4[id], .case[id] { scroll-margin-top: 20px; }
 <line class="flow" x1="390" y1="156" x2="390" y2="166"/><polygon class="ah-flow" points="390,168 386.4,160 393.6,160"/>
 <rect class="node" x="270" y="170" width="240" height="44" rx="5"/>
 <text class="node-t" x="282" y="190" text-anchor="start">3 タイポグラフィテーブルを作る</text>
-<text class="node-s" x="282" y="207" text-anchor="start">全表現で共通</text>
+<text class="node-s" x="282" y="207" text-anchor="start">全グリフ表現で共通</text>
 <line class="flow" x1="390" y1="214" x2="390" y2="224"/><polygon class="ah-flow" points="390,226 386.4,218 393.6,218"/>
 <rect class="node" x="270" y="228" width="240" height="44" rx="5"/>
-<text class="node-t" x="282" y="248" text-anchor="start">4 表現をベイクする</text>
+<text class="node-t" x="282" y="248" text-anchor="start">4 グリフ表現をベイクする</text>
 <text class="key" x="282" y="265" text-anchor="start">representation</text>
 <line class="flow" x1="390" y1="272" x2="390" y2="282"/><polygon class="ah-flow" points="390,284 386.4,276 393.6,276"/>
 <rect class="node" x="270" y="286" width="240" height="44" rx="5"/>
@@ -408,7 +408,7 @@ h2[id], h3[id], h4[id], .case[id] { scroll-margin-top: 20px; }
 <text class="lbl-s" x="584" y="167" text-anchor="start">タイポグラフィテーブル</text>
 <text class="node-s" x="584" y="183" text-anchor="start">字・送り幅・インク境界</text>
 <rect class="node sub" x="574" y="196" width="158" height="40" rx="4"/>
-<text class="lbl-s" x="584" y="213" text-anchor="start">表現（サブアセット）</text>
+<text class="lbl-s" x="584" y="213" text-anchor="start">グリフ表現（サブアセット）</text>
 <text class="node-s" x="584" y="229" text-anchor="start">名前 (sdf)</text>
 <rect class="node sub" x="574" y="242" width="158" height="40" rx="4"/>
 <text class="lbl-s" x="584" y="259" text-anchor="start">ページ（サブアセット）</text>
@@ -457,7 +457,7 @@ h2[id], h3[id], h4[id], .case[id] { scroll-margin-top: 20px; }
 <li>ファイルを保存して Unity のエディタに戻ると、変更が見つかってインポートが始まる（Preferences の Asset Pipeline &gt; Auto Refresh が有効のとき。無効なら Assets &gt; Refresh）。</li>
 <li>成功すると Console に報告が 1 行出る。見本では次のとおり（最後はベイクにかかった秒）。<pre><code><!-- gen:SAMPLE_LOG -->[T2Font] Assets/Content/Fonts/mplus-1c-sdf.t2font: 206 字・グリフ 207・sdf・1 ページ（1020×1008・R8）・セル 68×72（インク境界 (-0.01, -0.23, 0.982, 0.842)）・<!-- /gen --><var>n.n</var> 秒</code></pre>「字」はタイポグラフィテーブルに入った字の数、「グリフ」はそれに .notdef などの cmap を持たないグリフを足した数。固定の文字セットに元フォントの無い字があれば、末尾に「固定の文字セットのうち元フォントに無い字 <var>N</var> 字」が付く（<a href="#codepoints">§5</a>）。</li>
 <li>失敗すると Console に赤い誤りが出て、アセットは作られない。文面の頭にベイク仕様のパス、ベイク仕様の誤りなら行番号が付く。直し方は <a href="#errors">§8</a>。</li>
-<li>Project ウィンドウでベイク仕様を開く（▶）と、メインアセットの <code>T2FontAsset</code> の下に、表現（<code>名前 (sdf)</code>）とページのテクスチャ（<code>名前 page 0</code> …）が並ぶ。Inspector で中身を見られるが、生成物なので書き換えられない。</li>
+<li>Project ウィンドウでベイク仕様を開く（▶）と、メインアセットの <code>T2FontAsset</code> の下に、グリフ表現（<code>名前 (sdf)</code>）とページのテクスチャ（<code>名前 page 0</code> …）が並ぶ。Inspector で中身を見られるが、生成物なので書き換えられない。</li>
 </ol>
 <p class="note">和文の本文フォント（数千字）は、インポートに数十秒かかる。インポートは Unity の Library に残るので、ベイク仕様と元フォントを変えない限り、エディタを開き直してもやり直さない。</p>
 
@@ -544,10 +544,10 @@ h2[id], h3[id], h4[id], .case[id] { scroll-margin-top: 20px; }
 <li><b>元フォントに無い字は、インポートの失敗</b>（README §2.1）。作者が名指した字を黙って捨てない。文面に無い字が最大 40 字並ぶ。</li>
 <li>空白も字。<code>characters</code> だけで作るフォントで空白を描くなら、<code>" "</code>（U+0020）や全角の空白（U+3000）を書き入れる。収録していない字は実行時に代替グリフになり、誤りが記録される（README §3.1）。</li>
 </ul>
-<p>本文の字だけを収める出荷のフォントは、本文から字を集めて <code>characters</code> に書いたベイク仕様にする。そのような道具は利用側が作り、パッケージは書き出しの API を持つ: <code>FontBakeSpec.WithCharacters</code>（字を指定文字だけに替え、固定の文字セットを外す）と <code>ToJson</code>（全キーを省略せずに書く）。書き出した例は <a href="#ex-export">§7.2</a>。</p>
+<p>本文の字だけを収める出荷のフォントは、本文から字を集めて <code>characters</code> に書いたベイク仕様にする。そのようなツールは利用側が作り、パッケージは書き出しの API を持つ: <code>FontBakeSpec.WithCharacters</code>（字を指定文字だけに替え、固定の文字セットを外す）と <code>ToJson</code>（全キーを省略せずに書く）。書き出した例は <a href="#ex-export">§7.2</a>。</p>
 
 <h3 id="representation"><span class="num">4.5</span>representation</h3>
-<p>グリフの表現の種類と、その種類の設定。<code>kind</code> は必須で、既定の表現は無い。<code>kind</code> 以外のキーは、その種類の記述子が検査する（README §7.4）。パッケージが持つ種類は <code>"sdf"</code> だけで、ほかの種類は別のパッケージが足す。知らない種類は失敗で、文面に使える種類が並ぶ。</p>
+<p>グリフ表現の種類と、その種類の設定。<code>kind</code> は必須で、既定のグリフ表現は無い。<code>kind</code> 以外のキーは、その種類の記述子が検査する（README §7.4）。パッケージが持つ種類は <code>"sdf"</code> だけで、ほかの種類は別のパッケージが足す。知らない種類は失敗で、文面に使える種類が並ぶ。</p>
 <h4><code>"kind": "sdf"</code> の設定</h4>
 <div class="tbl"><table>
 <thead><tr><th>キー</th><th>型</th><th>範囲</th><th>既定</th><th>意味</th></tr></thead>
@@ -816,18 +816,18 @@ h2[id], h3[id], h4[id], .case[id] { scroll-margin-top: 20px; }
 <p class="fix"><b>直し方</b>: その字を持つフォントにするか、<code>characters</code> から外す。「あれば入れる」でよい字なら、<code>characters</code> ではなく文字セットの側で収める（<a href="#codepoints">§5</a>）。</p>
 </div>
 
-<h3 id="err-rep"><span class="num">8.4</span>表現の設定</h3>
-<p>表現の節の誤りは、文面に <code>representation:</code> が付く。</p>
+<h3 id="err-rep"><span class="num">8.4</span>グリフ表現の設定</h3>
+<p>グリフ表現の節の誤りは、文面に <code>representation:</code> が付く。</p>
 <div class="case">
 <p class="what"><b>representation が無い</b></p>
 <pre><code><!-- gen:ERR_NO_REPRESENTATION_IN -->（representation の行を消す）<!-- /gen --></code></pre>
-<pre class="log"><!-- gen:ERR_NO_REPRESENTATION_MSG -->Assets/Content/Fonts/example.t2font: キー "representation" がありません（表現の種類を { "kind": … } で選んでください。種類は sdf）。<!-- /gen --></pre>
-<p class="fix"><b>直し方</b>: <code>"representation": { "kind": "sdf" }</code> を書く。既定の表現は無い。</p>
+<pre class="log"><!-- gen:ERR_NO_REPRESENTATION_MSG -->Assets/Content/Fonts/example.t2font: キー "representation" がありません（グリフ表現の種類を { "kind": … } で選んでください。種類は sdf）。<!-- /gen --></pre>
+<p class="fix"><b>直し方</b>: <code>"representation": { "kind": "sdf" }</code> を書く。既定のグリフ表現は無い。</p>
 </div>
 <div class="case">
-<p class="what"><b>知らない表現の種類</b></p>
+<p class="what"><b>知らないグリフ表現の種類</b></p>
 <pre><code><!-- gen:ERR_KIND_IN -->"representation": { "kind": "msdf" }<!-- /gen --></code></pre>
-<pre class="log"><!-- gen:ERR_KIND_MSG -->Assets/Content/Fonts/example.t2font: 5 行目: representation: 未知の表現の種類 "msdf" です（種類は sdf）。<!-- /gen --></pre>
+<pre class="log"><!-- gen:ERR_KIND_MSG -->Assets/Content/Fonts/example.t2font: 5 行目: representation: 未知のグリフ表現の種類 "msdf" です（種類は sdf）。<!-- /gen --></pre>
 <p class="fix"><b>直し方</b>: 文面に並ぶ種類にする。ほかの種類は、それを足すパッケージを入れると使えるようになる。</p>
 </div>
 <div class="case">
@@ -901,10 +901,10 @@ h2[id], h3[id], h4[id], .case[id] { scroll-margin-top: 20px; }
 <h2 id="reimport"><span class="num">9</span>再インポート</h2>
 <p>Unity は、次のどれかが変わるとベイク仕様を再インポートする（README §7.5）。</p>
 <ul>
-<li>ベイク仕様の本文。<b>コメントだけを直しても再インポートされる</b>——アセットの <code>sourceHash</code> は、生成のバージョンと表現の種類・ベイク仕様の本文・元フォントのバイト列から作る SHA-256 で、本文をそのまま含むため。</li>
+<li>ベイク仕様の本文。<b>コメントだけを直しても再インポートされる</b>——アセットの <code>sourceHash</code> は、生成のバージョンとグリフ表現の種類・ベイク仕様の本文・元フォントのバイト列から作る SHA-256 で、本文をそのまま含むため。</li>
 <li>元フォントのファイル。</li>
-<li>表現のシェーダ（SDF なら <code>T2Font/SDF</code>）。</li>
-<li>パッケージの更新で、タイポグラフィテーブルの生成のバージョンか、表現の種類のバージョンが上がったとき。表現の種類のバージョンは、その種類のフォントだけを再インポートさせる。</li>
+<li>グリフ表現のシェーダ（SDF なら <code>T2Font/SDF</code>）。</li>
+<li>パッケージの更新で、タイポグラフィテーブルの生成のバージョンか、グリフ表現の種類のバージョンが上がったとき。グリフ表現の種類のバージョンは、その種類のフォントだけを再インポートさせる。</li>
 </ul>
 <p>Project ウィンドウでベイク仕様を右クリック → Reimport でも、いつでもやり直せる。</p>
 
@@ -917,7 +917,7 @@ h2[id], h3[id], h4[id], .case[id] { scroll-margin-top: 20px; }
 <dt>プロジェクトパス</dt><dd>Unity のプロジェクトのルートからの相対パス（<code>Assets/…</code>・<code>Packages/…</code>）</dd>
 <dt>文字セット</dt><dd>character set（<code>charsets</code>）。名前の付いた固定の字の集まり。元フォントに無い字は飛ばす上限集合</dd>
 <dt>指定文字</dt><dd>named characters（<code>characters</code>）。ベイク仕様に書いて足す字。元フォントに無ければ失敗</dd>
-<dt>表現の種類</dt><dd><code>representation.kind</code>。同梱は <code>sdf</code></dd>
+<dt>グリフ表現の種類</dt><dd><code>representation.kind</code>。同梱は <code>sdf</code></dd>
 <dt>代替グリフ</dt><dd>.notdef。元フォントの glyph 0。収録していない字の代わりに描く</dd>
 <dt>セル・ページ</dt><dd>アトラスの中の 1 字の区画・アトラスのテクスチャ 1 枚</dd>
 <dt>区・点・水準</dt><dd>JIS X 0208 の 94×94 の表の行・列と、漢字の部分（第 1 水準・第 2 水準）</dd>

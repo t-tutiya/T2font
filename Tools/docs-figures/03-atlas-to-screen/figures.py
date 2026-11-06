@@ -80,7 +80,7 @@ def fig_pipeline():
         s+=text(x0+w-12,y+24,asm,'asm','end')
         return s
     rows=[
-     (62,'T2FontAsset（.t2font をインポートしたアセット）',['face・codepoints・glyphs・notdef ＋ 表現 SdfRepresentation（emPx・cells・pages・shader）'],'Runtime の型','in'),
+     (62,'T2FontAsset（.t2font をインポートしたアセット）',['face・codepoints・glyphs・notdef ＋ グリフ表現 SdfRepresentation（emPx・cells・pages・shader）'],'Runtime の型','in'),
      (44,'ホスト T2FontText.Rebuild（LateUpdate・値が変わったときだけ）',[],'Viewer','host'),
      (61,'① 字をグリフインデックスにする',['TextCodepoints.Read → T2FontAsset.Resolve（二分探索・無い字は notdef）'],'Core＋Runtime','step'),
      (78,'② 字を置き、幾何を書く',['Metrics → ペンを送り幅で進める','RepresentationOf → SdfRepresentation.WriteGeometry → GlyphGeometry（em・UV0）'],'Runtime','step'),

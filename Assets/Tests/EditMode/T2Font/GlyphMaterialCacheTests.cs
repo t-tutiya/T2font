@@ -13,7 +13,7 @@ namespace T2font.EditModeTests
         private static readonly GlyphEdgeStyle Outlined = new GlyphEdgeStyle(0.2f, 0.4f, 0.6f, 1f, 0.01f, 0.02f, 0.05f, 0.03f);
 
         [Test]
-        public void 同じシェーダの表現はエッジスタイルが同じならマテリアルを共有する()
+        public void 同じシェーダのグリフ表現はエッジスタイルが同じならマテリアルを共有する()
         {
             var shader = TestFontAssets.SdfShader();
             var a = FakeGlyphRepresentation.Create(shader, GlyphEffects.All);
@@ -93,7 +93,7 @@ namespace T2font.EditModeTests
             {
                 var material = cache.Get(representation, Outlined);
                 cache.Release(representation);
-                Assert.That(cache.Count, Is.EqualTo(1), "範囲はシェーダなので、表現そのものを渡しても捨てない");
+                Assert.That(cache.Count, Is.EqualTo(1), "範囲はシェーダなので、グリフ表現そのものを渡しても捨てない");
 
                 cache.Release(shader);
                 Assert.That(cache.Count, Is.EqualTo(0));

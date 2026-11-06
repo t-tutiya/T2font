@@ -10,7 +10,7 @@ using NUnit.Framework;
 namespace info.someiyoshino.T2Font.Tests
 {
     /// <summary>
-    /// タイポグラフィテーブルの生成（<see cref="FontFaceBuilder"/>・パッケージの README §3・§7.3）。表現によらない値（送り幅・インク境界・縦メトリクス・
+    /// タイポグラフィテーブルの生成（<see cref="FontFaceBuilder"/>・パッケージの README §3・§7.3）。グリフ表現によらない値（送り幅・インク境界・縦メトリクス・
     /// グリフインデックスの並び・代替グリフ）を、検証用の M+ 1c の表から見る。
     /// </summary>
     [TestFixture]

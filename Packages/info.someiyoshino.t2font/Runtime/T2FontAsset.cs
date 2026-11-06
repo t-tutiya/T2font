@@ -7,11 +7,11 @@ using UnityEngine;
 namespace info.someiyoshino.T2Font
 {
     /// <summary>
-    /// フォントアセット＝タイポグラフィテーブルとグリフの表現（README §1・§3.1）。
+    /// フォントアセット＝タイポグラフィテーブルとグリフ表現（README §1・§3.1）。
     ///
     /// <para>
     /// <b>手で作らない</b>。ベイク仕様（<c>.t2font</c>）をインポーターがインポートし、元フォントからベイクした生成物で、Library に作られる（README §2.4）。
-    /// 表現とそのテクスチャはこのアセットのサブアセットで、ほかのアセットを指すのは表現のシェーダの参照だけ。
+    /// グリフ表現とそのテクスチャはこのアセットのサブアセットで、ほかのアセットを指すのはグリフ表現のシェーダの参照だけ。
     /// </para>
     ///
     /// <para>
@@ -52,18 +52,18 @@ namespace info.someiyoshino.T2Font
         /// <summary>代替グリフ（元フォントの glyph 0）のグリフインデックス。</summary>
         public int Notdef => notdef;
 
-        /// <summary>グリフの表現（README §3.4）。インポートが作ったアセットでは null にならない。</summary>
+        /// <summary>グリフ表現（README §3.4）。インポートが作ったアセットでは null にならない。</summary>
         public GlyphRepresentation Representation =>
-            representation != null ? representation : throw new InvalidOperationException($"フォント '{name}' に表現がありません。再インポートしてください。");
+            representation != null ? representation : throw new InvalidOperationException($"フォント '{name}' にグリフ表現がありません。再インポートしてください。");
 
-        /// <summary>生成元（生成器のバージョン・ベイク仕様・元フォント）のハッシュ。</summary>
+        /// <summary>生成元（ジェネレーターのバージョン・ベイク仕様・元フォント）のハッシュ。</summary>
         public string SourceHash => sourceHash;
 
         /// <summary>
         /// インポーターがベイクした結果からアセットを作る（インポーター専用。既存のアセットを書き換える経路は持たない）。字が昇順でない・グリフインデックスが
-        /// タイポグラフィテーブルの外を指す・表現がタイポグラフィテーブルと合わないときは失敗する（README §2.1）。
+        /// タイポグラフィテーブルの外を指す・グリフ表現がタイポグラフィテーブルと合わないときは失敗する（README §2.1）。
         /// </summary>
-        /// <exception cref="ArgumentException">タイポグラフィテーブルか表現が不正。</exception>
+        /// <exception cref="ArgumentException">タイポグラフィテーブルかグリフ表現が不正。</exception>
         public static T2FontAsset Create(
             FontFaceMetrics face, int[] codepoints, GlyphMetrics[] glyphs, int notdef,
             GlyphRepresentation representation, string sourceHash)
@@ -156,7 +156,7 @@ namespace info.someiyoshino.T2Font
         }
 
         /// <summary>
-        /// グリフ <paramref name="glyph"/> を描く表現（README §3.1）。今の版では常に <see cref="Representation"/>。1 フォントに複数の表現を
+        /// グリフ <paramref name="glyph"/> を描くグリフ表現（README §3.1）。今の版では常に <see cref="Representation"/>。1 フォントに複数のグリフ表現を
         /// 持たせる拡張の口なので、ホストはグリフごとにこれを通して引く。
         /// </summary>
         public GlyphRepresentation RepresentationOf(int glyph)

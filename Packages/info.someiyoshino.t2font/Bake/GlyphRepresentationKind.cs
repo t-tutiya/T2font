@@ -10,15 +10,15 @@ using Newtonsoft.Json.Linq;
 namespace info.someiyoshino.T2Font.Bake
 {
     /// <summary>
-    /// 表現の種類の記述子（README §7.4）。ベイク仕様の <c>representation.kind</c> の名前・描ける効果・設定の検査を持つ。
-    /// UnityEngine を参照しないので、外部 NUnit でベイク仕様とエッジスタイルの照合ができる。表現を足すパッケージは派生を 1 つ置く（README §8）。
+    /// グリフ表現の種類の記述子（README §7.4）。ベイク仕様の <c>representation.kind</c> の名前・描ける効果・設定の検査を持つ。
+    /// UnityEngine を参照しないので、外部 NUnit でベイク仕様とエッジスタイルの照合ができる。グリフ表現を足すパッケージは派生を 1 つ置く（README §8）。
     /// </summary>
     public abstract class GlyphRepresentationKind
     {
         /// <summary>ベイク仕様に書く名前（小文字の英数字。例 <c>sdf</c>）。</summary>
         public abstract string Name { get; }
 
-        /// <summary>この種類の表現が描ける効果（README §6.3）。宣言の正典で、ベイカーが表現のアセットへ写す。</summary>
+        /// <summary>この種類のグリフ表現が描ける効果（README §6.3）。宣言の正典で、ベイカーがグリフ表現のアセットへ写す。</summary>
         public abstract GlyphEffects Effects { get; }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace info.someiyoshino.T2Font.Bake
         public abstract GlyphRepresentationSettings ParseSettings(SpecSection section);
     }
 
-    /// <summary>表現の種類ごとの設定（<see cref="GlyphRepresentationKind.ParseSettings"/> の結果）。</summary>
+    /// <summary>グリフ表現の種類ごとの設定（<see cref="GlyphRepresentationKind.ParseSettings"/> の結果）。</summary>
     public abstract class GlyphRepresentationSettings
     {
         /// <summary>この設定の種類。</summary>
@@ -48,7 +48,7 @@ namespace info.someiyoshino.T2Font.Bake
     }
 
     /// <summary>
-    /// 使う表現の種類の一覧（README §7.4）。利用側のプロジェクトが 1 か所で明示して並べ、ベイク仕様の読み取りとエッジスタイルの照合に渡す。
+    /// 使うグリフ表現の種類の一覧（README §7.4）。利用側のプロジェクトが 1 か所で明示して並べ、ベイク仕様の読み取りとエッジスタイルの照合に渡す。
     /// </summary>
     public sealed class GlyphRepresentationKinds
     {
@@ -69,7 +69,7 @@ namespace info.someiyoshino.T2Font.Bake
                 }
                 if (_kinds.ContainsKey(kind.Name))
                 {
-                    throw new ArgumentException($"表現の種類 \"{kind.Name}\" が 2 つあります。", nameof(kinds));
+                    throw new ArgumentException($"グリフ表現の種類 \"{kind.Name}\" が 2 つあります。", nameof(kinds));
                 }
                 _kinds.Add(kind.Name, kind);
             }
@@ -86,7 +86,7 @@ namespace info.someiyoshino.T2Font.Bake
     }
 
     /// <summary>
-    /// ベイク仕様の JSON のオブジェクト 1 つを読む補助（誤りの文面にファイル名と行を付ける）。ベイク仕様の最上位と、表現の種類の
+    /// ベイク仕様の JSON のオブジェクト 1 つを読む補助（誤りの文面にファイル名と行を付ける）。ベイク仕様の最上位と、グリフ表現の種類の
     /// <c>representation</c> の節の両方がこれで読む——どちらも「未知のキー・型の違う値は失敗」の規則に揃う（README §7.1）。
     /// </summary>
     public sealed class SpecSection

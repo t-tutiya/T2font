@@ -29,8 +29,8 @@ namespace info.someiyoshino.T2Font.Bake
     }
 
     /// <summary>
-    /// ベイク仕様と元フォントからタイポグラフィテーブルを作る（README §7.3 の 2・3）。インポーターと外部 NUnit が同じ手順を通る。表現を作るのは
-    /// 各表現のベイカーの仕事で、ここは全表現で共通の部分だけを持つ。
+    /// ベイク仕様と元フォントからタイポグラフィテーブルを作る（README §7.3 の 2・3）。インポーターと外部 NUnit が同じ手順を通る。グリフ表現を作るのは
+    /// 各グリフ表現のベイカーの仕事で、ここは全グリフ表現で共通の部分だけを持つ。
     /// </summary>
     public static class FontSpecBaker
     {
@@ -66,7 +66,7 @@ namespace info.someiyoshino.T2Font.Bake
         }
 
         /// <summary>
-        /// 生成元（タイポグラフィテーブルの生成のバージョン・表現の種類とそのバージョン・ベイク仕様の本文・元フォントのバイト列）の SHA-256（小文字の 16 進）。
+        /// 生成元（タイポグラフィテーブルの生成のバージョン・グリフ表現の種類とそのバージョン・ベイク仕様の本文・元フォントのバイト列）の SHA-256（小文字の 16 進）。
         /// アセットの <c>sourceHash</c> に入れ、「どの入力から作ったアセットか」を追えるようにする。
         /// </summary>
         public static string SourceHash(string specText, byte[] fontBytes, GlyphRepresentationKind kind)

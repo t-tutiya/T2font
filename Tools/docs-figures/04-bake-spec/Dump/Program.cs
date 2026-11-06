@@ -145,7 +145,7 @@ var sizes = new[] { 24, 32, 48, 64, 96 }.Select(emPx =>
     return new { emPx, cellW = l.CellW, cellH = l.CellH, l.InkedCount, pages = l.Pages.Select(p => new { Width = p.Item1, Height = p.Item2 }).ToArray() };
 }).ToArray();
 
-// 本文から字を決めて書き出す道具の出力の例（開発中のベイク仕様 → FontBakeSpec.WithCharacters → ToJson）。読み戻せることも確かめる。
+// 本文から字を決めて書き出すツールの出力の例（開発中のベイク仕様 → FontBakeSpec.WithCharacters → ToJson）。読み戻せることも確かめる。
 var developing = new FontBakeSpec("Assets/Authoring/Fonts/mplus-1c-regular.ttf", FontCoverage.Corpus, FontCharsetKind.DevelopmentDefault, string.Empty,
     new SdfSpecSettings(48, SdfPageFormat.R8, 8192, new EmBox(-0.05, -0.25, 1.05, 0.9)));
 var exported = developing.WithCharacters(Codepoints("吾輩は猫である。名前はまだ無い。")).ToJson(new[] { "シナリオの本文から書き出したベイク仕様（手で直さない）。" });

@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 namespace info.someiyoshino.T2Font.Conformance
 {
     /// <summary>
-    /// 表現の適合検査（README §10）。表現を足したら、その表現でベイクしたフォントを渡して通す。検査は誤りの文面の一覧を返し、空なら適合
+    /// グリフ表現の適合検査（README §10）。グリフ表現を足したら、そのグリフ表現でベイクしたフォントを渡して通す。検査は誤りの文面の一覧を返し、空なら適合
     /// ——テストの枠組みに依らないので、どのパッケージのテストからも呼べる。
     ///
     /// <list type="bullet">
@@ -91,7 +91,7 @@ namespace info.someiyoshino.T2Font.Conformance
         /// つぶしの字（「■」U+25A0 など）にする——縁取りの幅と AA の幅を、その列の画素を数えて測る。
         /// <list type="bullet">
         /// <item>S2・S6: 面の色は頂点色の rgb、フェードは頂点色の α で、透明にクリアした先へ描いても α は 1 回だけ掛かる。</item>
-        /// <item>S4・S2: 縁取りが宣言どおりの幅で縁の色に塗られ、フェードが縁取りにも同じだけ掛かる（表現が縁取りを描けるときだけ）。</item>
+        /// <item>S4・S2: 縁取りが宣言どおりの幅で縁の色に塗られ、フェードが縁取りにも同じだけ掛かる（グリフ表現が縁取りを描けるときだけ）。</item>
         /// <item>S3: AA の幅が表示サイズによらず画面の約 1px。</item>
         /// <item>S9: <c>_UIVertexColorAlwaysGammaSpace</c> が立てば、Linear のプロジェクトでは頂点色の rgb を linear に直し、立たなければ直さない。</item>
         /// <item>矩形クリップ: <c>UNITY_UI_CLIP_RECT</c> と <c>_ClipRect</c> で矩形の外が透明になる。</item>

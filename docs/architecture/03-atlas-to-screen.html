@@ -413,12 +413,12 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <main>
 
 <h2 id="overview"><span class="num">1</span>全体の流れ</h2>
-<p>パッケージは字を画面へ置く側（ホスト）と、インクの描き方（表現）を分ける（README §4.1）。ホストは表現の具体型を知らず、グリフインデックスを渡して幾何とテクスチャを受け取り、マテリアルを <code>GlyphMaterialCache</code> から引いて、uGUI の <code>CanvasRenderer</code> へ渡すだけ。本書のホストは検証ビュー <code>T2FontText</code> で、文字列 1 本を字ごとに 1 つの <code>CanvasRenderer</code> で描く（README §10）。利用側のテキスト描画も、①〜④を自分のコードで行えば同じ流れになる。</p>
+<p>パッケージは字を画面へ置く側（ホスト）と、インクの描き方（グリフ表現）を分ける（README §4.1）。ホストはグリフ表現の具体型を知らず、グリフインデックスを渡して幾何とテクスチャを受け取り、マテリアルを <code>GlyphMaterialCache</code> から引いて、uGUI の <code>CanvasRenderer</code> へ渡すだけ。本書のホストは検証ビュー <code>T2FontText</code> で、文字列 1 本を字ごとに 1 つの <code>CanvasRenderer</code> で描く（README §10）。利用側のテキスト描画も、①〜④を自分のコードで行えば同じ流れになる。</p>
 
 <figure class="fig" id="fig-pipeline">
 <!-- gen:FIG_PIPELINE -->
 <div class="scroll"><svg class="dia" viewBox="0 0 760 792" width="760" height="792" role="img" aria-label="グリフを描く 7 段の流れ図" xmlns="http://www.w3.org/2000/svg">
-<rect class="node in" x="40" y="16" width="680" height="62" rx="6"/><text class="node-t" x="54" y="40" text-anchor="start">T2FontAsset（.t2font をインポートしたアセット）</text><text class="node-s" x="54" y="60" text-anchor="start">face・codepoints・glyphs・notdef ＋ 表現 SdfRepresentation（emPx・cells・pages・shader）</text><text class="asm" x="708" y="40" text-anchor="end">Runtime の型</text>
+<rect class="node in" x="40" y="16" width="680" height="62" rx="6"/><text class="node-t" x="54" y="40" text-anchor="start">T2FontAsset（.t2font をインポートしたアセット）</text><text class="node-s" x="54" y="60" text-anchor="start">face・codepoints・glyphs・notdef ＋ グリフ表現 SdfRepresentation（emPx・cells・pages・shader）</text><text class="asm" x="708" y="40" text-anchor="end">Runtime の型</text>
 <line class="flow" x1="380" y1="78" x2="380" y2="96"/><polygon class="ah-flow" points="380,98 376.4,90 383.6,90"/>
 <rect class="node host" x="40" y="100" width="680" height="44" rx="6"/><text class="node-t" x="54" y="124" text-anchor="start">ホスト T2FontText.Rebuild（LateUpdate・値が変わったときだけ）</text><text class="asm" x="708" y="124" text-anchor="end">Viewer</text>
 <line class="flow" x1="380" y1="144" x2="380" y2="162"/><polygon class="ah-flow" points="380,164 376.4,156 383.6,156"/>
@@ -437,7 +437,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <rect class="node step" x="40" y="715" width="680" height="61" rx="6"/><text class="node-t" x="54" y="739" text-anchor="start">⑦ 画面へ出す</text><text class="node-s" x="54" y="759" text-anchor="start">レンダーターゲット（バックバッファ・カメラのカラーテクスチャ・RenderTexture）→ Present</text><text class="asm" x="708" y="739" text-anchor="end">URP＋Unity</text>
 </svg></div>
 <!-- /gen -->
-<figcaption><span class="fn">図 1</span>グリフを描く流れ。右肩はその段のコードの持ち主（アセンブリ・uGUI・GPU）。①〜④は値が変わったときだけ C# で回り、⑤〜⑦は毎フレーム回る（<a href="#frame">§10</a>）。表現（ここでは SDF）ごとに替わるのは②の <code>WriteGeometry</code>・③の中身・⑥のシェーダだけ。</figcaption>
+<figcaption><span class="fn">図 1</span>グリフを描く流れ。右肩はその段のコードの持ち主（アセンブリ・uGUI・GPU）。①〜④は値が変わったときだけ C# で回り、⑤〜⑦は毎フレーム回る（<a href="#frame">§10</a>）。グリフ表現（ここでは SDF）ごとに替わるのは②の <code>WriteGeometry</code>・③の中身・⑥のシェーダだけ。</figcaption>
 </figure>
 
 <div class="tbl"><table>
@@ -453,7 +453,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 </tbody></table></div>
 
 <h2 id="load"><span class="num">2</span>アセットを読み込む</h2>
-<p>ロードの単位は <code>T2FontAsset</code>（ScriptableObject）。インポーターがメインアセットとして登録し、表現 <code>SdfRepresentation</code> とページの <code>Texture2D</code> をそのサブアセットにしてある（02 章 §7）。ほかのアセットを指すのは表現のシェーダの参照だけなので、<code>T2FontAsset</code> を参照すれば（シリアライズしたフィールド・<code>AssetDatabase.LoadAssetAtPath</code>・利用側のロードの仕組み）、描くのに要る物が一度にそろう。検証ビューはフィールド <code>font</code> で参照する。</p>
+<p>ロードの単位は <code>T2FontAsset</code>（ScriptableObject）。インポーターがメインアセットとして登録し、グリフ表現 <code>SdfRepresentation</code> とページの <code>Texture2D</code> をそのサブアセットにしてある（02 章 §7）。ほかのアセットを指すのはグリフ表現のシェーダの参照だけなので、<code>T2FontAsset</code> を参照すれば（シリアライズしたフィールド・<code>AssetDatabase.LoadAssetAtPath</code>・利用側のロードの仕組み）、描くのに要る物が一度にそろう。検証ビューはフィールド <code>font</code> で参照する。</p>
 <div class="tbl"><table>
 <thead><tr><th>欄</th><th>型</th><th>見本の値</th><th>描画で使う所</th></tr></thead>
 <tbody>
@@ -574,7 +574,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <text class="lbl-s mono" x="771.02" y="266.48" text-anchor="end">＝ (ascender − descender + lineGap) × 48</text>
 </svg></div>
 <!-- /gen -->
-<figcaption><span class="fn">図 3</span>見本の文字列を 48px で置いた図（実データ。縦横とも 1 表示 px ＝ 2 単位）。送り幅と quad はタイポグラフィテーブルと表現のセルの値そのもの。空白はインクが無いので幾何を書かず、GameObject も作らないが、ペンは進む。</figcaption>
+<figcaption><span class="fn">図 3</span>見本の文字列を 48px で置いた図（実データ。縦横とも 1 表示 px ＝ 2 単位）。送り幅と quad はタイポグラフィテーブルとグリフ表現のセルの値そのもの。空白はインクが無いので幾何を書かず、GameObject も作らないが、ペンは進む。</figcaption>
 </figure>
 <div class="tbl"><table>
 <thead><tr><th>字</th><th class="num">グリフ</th><th class="num">ペンの x（px）</th><th class="num">送り幅（em）</th><th class="num">送り幅（px）</th><th>quad の x の範囲（px）</th></tr></thead>
@@ -597,12 +597,12 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <h2 id="geometry"><span class="num">4</span>幾何を書く</h2>
 
 <h3 id="glyphgeometry"><span class="num">4.1</span>GlyphGeometry</h3>
-<p><code>GlyphGeometry</code> は表現がグリフの幾何を書き込む器で、ホストが 1 つを持ち回し、字ごとに <code>Clear</code> して使う（割り当て無し）。表現が呼ぶのは 2 つだけ。</p>
+<p><code>GlyphGeometry</code> はグリフ表現がグリフの幾何を書き込む器で、ホストが 1 つを持ち回し、字ごとに <code>Clear</code> して使う（割り当て無し）。グリフ表現が呼ぶのは 2 つだけ。</p>
 <ul>
-<li><code>AddVertex(emX, emY, u, v)</code>: 位置 <code>(emX, emY, 0)</code> と UV0 <code>(u, v, emX, emY)</code> を足す。<b>UV0.zw は器が位置から書く</b>ので、表現は zw を書けない。シェーダはその微分から 1 表示 px が何 em かを得る（README §4.2・§5 S3）。</li>
+<li><code>AddVertex(emX, emY, u, v)</code>: 位置 <code>(emX, emY, 0)</code> と UV0 <code>(u, v, emX, emY)</code> を足す。<b>UV0.zw は器が位置から書く</b>ので、グリフ表現は zw を書けない。シェーダはその微分から 1 表示 px が何 em かを得る（README §4.2・§5 S3）。</li>
 <li><code>AddTriangle(a, b, c)</code>: 頂点の番号で三角形を足す。<code>AddQuad</code> は頂点 4 つ（左下・右下・右上・左上）と三角形 2 つ <code>(0, 2, 1)</code>・<code>(0, 3, 2)</code> を書く便宜のメソッド。</li>
 </ul>
-<p>幾何は quad に限らない（README §4.2）。インクの無いグリフでは表現は何も書かず、ホストは <code>VertexCount</code> が 0 ならその字を描かない。</p>
+<p>幾何は quad に限らない（README §4.2）。インクの無いグリフではグリフ表現は何も書かず、ホストは <code>VertexCount</code> が 0 ならその字を描かない。</p>
 
 <h3 id="quad"><span class="num">4.2</span>SDF の quad と UV</h3>
 <p><code>SdfRepresentation.WriteGeometry</code> は、グリフインデックスでセル <code>SdfGlyphCell</code> を引き、<code>AddQuad</code> を 1 回呼ぶ。位置はセルの plane（em）、UV はセルの atlas（ページの px）をページの寸法で割った値。plane と atlas は同じ矩形を 2 つの座標系で書いたもので、<code>atlas ＝ 原点 ＋ plane × emPx</code> が厳密に成り立つ（02 章 §6.2）。だから quad の中で em と UV は同じ一次式で動き、bilinear で読む位置がずれない。</p>
@@ -665,12 +665,12 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <p>検証ビューは字ごとに <code>Mesh</code> を 1 つ作る（<code>HideFlags.DontSave</code>）。<code>Mesh</code> はネイティブのオブジェクトで GC では回収されないので、作り直すときと破棄のときに明示的に捨てる。</p>
 
 <h2 id="material"><span class="num">5</span>マテリアルとテクスチャを用意する</h2>
-<p><code>GlyphMaterialCache</code> は、（表現の <code>MaterialScope</code>・エッジスタイル）を鍵にマテリアルを 1 つずつ作って持つ（README §4.5）。<code>Get</code> は次の順に動く。</p>
+<p><code>GlyphMaterialCache</code> は、（グリフ表現の <code>MaterialScope</code>・エッジスタイル）をキーにマテリアルを 1 つずつ作って持つ（README §4.5）。<code>Get</code> は次の順に動く。</p>
 <ol>
-<li>鍵で引き、あればそれを返す。</li>
-<li><code>Check</code>: エッジスタイルの値が範囲の内か（<code>FindOutOfRange</code>）、使う効果（値が 0 でないキー）を表現が描けるか（<code>style.Uses &amp; ~representation.Effects</code>）。合わなければ例外で止める——黙って近似すると表現によって見た目が変わる（README §6.3）。検証ビューは <code>Rebuild</code> の頭で同じ検査をし、合わなければ <code>LogError</code> を出して何も描かない。</li>
+<li>キーで引き、あればそれを返す。</li>
+<li><code>Check</code>: エッジスタイルの値が範囲の内か（<code>FindOutOfRange</code>）、使う効果（値が 0 でないキー）をグリフ表現が描けるか（<code>style.Uses &amp; ~representation.Effects</code>）。合わなければ例外で止める——黙って近似するとグリフ表現によって見た目が変わる（README §6.3）。検証ビューは <code>Rebuild</code> の頭で同じ検査をし、合わなければ <code>LogError</code> を出して何も描かない。</li>
 <li><code>new Material(representation.Shader)</code>（<code>HideFlags.DontSave</code>）。</li>
-<li><code>representation.ConfigureMaterial(material)</code>: 表現の定数。SDF は <code>_RangeEm</code> に <code>SdfEncoding.RangeEm</code>（0.1875）を入れる。</li>
+<li><code>representation.ConfigureMaterial(material)</code>: グリフ表現の定数。SDF は <code>_RangeEm</code> に <code>SdfEncoding.RangeEm</code>（0.1875）を入れる。</li>
 <li><code>WriteEdgeStyle</code>: エッジスタイルの 5 値を uniform へ 1 対 1 で入れる。縁取りの色は sRGB で持ち、色空間が Linear のプロジェクトでは linear に直して <code>SetVector</code> で入れる（<code>Vector</code> は Unity が色空間の変換をしないので）。α は直さない。</li>
 </ol>
 <div class="tbl"><table>
@@ -693,64 +693,64 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <!-- gen:FIG_SLOTS -->
 <div class="scroll"><svg class="dia" viewBox="0 0 760 380" width="760" height="380" role="img" aria-label="CanvasRenderer の 5 つの口と、T2Font が渡す物・シェーダが受け取る物" xmlns="http://www.w3.org/2000/svg">
 <text class="lbl-b" x="16" y="24" text-anchor="start">T2Font が用意する物</text>
-<text class="lbl-b" x="300" y="24" text-anchor="start">CanvasRenderer</text>
-<text class="lbl-b" x="520" y="24" text-anchor="start">シェーダが受け取る物</text>
-<rect class="node host" x="290" y="34" width="196" height="294" rx="6"/>
-<rect class="node" x="16" y="40" width="246" height="48" rx="5"/>
+<text class="lbl-b" x="336" y="24" text-anchor="start">CanvasRenderer</text>
+<text class="lbl-b" x="556" y="24" text-anchor="start">シェーダが受け取る物</text>
+<rect class="node host" x="326" y="34" width="196" height="294" rx="6"/>
+<rect class="node" x="16" y="40" width="282" height="48" rx="5"/>
 <text class="lbl-s mono" x="26" y="60" text-anchor="start">GlyphGeometry.CopyTo(mesh, 48)</text>
 <text class="lbl-s" x="26" y="77" text-anchor="start">位置は em × 48・UV0 は em のまま</text>
-<rect class="node in" x="300" y="46" width="176" height="36" rx="4"/>
-<text class="lbl-s mono" x="310" y="69" text-anchor="start">SetMesh(mesh)</text>
-<rect class="node sdf" x="520" y="40" width="224" height="48" rx="5"/>
-<text class="lbl-s mono" x="530" y="69" text-anchor="start">POSITION・TEXCOORD0</text>
-<line class="flow" x1="262" y1="64" x2="296" y2="64"/><polygon class="ah-flow" points="298,64 290,60.4 290,67.6"/>
-<line class="flow" x1="478" y1="64" x2="516" y2="64"/><polygon class="ah-flow" points="518,64 510,60.4 510,67.6"/>
-<rect class="node" x="16" y="98" width="246" height="48" rx="5"/>
-<text class="lbl-s mono" x="26" y="118" text-anchor="start">GlyphMaterialCache.Get(表現, スタイル)</text>
+<rect class="node in" x="336" y="46" width="176" height="36" rx="4"/>
+<text class="lbl-s mono" x="346" y="69" text-anchor="start">SetMesh(mesh)</text>
+<rect class="node sdf" x="556" y="40" width="188" height="48" rx="5"/>
+<text class="lbl-s mono" x="566" y="69" text-anchor="start">POSITION・TEXCOORD0</text>
+<line class="flow" x1="298" y1="64" x2="332" y2="64"/><polygon class="ah-flow" points="334,64 326,60.4 326,67.6"/>
+<line class="flow" x1="514" y1="64" x2="552" y2="64"/><polygon class="ah-flow" points="554,64 546,60.4 546,67.6"/>
+<rect class="node" x="16" y="98" width="282" height="48" rx="5"/>
+<text class="lbl-s mono" x="26" y="118" text-anchor="start">GlyphMaterialCache.Get(representation, style)</text>
 <text class="lbl-s" x="26" y="135" text-anchor="start">T2Font/SDF・_RangeEm・エッジスタイル</text>
-<rect class="node in" x="300" y="104" width="176" height="36" rx="4"/>
-<text class="lbl-s mono" x="310" y="127" text-anchor="start">SetMaterial(material, 0)</text>
-<rect class="node sdf" x="520" y="98" width="224" height="48" rx="5"/>
-<text class="lbl-s mono" x="530" y="127" text-anchor="start">_RangeEm・_FaceDilate …</text>
-<line class="flow" x1="262" y1="122" x2="296" y2="122"/><polygon class="ah-flow" points="298,122 290,118.4 290,125.6"/>
-<line class="flow" x1="478" y1="122" x2="516" y2="122"/><polygon class="ah-flow" points="518,122 510,118.4 510,125.6"/>
-<rect class="node" x="16" y="156" width="246" height="48" rx="5"/>
+<rect class="node in" x="336" y="104" width="176" height="36" rx="4"/>
+<text class="lbl-s mono" x="346" y="127" text-anchor="start">SetMaterial(material, 0)</text>
+<rect class="node sdf" x="556" y="98" width="188" height="48" rx="5"/>
+<text class="lbl-s mono" x="566" y="127" text-anchor="start">_RangeEm・_FaceDilate …</text>
+<line class="flow" x1="298" y1="122" x2="332" y2="122"/><polygon class="ah-flow" points="334,122 326,118.4 326,125.6"/>
+<line class="flow" x1="514" y1="122" x2="552" y2="122"/><polygon class="ah-flow" points="554,122 546,118.4 546,125.6"/>
+<rect class="node" x="16" y="156" width="282" height="48" rx="5"/>
 <text class="lbl-s mono" x="26" y="176" text-anchor="start">SdfRepresentation.GetTexture(glyph)</text>
 <text class="lbl-s" x="26" y="193" text-anchor="start">pages[cell.page]</text>
-<rect class="node in" x="300" y="162" width="176" height="36" rx="4"/>
-<text class="lbl-s mono" x="310" y="185" text-anchor="start">SetTexture(page)</text>
-<rect class="node sdf" x="520" y="156" width="224" height="48" rx="5"/>
-<text class="lbl-s mono" x="530" y="185" text-anchor="start">_MainTex</text>
-<line class="flow" x1="262" y1="180" x2="296" y2="180"/><polygon class="ah-flow" points="298,180 290,176.4 290,183.6"/>
-<line class="flow" x1="478" y1="180" x2="516" y2="180"/><polygon class="ah-flow" points="518,180 510,176.4 510,183.6"/>
-<rect class="node" x="16" y="214" width="246" height="48" rx="5"/>
+<rect class="node in" x="336" y="162" width="176" height="36" rx="4"/>
+<text class="lbl-s mono" x="346" y="185" text-anchor="start">SetTexture(page)</text>
+<rect class="node sdf" x="556" y="156" width="188" height="48" rx="5"/>
+<text class="lbl-s mono" x="566" y="185" text-anchor="start">_MainTex</text>
+<line class="flow" x1="298" y1="180" x2="332" y2="180"/><polygon class="ah-flow" points="334,180 326,176.4 326,183.6"/>
+<line class="flow" x1="514" y1="180" x2="552" y2="180"/><polygon class="ah-flow" points="554,180 546,176.4 546,183.6"/>
+<rect class="node" x="16" y="214" width="282" height="48" rx="5"/>
 <text class="lbl-s mono" x="26" y="234" text-anchor="start">faceColor.rgb・alpha</text>
 <text class="lbl-s" x="26" y="251" text-anchor="start">面の色とフェード</text>
-<rect class="node in" x="300" y="220" width="176" height="36" rx="4"/>
-<text class="lbl-s mono" x="310" y="243" text-anchor="start">SetColor(color)</text>
-<rect class="node sdf" x="520" y="214" width="224" height="48" rx="5"/>
-<text class="lbl-s mono" x="530" y="243" text-anchor="start">COLOR（頂点色）</text>
-<line class="flow" x1="262" y1="238" x2="296" y2="238"/><polygon class="ah-flow" points="298,238 290,234.4 290,241.6"/>
-<line class="flow" x1="478" y1="238" x2="516" y2="238"/><polygon class="ah-flow" points="518,238 510,234.4 510,241.6"/>
-<rect class="node" x="16" y="272" width="246" height="48" rx="5"/>
+<rect class="node in" x="336" y="220" width="176" height="36" rx="4"/>
+<text class="lbl-s mono" x="346" y="243" text-anchor="start">SetColor(color)</text>
+<rect class="node sdf" x="556" y="214" width="188" height="48" rx="5"/>
+<text class="lbl-s mono" x="566" y="243" text-anchor="start">COLOR（頂点色）</text>
+<line class="flow" x1="298" y1="238" x2="332" y2="238"/><polygon class="ah-flow" points="334,238 326,234.4 326,241.6"/>
+<line class="flow" x1="514" y1="238" x2="552" y2="238"/><polygon class="ah-flow" points="554,238 546,234.4 546,241.6"/>
+<rect class="node" x="16" y="272" width="282" height="48" rx="5"/>
 <text class="lbl-s mono" x="26" y="292" text-anchor="start">RectTransform の矩形</text>
 <text class="lbl-s" x="26" y="309" text-anchor="start">ルートの Canvas の空間</text>
-<rect class="node in" x="300" y="278" width="176" height="36" rx="4"/>
-<text class="lbl-s mono" x="310" y="301" text-anchor="start">EnableRectClipping(rect)</text>
-<rect class="node sdf" x="520" y="272" width="224" height="48" rx="5"/>
-<text class="lbl-s mono" x="530" y="301" text-anchor="start">UNITY_UI_CLIP_RECT・_ClipRect</text>
-<line class="flow" x1="262" y1="296" x2="296" y2="296"/><polygon class="ah-flow" points="298,296 290,292.4 290,299.6"/>
-<line class="flow" x1="478" y1="296" x2="516" y2="296"/><polygon class="ah-flow" points="518,296 510,292.4 510,299.6"/>
-<text class="lbl-s" x="300" y="352" text-anchor="start">materialCount = 1 を先に</text>
-<text class="lbl-s" x="300" y="368" text-anchor="start">SetMesh は最後に呼ぶ</text>
-<text class="lbl-s" x="520" y="352" text-anchor="start">テクスチャとクリップは</text>
-<text class="lbl-s" x="520" y="368" text-anchor="start">Canvas がバッチへ渡す</text>
+<rect class="node in" x="336" y="278" width="176" height="36" rx="4"/>
+<text class="lbl-s mono" x="346" y="301" text-anchor="start">EnableRectClipping(rect)</text>
+<rect class="node sdf" x="556" y="272" width="188" height="48" rx="5"/>
+<text class="lbl-s mono" x="566" y="301" text-anchor="start">UNITY_UI_CLIP_RECT・_ClipRect</text>
+<line class="flow" x1="298" y1="296" x2="332" y2="296"/><polygon class="ah-flow" points="334,296 326,292.4 326,299.6"/>
+<line class="flow" x1="514" y1="296" x2="552" y2="296"/><polygon class="ah-flow" points="554,296 546,292.4 546,299.6"/>
+<text class="lbl-s" x="336" y="352" text-anchor="start">materialCount = 1 を先に</text>
+<text class="lbl-s" x="336" y="368" text-anchor="start">SetMesh は最後に呼ぶ</text>
+<text class="lbl-s" x="556" y="352" text-anchor="start">テクスチャとクリップは</text>
+<text class="lbl-s" x="556" y="368" text-anchor="start">Canvas がバッチへ渡す</text>
 </svg></div>
 <!-- /gen -->
 <figcaption><span class="fn">図 5</span>字 1 つの <code>CanvasRenderer</code> に渡す物（上から呼ぶ順）。<code>materialCount</code> を先に入れないと <code>SetMaterial</code> が効かず何も描かれない。<code>SetMesh</code> は中身を Canvas 側へ写すので、詰め終えてから最後に呼ぶ。</figcaption>
 </figure>
 <ul>
-<li><b>色</b>: <code>SetColor(faceColor.rgb, alpha)</code>。Canvas が頂点色として渡し（色空間の扱いは <a href="#colorspace">§9.2</a>）、シェーダは rgb を面の色、α をフェードとして最後に 1 回だけ掛ける（README §5 S2）。<code>CanvasRenderer</code> の色はバッチの鍵に入らないので、色違いの字もまとまる。</li>
+<li><b>色</b>: <code>SetColor(faceColor.rgb, alpha)</code>。Canvas が頂点色として渡し（色空間の扱いは <a href="#colorspace">§9.2</a>）、シェーダは rgb を面の色、α をフェードとして最後に 1 回だけ掛ける（README §5 S2）。<code>CanvasRenderer</code> の色はバッチのキーに入らないので、色違いの字もまとまる。</li>
 <li><b>クリップ</b>: <code>ClipToRect</code> のとき、自分の矩形を最上位の Canvas の空間へ写して <code>EnableRectClipping(rect)</code> に渡す（<code>RectMask2D</code> と同じ取り方）。</li>
 </ul>
 <p>見本の文字列では、空白を除く 9 字ぶん、GameObject・<code>CanvasRenderer</code>・<code>Mesh</code> が 9 組できる。ここまでが C# の仕事で、値が変わらない限り次のフレームからは何もしない（<a href="#frame">§10</a>）。</p>

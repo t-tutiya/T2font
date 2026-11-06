@@ -12,7 +12,7 @@ namespace info.someiyoshino.T2Font.Bake
     /// 読むのはタイポグラフィテーブルと輪郭に要る表だけ——<c>head</c>（em の単位・<c>loca</c> の形式）・<c>hhea</c>（縦メトリクス）・
     /// <c>maxp</c>（グリフ数）・<c>hmtx</c>（送り幅）・<c>cmap</c>（字 → グリフインデックス）・<c>loca</c>／<c>glyf</c>（輪郭）。
     /// グリフの置換（<c>GSUB</c>）・位置調整（<c>GPOS</c>）・ヒンティング命令は読まない（タイポグラフィテーブルは置換を持たず、
-    /// 表現はどれも輪郭そのものから作るのでヒンティングが要らない）。全表現が同じリーダーを通る（README §2.3）。
+    /// グリフ表現はどれも輪郭そのものから作るのでヒンティングが要らない）。全グリフ表現が同じリーダーを通る（README §2.3）。
     /// </para>
     ///
     /// <para>
@@ -21,7 +21,7 @@ namespace info.someiyoshino.T2Font.Bake
     /// </para>
     ///
     /// <para>
-    /// 構築後は状態を変えないので、生成器の並列処理から同時に引いてよい。
+    /// 構築後は状態を変えないので、ジェネレーターの並列処理から同時に引いてよい。
     /// </para>
     /// </summary>
     public sealed class TrueTypeFont

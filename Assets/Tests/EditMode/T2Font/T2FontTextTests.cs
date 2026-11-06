@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace T2font.EditModeTests
 {
-    /// <summary>検証ビュー（パッケージの README §10）が、字ごとに 1 つの CanvasRenderer を作って表現を貼ること。</summary>
+    /// <summary>検証ビュー（パッケージの README §10）が、字ごとに 1 つの CanvasRenderer を作ってグリフ表現を貼ること。</summary>
     [TestFixture]
     public class T2FontTextTests
     {

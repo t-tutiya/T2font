@@ -90,7 +90,7 @@ namespace info.someiyoshino.T2Font.Tests
         [TestCase(@"{ " + Base + " }", "キー \"representation\" がありません")]
         [TestCase(@"{ " + Base + @", ""representation"": ""sdf"" }", "representation は { \"kind\"")]
         [TestCase(@"{ " + Base + @", ""representation"": { } }", "representation: キー \"kind\" がありません")]
-        [TestCase(@"{ " + Base + @", ""representation"": { ""kind"": ""msdf"" } }", "未知の表現の種類 \"msdf\" です（種類は sdf）")]
+        [TestCase(@"{ " + Base + @", ""representation"": { ""kind"": ""msdf"" } }", "未知のグリフ表現の種類 \"msdf\" です（種類は sdf）")]
         [TestCase(@"{ " + Base + @", ""representation"": { ""kind"": ""sdf"", ""emPX"": 48 } }", "representation: 未知のキー \"emPX\"")]
         [TestCase(@"{ " + Base + @", ""representation"": { ""kind"": ""sdf"", ""emPx"": ""48"" } }", "emPx は数")]
         [TestCase(@"{ " + Base + @", ""representation"": { ""kind"": ""sdf"", ""emPx"": 4 } }", "emPx は 8〜256")]
@@ -206,7 +206,7 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void 同じ名前の表現の種類は並べられない()
+        public void 同じ名前のグリフ表現の種類は並べられない()
         {
             Assert.Throws<ArgumentException>(() => _ = new GlyphRepresentationKinds(new GlyphRepresentationKind[] { SdfRepresentationKind.Instance, SdfRepresentationKind.Instance }));
         }

@@ -9,7 +9,7 @@ using System.Text;
 namespace info.someiyoshino.T2Font.Bake
 {
     /// <summary>
-    /// タイポグラフィテーブルの生成結果（README §3・§7.3）。全表現が同じものを受け取り、表現はこれに描くためのデータを足す。
+    /// タイポグラフィテーブルの生成結果（README §3・§7.3）。全グリフ表現が同じものを受け取り、グリフ表現はこれに描くためのデータを足す。
     ///
     /// <para>
     /// グリフインデックスの並びは <c>T2FontAsset</c> と同じ: <c>0 ≤ i &lt; Codepoints.Length</c> は字 <c>Codepoints[i]</c> のグリフ（昇順）、
@@ -112,7 +112,7 @@ namespace info.someiyoshino.T2Font.Bake
     }
 
     /// <summary>
-    /// TrueType フォントからタイポグラフィテーブルを作る（README §7.3 の 3）。表現によらない手順で、送り幅とインク境界は表現を替えても同じになる
+    /// TrueType フォントからタイポグラフィテーブルを作る（README §7.3 の 3）。グリフ表現によらない手順で、送り幅とインク境界はグリフ表現を替えても同じになる
     /// （README §2.3）。UnityEngine を参照しない純 C# で、Unity のインポーターと外部 NUnit の両方から同じコードを呼ぶ。
     /// </summary>
     public static class FontFaceBuilder
