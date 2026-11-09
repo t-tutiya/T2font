@@ -5,6 +5,26 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-09
+
+### Added
+
+- `T2FontImporter.RepresentationKinds()`（README §7.4）: インポーターが受け付けるグリフ表現の種類の一覧。利用側のツールがベイク仕様を読むときに `FontBakeSpec.Parse` へ渡す。
+- `JisX0208Table` を公開にした（README §7.2）: 固定の文字セットの元データの表。利用側が文字セットの名前に無い組み合わせ（非漢字だけなど）を組み立てる。
+- `GlyphOutline.EnumerateSegments` と `OutlineSegment`（README §8）: 輪郭を直線と 2 次ベジエの区間に分けて返す。曲線をそのまま使うグリフ表現のベイカーが使う。
+  `Flatten` は同じ区間をフラット化する（出力は変わらない）。
+- `GlyphBakeContext.AddDataTexture` と `GlyphDataPage`（README §4.4）: データテクスチャ（R8 か RGBA8）を非圧縮・point・linear・ミップ無し・clamp・
+  非 Readable で作って検査し、サブアセットとして渡す。グリフ表現のベイカーがテクスチャの形式を自分で検査しなくてよくなる。
+
+### Changed
+
+- `SpecSection`（README §8）: JSON の読み手の型を公開しないようにした。コンストラクタ・`Json`・`Fail(JToken?, string)` は内部へ下げ、
+  グリフ表現の種類は型付きの読み口と、キー名で値を名指す `Fail(string key, string message)` を使う。**グリフ表現を足すパッケージは
+  `section.Fail(section.Json["キー"], …)` を `section.Fail("キー", …)` へ書き換える**。
+- README §11: 正本は利用側へ写したフォルダに置いて直接直し、版は公開し直すときに上げる運用にした。公開の版は `v0.3.0`。
+- 用語をさらに揃えた（README・コメント・ベイク仕様の読み取りとインポートの誤りの文面・例外の文面）。主な言い換え: 表現→グリフ表現・
+  生成器→ジェネレーター・鍵→キー・道具→ツール・窓→範囲。API とベイクの出力は変わらない。
+
 ## [0.2.0] - 2026-10-29
 
 ### Added

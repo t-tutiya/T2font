@@ -13,6 +13,9 @@
 
 ## 本プロジェクトでの上書き
 
+- **パッケージ（`Packages/info.someiyoshino.t2font/`・`Packages/info.someiyoshino.rinkaku/`）は別の開発環境が正本で、版ごとに本リポジトリへ写して
+  公開する（D-T2FREPUB）**。本リポジトリではパッケージの中を直さない（直すと次に写すときに失われる）。写した版で検証のプロジェクト
+  （`Assets/`・`Tests/`）のコンパイルとテストが通るように合わせる。
 - **working-agreement の「コードコメント規約」の出自参照は、パッケージ `Packages/info.someiyoshino.t2font/` の中では「パッケージの README の節」
   （例: `（README §5）`）とする**。決定 ID と `docs/` のパスはパッケージの中に書かない——パッケージは他のリポジトリへフォルダごと写され、
   写した先に本リポジトリの文書は無い（D-T2FONT）。パッケージの外（`Assets/`・`Tests/`・`docs/`）は working-agreement のまま。
@@ -36,9 +39,10 @@
 
 # プロジェクト概要
 
-Unity 6 プロジェクト「T2font」。成果物は **Unity uGUI の文字描画のためのパッケージ T2Font**（`Packages/info.someiyoshino.t2font/`・MIT）で、
+Unity 6 プロジェクト「T2font」。成果物は **Unity uGUI の文字描画のためのパッケージ T2Font**（`Packages/info.someiyoshino.t2font/`・MIT）と、
+その上のグリフ表現 **Rinkaku**（`Packages/info.someiyoshino.rinkaku/`・MIT・v0.3.0 から）で、
 フォントアセットを「タイポグラフィテーブル」（送り幅・インク境界など、描き方によらず同じもの）と差し替えられる「グリフの表現」（SDF など）に分け、表現を足しても
-字を置く側のコードが変わらない API を提供する。本リポジトリはパッケージの正本と、それを検証する Unity プロジェクトを兼ねる（D-T2FONT）。
+字を置く側のコードが変わらない API を提供する。本リポジトリはパッケージの公開の写しと、それを検証する Unity プロジェクトを兼ねる（D-T2FONT・D-T2FREPUB）。
 契約の正典はパッケージの README。
 
 ## ビルド・実行

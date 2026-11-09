@@ -11,7 +11,7 @@ using UnityEngine;
 namespace info.someiyoshino.T2Font.Editor
 {
     /// <summary>
-    /// 同梱の SDF の表現のベイカー（README §9）。<see cref="SdfAtlasBaker"/> がベイクした距離のページをテクスチャにし、
+    /// 同梱の SDF のグリフ表現のベイカー（README §9）。<see cref="SdfAtlasBaker"/> がベイクした距離のページをテクスチャにし、
     /// <see cref="SdfRepresentation"/> を作る。
     /// </summary>
     public sealed class SdfGlyphBaker : GlyphRepresentationBaker

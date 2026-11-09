@@ -11,7 +11,7 @@ namespace info.someiyoshino.T2Font.Bake
     /// 写して作った。第 1 水準＝16〜47 区（2,965 字）・第 2 水準＝48〜84 区（3,390 字）・非漢字＝1〜8 区（524 字）。
     /// </para>
     /// </summary>
-    internal static class JisX0208Table
+    public static class JisX0208Table
     {
         /// <summary>1〜8 区の非漢字（記号・英数・かな・ギリシャ・キリル・罫線）524 字。</summary>
         public const string NonKanji =

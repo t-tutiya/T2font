@@ -3,8 +3,8 @@
 namespace info.someiyoshino.T2Font.Bake
 {
     /// <summary>
-    /// 生成器が作るテクスチャのページ 1 枚（単チャネル 8bit・行優先・行 0 が下端＝Unity のテクスチャと同じ並び）。
-    /// 何を符号化するかは表現が決める（SDF は距離・README §9）。
+    /// ジェネレーターが作るテクスチャのページ 1 枚（単チャネル 8bit・行優先・行 0 が下端＝Unity のテクスチャと同じ並び）。
+    /// 何を符号化するかはグリフ表現が決める（SDF は距離・README §9）。
     /// </summary>
     public sealed class FontAtlasPage
     {

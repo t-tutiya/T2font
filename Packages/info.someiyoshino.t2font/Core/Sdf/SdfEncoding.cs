@@ -3,11 +3,11 @@
 namespace info.someiyoshino.T2Font
 {
     /// <summary>
-    /// 同梱の SDF の表現の、全フォントに共通の定数（README §9）。生成器とランタイムとシェーダが同じ値を使う。
+    /// 同梱の SDF のグリフ表現の、全フォントに共通の定数（README §9）。ジェネレーターとランタイムとシェーダが同じ値を使う。
     /// </summary>
     public static class SdfEncoding
     {
-        /// <summary>ベイク仕様の <c>representation.kind</c> の綴り（種類の記述子と表現のアセットが同じ値を名乗る）。</summary>
+        /// <summary>ベイク仕様の <c>representation.kind</c> の綴り（種類の記述子とグリフ表現のアセットが同じ値を名乗る）。</summary>
         public const string KindName = "sdf";
 
         /// <summary>

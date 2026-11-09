@@ -1,0 +1,22 @@
+{
+  "title": "T2Font and Rinkaku: glyph representation packages for Unity uGUI text",
+  "upload_type": "software",
+  "description": "<p><strong>T2Font</strong> is a Unity package for uGUI text that splits a font asset into a typography table and a pluggable glyph representation (SDF included), with a pure C# TrueType reader and baker, a .t2font importer, a viewer and a conformance suite.</p><p><strong>Rinkaku</strong> is a glyph representation for T2Font that keeps TrueType outlines as quadratic B&eacute;zier segments and draws them by exact signed distance through a per-texel index of the nearest segments, so SDF-style edge effects (dilation, softness, outlines) work while edges stay sharp at any size. It is designed for CJK text in games.</p>",
+  "creators": [
+    {
+      "name": "Tsuchiya, Tsukasa"
+    }
+  ],
+  "license": "MIT",
+  "access_right": "open",
+  "keywords": [
+    "font rendering",
+    "glyph",
+    "signed distance field",
+    "quadratic Bezier",
+    "CJK",
+    "Unity",
+    "uGUI",
+    "GPU"
+  ]
+}

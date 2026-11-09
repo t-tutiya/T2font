@@ -6,6 +6,10 @@
 
 | アセンブリ | 置き場 | 参照 | UnityEngine | プラットフォーム | 条件シンボル |
 |---|---|---|---|---|---|
+| `Someiyoshino.Rinkaku` | `Packages/info.someiyoshino.rinkaku/Runtime/` | `Someiyoshino.T2Font.Core`・`Someiyoshino.T2Font`・`Someiyoshino.Rinkaku.Core` | 使う | 全て | — |
+| `Someiyoshino.Rinkaku.Bake` | `Packages/info.someiyoshino.rinkaku/Bake/` | `Someiyoshino.T2Font.Core`・`Someiyoshino.T2Font.Bake`・`Someiyoshino.Rinkaku.Core` | 使わない | `Editor` | — |
+| `Someiyoshino.Rinkaku.Core` | `Packages/info.someiyoshino.rinkaku/Core/` | `Someiyoshino.T2Font.Core` | 使わない | 全て | — |
+| `Someiyoshino.Rinkaku.Editor` | `Packages/info.someiyoshino.rinkaku/Editor/` | `Someiyoshino.T2Font.Core`・`Someiyoshino.T2Font`・`Someiyoshino.T2Font.Bake`・`Someiyoshino.T2Font.Editor`・`Someiyoshino.Rinkaku.Core`・`Someiyoshino.Rinkaku.Bake`・`Someiyoshino.Rinkaku` | 使う | `Editor` | — |
 | `Someiyoshino.T2Font` | `Packages/info.someiyoshino.t2font/Runtime/` | `Someiyoshino.T2Font.Core` | 使う | 全て | — |
 | `Someiyoshino.T2Font.Bake` | `Packages/info.someiyoshino.t2font/Bake/` | `Someiyoshino.T2Font.Core`・`Newtonsoft.Json.dll` | 使わない | `Editor` | — |
 | `Someiyoshino.T2Font.Conformance` | `Packages/info.someiyoshino.t2font/Conformance/` | `Someiyoshino.T2Font.Core`・`Someiyoshino.T2Font` | 使う | `Editor` | — |

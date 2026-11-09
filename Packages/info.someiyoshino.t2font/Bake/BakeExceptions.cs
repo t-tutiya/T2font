@@ -4,7 +4,7 @@ using System;
 
 namespace info.someiyoshino.T2Font.Bake
 {
-    /// <summary>生成器が続行できない誤り（はみ出す字・ページより大きいセルなど）。理由は文面が名指す（README §2.1）。</summary>
+    /// <summary>ジェネレーターが続行できない誤り（はみ出す字・ページより大きいセルなど）。理由は文面が名指す（README §2.1）。</summary>
     public sealed class FontBakeException : Exception
     {
         public FontBakeException(string message)
