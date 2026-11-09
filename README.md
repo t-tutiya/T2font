@@ -1,5 +1,7 @@
 # T2Font
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24076087.svg)](https://doi.org/10.5281/zenodo.24076087)
+
 **Glyph representation API for Unity uGUI text** — a font asset split into a typography table and a pluggable glyph
 representation (SDF included), with a pure C# TrueType reader and baker, a `.t2font` importer, a viewer and a conformance suite.
 The package lives in [`Packages/info.someiyoshino.t2font/`](Packages/info.someiyoshino.t2font/README.md). License: [MIT](LICENSE).
@@ -25,6 +27,17 @@ https://github.com/t-tutiya/T2font.git?path=/Packages/info.someiyoshino.rinkaku#
 
 `#` の後ろは版のタグ。Rinkaku は T2Font に依存するので、T2Font を先に同じタグで入れる。パッケージのフォルダを利用側の `Packages/` へ写して
 使うこともできる（使い分けは T2Font の README §11・Rinkaku の README §11）。
+
+## Citation / 引用
+
+v0.3.0 (T2Font 0.3.0 and Rinkaku 0.1.0) is archived on Zenodo with the DOI
+[10.5281/zenodo.24076087](https://doi.org/10.5281/zenodo.24076087). Each release gets its own DOI. /
+v0.3.0（T2Font 0.3.0 と Rinkaku 0.1.0）は Zenodo に記録し、DOI は上のとおり。DOI は版ごとに付く。
+
+```
+Tsuchiya, T. (2026). T2Font and Rinkaku: glyph representation packages for Unity uGUI text (v0.3.0) [Computer software].
+Zenodo. https://doi.org/10.5281/zenodo.24076087
+```
 
 ## 開発
 
