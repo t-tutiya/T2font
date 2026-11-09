@@ -1,0 +1,16 @@
+{
+    "name": "Someiyoshino.Rinkaku.Core",
+    "rootNamespace": "info.someiyoshino.Rinkaku",
+    "references": [
+        "Someiyoshino.T2Font.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

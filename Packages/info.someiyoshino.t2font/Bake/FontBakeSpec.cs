@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 namespace info.someiyoshino.T2Font.Bake
 {
     /// <summary>
-    /// フォントが本文をどこまで覆うべきか（README §7.1）。検査の厳しさを決めるのは利用側で、生成器はこの値で振る舞いを変えない。
+    /// フォントが本文をどこまで覆うべきか（README §7.1）。検査の厳しさを決めるのは利用側で、ジェネレーターはこの値で振る舞いを変えない。
     /// </summary>
     public enum FontCoverage
     {
@@ -22,12 +22,12 @@ namespace info.someiyoshino.T2Font.Bake
     }
 
     /// <summary>
-    /// フォントのベイク仕様（<c>*.t2font</c>・JSON・README §7）。共通のキー（元フォント・網羅の種類・文字セット）と、表現の種類ごとの
+    /// フォントのベイク仕様（<c>*.t2font</c>・JSON・README §7）。共通のキー（元フォント・網羅の種類・文字セット）と、グリフ表現の種類ごとの
     /// <c>representation</c> の節を持つ。
     ///
     /// <para>
     /// <b>未知のキー・重複したキー・型の違う値は失敗</b>にする——綴りの誤りを既定値で黙って読むと、作者の意図と違うフォントが
-    /// 黙ってできる（README §2.1）。表現の種類は必須で、既定の表現を黙って選ばない。
+    /// 黙ってできる（README §2.1）。グリフ表現の種類は必須で、既定のグリフ表現を黙って選ばない。
     /// </para>
     /// </summary>
     public sealed class FontBakeSpec
@@ -60,14 +60,14 @@ namespace info.someiyoshino.T2Font.Bake
         /// <summary>指定の追加文字（元フォントに無ければ失敗する）。</summary>
         public string Characters { get; }
 
-        /// <summary>表現の種類と、その種類の設定。</summary>
+        /// <summary>グリフ表現の種類と、その種類の設定。</summary>
         public GlyphRepresentationSettings Representation { get; }
 
         /// <summary>
         /// ベイク仕様を読む。<paramref name="sourceName"/> は誤りの文面に出す名前（ファイルのパス）、<paramref name="kinds"/> は
-        /// 使える表現の種類の一覧（README §7.4）。
+        /// 使えるグリフ表現の種類の一覧（README §7.4）。
         /// </summary>
-        /// <exception cref="FontSpecException">JSON の構文・未知のキー・型・値の範囲・未知の表現の種類の誤り。</exception>
+        /// <exception cref="FontSpecException">JSON の構文・未知のキー・型・値の範囲・未知のグリフ表現の種類の誤り。</exception>
         public static FontBakeSpec Parse(string text, string sourceName, GlyphRepresentationKinds kinds)
         {
             if (text == null)
@@ -90,7 +90,7 @@ namespace info.someiyoshino.T2Font.Bake
             if (!(source.StartsWith("Assets/", StringComparison.Ordinal) || source.StartsWith("Packages/", StringComparison.Ordinal))
                 || source.IndexOf('\\') >= 0)
             {
-                throw root.Fail(root.Json["source"], $"source はプロジェクトパス（Assets/ か Packages/ で始まり、区切りは /）で書いてください: \"{source}\"");
+                throw root.FailAt(root.Json["source"], $"source はプロジェクトパス（Assets/ か Packages/ で始まり、区切りは /）で書いてください: \"{source}\"");
             }
 
             var coverageText = root.RequireString("coverage");
@@ -104,7 +104,7 @@ namespace info.someiyoshino.T2Font.Bake
                     coverage = FontCoverage.Fixed;
                     break;
                 default:
-                    throw root.Fail(root.Json["coverage"], $"coverage は \"corpus\" か \"fixed\" です: \"{coverageText}\"");
+                    throw root.FailAt(root.Json["coverage"], $"coverage は \"corpus\" か \"fixed\" です: \"{coverageText}\"");
             }
 
             var charsets = FontCharsetKind.None;
@@ -112,7 +112,7 @@ namespace info.someiyoshino.T2Font.Bake
             {
                 if (!(charsetsToken is JArray array))
                 {
-                    throw root.Fail(charsetsToken, "charsets は文字セットの名前の配列にしてください。");
+                    throw root.FailAt(charsetsToken, "charsets は文字セットの名前の配列にしてください。");
                 }
                 foreach (var item in array)
                 {
@@ -120,7 +120,7 @@ namespace info.someiyoshino.T2Font.Bake
                     var kind = name == null ? (FontCharsetKind?)null : CharsetByName(name);
                     if (kind == null)
                     {
-                        throw root.Fail(item, $"未知の文字セット {item.ToString(Formatting.None)} です（名前は {string.Join("・", KnownCharsets())}）。");
+                        throw root.FailAt(item, $"未知の文字セット {item.ToString(Formatting.None)} です（名前は {string.Join("・", KnownCharsets())}）。");
                     }
                     charsets |= kind.Value;
                 }
@@ -133,12 +133,12 @@ namespace info.someiyoshino.T2Font.Bake
             }
             catch (ArgumentException e)
             {
-                throw root.Fail(root.Json["characters"], "characters に不正な字があります: " + e.Message);
+                throw root.FailAt(root.Json["characters"], "characters に不正な字があります: " + e.Message);
             }
 
             if (charsets == FontCharsetKind.None && characters.Length == 0)
             {
-                throw root.Fail(null, "charsets か characters のどちらかで字を指定してください（字の無いフォントは作れません）。");
+                throw root.FailAt(null, "charsets か characters のどちらかで字を指定してください（字の無いフォントは作れません）。");
             }
 
             return new FontBakeSpec(source, coverage, charsets, characters, ParseRepresentation(root, kinds));
@@ -161,7 +161,7 @@ namespace info.someiyoshino.T2Font.Bake
         /// <summary>
         /// 文字セットだけを <paramref name="codepoints"/> に替えたベイク仕様。ほかの値（元フォント・網羅の種類・表現）は写して自己完結にする。
         /// 字は指定の追加文字（<c>characters</c>）として明示し、固定の文字セットは持たない——ベイクする字がベイク仕様の本文だけで決まり、指定文字は
-        /// 元フォントに無ければインポートが失敗するので、黙って欠けない。本文から字を決めて再ベイクする利用側の道具が使う。
+        /// 元フォントに無ければインポートが失敗するので、黙って欠けない。本文から字を決めて再ベイクする利用側のツールが使う。
         /// </summary>
         /// <exception cref="ArgumentException">字が無い・描く字でない（制御文字・BOM・サロゲート）値がある。</exception>
         public FontBakeSpec WithCharacters(IEnumerable<int> codepoints)
@@ -247,21 +247,21 @@ namespace info.someiyoshino.T2Font.Bake
         {
             if (!root.Json.TryGetValue("representation", StringComparison.Ordinal, out var token))
             {
-                throw root.Fail(null, $"キー \"representation\" がありません（表現の種類を {{ \"kind\": … }} で選んでください。種類は {string.Join("・", kinds.Names)}）。");
+                throw root.FailAt(null, $"キー \"representation\" がありません（グリフ表現の種類を {{ \"kind\": … }} で選んでください。種類は {string.Join("・", kinds.Names)}）。");
             }
             if (!(token is JObject section))
             {
-                throw root.Fail(token, "representation は { \"kind\": …, … } のオブジェクトにしてください。");
+                throw root.FailAt(token, "representation は { \"kind\": …, … } のオブジェクトにしてください。");
             }
 
             var reader = new SpecSection(section, root.SourceName, "representation", RepresentationReserved);
             var kindName = reader.RequireString("kind");
             var kind = kinds.Find(kindName)
-                ?? throw reader.Fail(section["kind"], $"未知の表現の種類 \"{kindName}\" です（種類は {string.Join("・", kinds.Names)}）。");
+                ?? throw reader.FailAt(section["kind"], $"未知のグリフ表現の種類 \"{kindName}\" です（種類は {string.Join("・", kinds.Names)}）。");
             var settings = kind.ParseSettings(reader);
             if (settings.Kind != kind)
             {
-                throw new InvalidOperationException($"表現の種類 \"{kind.Name}\" の ParseSettings が別の種類の設定を返しました。");
+                throw new InvalidOperationException($"グリフ表現の種類 \"{kind.Name}\" の ParseSettings が別の種類の設定を返しました。");
             }
             return settings;
         }

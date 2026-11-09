@@ -13,13 +13,13 @@ using Object = UnityEngine.Object;
 namespace info.someiyoshino.T2Font.Editor
 {
     /// <summary>
-    /// ベイク仕様（<c>*.t2font</c>）のインポーター（README §7）。元フォントからタイポグラフィテーブルを作り、表現の種類のベイカーに表現を作らせて、
-    /// <see cref="T2FontAsset"/>（主）と表現・テクスチャ（サブアセット）を作る。
+    /// ベイク仕様（<c>*.t2font</c>）のインポーター（README §7）。元フォントからタイポグラフィテーブルを作り、グリフ表現の種類のベイカーにグリフ表現を作らせて、
+    /// <see cref="T2FontAsset"/>（主）とグリフ表現・テクスチャ（サブアセット）を作る。
     ///
     /// <para>
     /// 生成物は Library に作られ、リポジトリには置かない（README §2.4）。ベイク仕様・元フォント（<c>DependsOnSourceAsset</c>）・表現のシェーダ
     /// （<c>DependsOnArtifact</c>）・表現の種類のバージョン（カスタム依存）のどれかが変われば Unity が再インポートする。<b>タイポグラフィテーブルの出力が変わったら
-    /// <see cref="FontFaceBuilder.Version"/> を、表現の出力が変わったらその種類のバージョンを上げる</b>（README §7.5）。
+    /// <see cref="FontFaceBuilder.Version"/> を、グリフ表現の出力が変わったらその種類のバージョンを上げる</b>（README §7.5）。
     /// </para>
     ///
     /// <para>
@@ -30,15 +30,30 @@ namespace info.someiyoshino.T2Font.Editor
     [ScriptedImporter(ImporterVersion, "t2font")]
     public sealed class T2FontImporter : ScriptedImporter
     {
-        /// <summary>インポーターのバージョン（タイポグラフィテーブルの生成のバージョン × 100 ＋ インポーター自身の改訂）。表現のバージョンは種類ごとのカスタム依存が持つ。</summary>
+        /// <summary>インポーターのバージョン（タイポグラフィテーブルの生成のバージョン × 100 ＋ インポーター自身の改訂）。グリフ表現のバージョンは種類ごとのカスタム依存が持つ。</summary>
         public const int ImporterVersion = (FontFaceBuilder.Version * 100) + 1;
+
+        /// <summary>
+        /// インポーターが受け付けるグリフ表現の種類の一覧（README §7.4）。利用側のツールがベイク仕様を読むとき（<see cref="FontBakeSpec.Parse"/>）に渡す
+        /// ——インポーターと同じ一覧で読まないと、インポートできるベイク仕様をツールだけが拒む（あるいはその逆）。
+        /// </summary>
+        /// <exception cref="InvalidOperationException">ベイカーを集められない（引数の無い公開の構築子が無い・種類が重複する）。</exception>
+        public static GlyphRepresentationKinds RepresentationKinds()
+        {
+            var bakers = GlyphRepresentationBakers.Load();
+            if (bakers.Problems.Count > 0)
+            {
+                throw new InvalidOperationException($"グリフ表現のベイカーを集められません: {string.Join(" ", bakers.Problems)}");
+            }
+            return bakers.Kinds;
+        }
 
         public override void OnImportAsset(AssetImportContext ctx)
         {
             var bakers = GlyphRepresentationBakers.Load();
             if (bakers.Problems.Count > 0)
             {
-                ctx.LogImportError($"{ctx.assetPath}: 表現のベイカーを集められません: {string.Join(" ", bakers.Problems)}");
+                ctx.LogImportError($"{ctx.assetPath}: グリフ表現のベイカーを集められません: {string.Join(" ", bakers.Problems)}");
                 return;
             }
 
@@ -93,16 +108,16 @@ namespace info.someiyoshino.T2Font.Editor
                 representation = baker.Bake(context, face.Face, spec.Representation);
                 if (representation == null)
                 {
-                    throw new FontBakeException($"ベイカー {baker.GetType().FullName} が表現を返しませんでした。");
+                    throw new FontBakeException($"ベイカー {baker.GetType().FullName} がグリフ表現を返しませんでした。");
                 }
                 if (representation.Kind != kind.Name)
                 {
-                    throw new FontBakeException($"ベイカー {baker.GetType().FullName} の表現が種類 \"{representation.Kind}\" を名乗っています（期待は \"{kind.Name}\"）。");
+                    throw new FontBakeException($"ベイカー {baker.GetType().FullName} のグリフ表現が種類 \"{representation.Kind}\" を名乗っています（期待は \"{kind.Name}\"）。");
                 }
                 if (representation.Effects != kind.Effects)
                 {
                     throw new FontBakeException(
-                        $"表現の描ける効果 {representation.Effects} が種類 \"{kind.Name}\" の宣言 {kind.Effects} と違います（README §6.3）。");
+                        $"グリフ表現の描ける効果 {representation.Effects} が種類 \"{kind.Name}\" の宣言 {kind.Effects} と違います（README §6.3）。");
                 }
                 representation.name = $"{baseName} ({kind.Name})";
                 asset = T2FontAsset.Create(

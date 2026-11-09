@@ -1,0 +1,24 @@
+{
+    "name": "Someiyoshino.Rinkaku.Editor",
+    "rootNamespace": "info.someiyoshino.Rinkaku",
+    "references": [
+        "Someiyoshino.T2Font.Core",
+        "Someiyoshino.T2Font",
+        "Someiyoshino.T2Font.Bake",
+        "Someiyoshino.T2Font.Editor",
+        "Someiyoshino.Rinkaku.Core",
+        "Someiyoshino.Rinkaku.Bake",
+        "Someiyoshino.Rinkaku"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

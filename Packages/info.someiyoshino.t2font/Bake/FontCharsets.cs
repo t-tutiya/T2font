@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace info.someiyoshino.T2Font.Bake
 {
-    /// <summary>生成器の固定の文字セット（README §7.2）。</summary>
+    /// <summary>ジェネレーターの固定の文字セット（README §7.2）。</summary>
     [Flags]
     public enum FontCharsetKind
     {

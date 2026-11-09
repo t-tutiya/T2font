@@ -7,7 +7,7 @@ using UnityEngine;
 namespace info.someiyoshino.T2Font
 {
     /// <summary>
-    /// 同梱の SDF の表現（README §9）。グリフごとのセル（<see cref="SdfGlyphCell"/>）と、単チャネルの距離のページを持つ。
+    /// 同梱の SDF のグリフ表現（README §9）。グリフごとのセル（<see cref="SdfGlyphCell"/>）と、単チャネルの距離のページを持つ。
     ///
     /// <para>
     /// quad はセルの plane（インク境界＋距離レンジの余白・em）で、UV0.xy は同じ矩形のページ上の px ÷ ページの寸法。ページは左下原点で、Unity の
@@ -35,7 +35,7 @@ namespace info.someiyoshino.T2Font
         public IReadOnlyList<Texture2D> Pages => pages;
 
         /// <summary>
-        /// ベイカーがベイクした結果から表現を作る（ベイカー専用）。<paramref name="effects"/> は種類の記述子の宣言を写す（README §6.3）。
+        /// ベイカーがベイクした結果からグリフ表現を作る（ベイカー専用）。<paramref name="effects"/> は種類の記述子の宣言を写す（README §6.3）。
         /// 健全性は <c>T2FontAsset.Create</c> が <see cref="Validate"/> で検査する。
         /// </summary>
         public static SdfRepresentation Create(

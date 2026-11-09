@@ -19,6 +19,12 @@
 
 ---
 
+## 2026-11 — [`decisions/decisions-2026-11.md`](decisions/decisions-2026-11.md)（1 件）
+
+| 日付 | 決定 |
+|---|---|
+| 2026-11-09 | **版 0.3.0 を公開し、グリフ表現 Rinkaku を同梱する — D-T2FREPUB** — 正本は外・版ごとに写す |
+
 ## 2026-10 — [`decisions/decisions-2026-10.md`](decisions/decisions-2026-10.md)（19 件）
 
 | 日付 | 決定 |

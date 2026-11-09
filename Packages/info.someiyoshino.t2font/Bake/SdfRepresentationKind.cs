@@ -16,7 +16,7 @@ namespace info.someiyoshino.T2Font.Bake
         BC4,
     }
 
-    /// <summary>同梱の SDF の表現の種類（<c>"kind": "sdf"</c>・README §9）。全効果を描ける。</summary>
+    /// <summary>同梱の SDF のグリフ表現の種類（<c>"kind": "sdf"</c>・README §9）。全効果を描ける。</summary>
     public sealed class SdfRepresentationKind : GlyphRepresentationKind
     {
         /// <summary>唯一の実体。</summary>
@@ -40,7 +40,7 @@ namespace info.someiyoshino.T2Font.Bake
             var emPx = section.OptionalNumber("emPx") ?? 48.0;
             if (!(emPx >= 8) || emPx > 256)
             {
-                throw section.Fail(section.Json["emPx"], FormattableString.Invariant($"emPx は 8〜256 にしてください: {emPx}"));
+                throw section.Fail("emPx", FormattableString.Invariant($"emPx は 8〜256 にしてください: {emPx}"));
             }
 
             var format = SdfPageFormat.R8;
@@ -56,14 +56,14 @@ namespace info.someiyoshino.T2Font.Bake
                         format = SdfPageFormat.BC4;
                         break;
                     default:
-                        throw section.Fail(section.Json["format"], $"format は \"R8\" か \"BC4\" です: \"{formatText}\"");
+                        throw section.Fail("format", $"format は \"R8\" か \"BC4\" です: \"{formatText}\"");
                 }
             }
 
             var maxPageSize = section.OptionalNumber("maxPageSize") ?? 8192.0;
             if (maxPageSize != Math.Floor(maxPageSize) || maxPageSize < 64 || maxPageSize > 16384)
             {
-                throw section.Fail(section.Json["maxPageSize"], FormattableString.Invariant($"maxPageSize は 64〜16384 の整数にしてください: {maxPageSize}"));
+                throw section.Fail("maxPageSize", FormattableString.Invariant($"maxPageSize は 64〜16384 の整数にしてください: {maxPageSize}"));
             }
 
             return new SdfSpecSettings(emPx, format, (int)maxPageSize, section.OptionalBox("cellBox"));
@@ -95,7 +95,7 @@ namespace info.someiyoshino.T2Font.Bake
         /// <summary>セルのインク境界（null なら依頼した字のインク境界の和）。</summary>
         public EmBox? CellBox { get; }
 
-        /// <summary>生成器の設定（距離レンジは全フォント共通の既定のまま）。</summary>
+        /// <summary>ジェネレーターの設定（距離レンジは全フォント共通の既定のまま）。</summary>
         public SdfBakeSettings ToBakeSettings()
         {
             return new SdfBakeSettings

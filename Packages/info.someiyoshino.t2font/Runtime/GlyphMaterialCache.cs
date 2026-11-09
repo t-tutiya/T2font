@@ -9,12 +9,12 @@ using Object = UnityEngine.Object;
 namespace info.someiyoshino.T2Font
 {
     /// <summary>
-    /// グリフのマテリアルの置き場（README §4.5）。（表現の <see cref="GlyphRepresentation.MaterialScope"/>・エッジスタイル）ごとに 1 つ作って共有する。
+    /// グリフのマテリアルの置き場（README §4.5）。（グリフ表現の <see cref="GlyphRepresentation.MaterialScope"/>・エッジスタイル）ごとに 1 つ作って共有する。
     ///
     /// <para>
     /// 作る時点は<b>フォントを読んだ時点</b>にするのがよい（<see cref="Prewarm"/>）——描画中に作るとヒッチになる。面の色とフェードは頂点色で
     /// マテリアルに持たせないので（README §5 S2）、色違いのエッジスタイルはマテリアルを共有する。テクスチャは <c>CanvasRenderer.SetTexture</c> で字ごとに
-    /// 渡すので、<c>MaterialScope</c> がシェーダの表現（SDF など）ではフォントが違ってもマテリアルを共有する。
+    /// 渡すので、<c>MaterialScope</c> がシェーダのグリフ表現（SDF など）ではフォントが違ってもマテリアルを共有する。
     /// </para>
     ///
     /// <para>
@@ -36,10 +36,10 @@ namespace info.someiyoshino.T2Font
         public int Count => _materials.Count;
 
         /// <summary>
-        /// <paramref name="representation"/> で <paramref name="style"/> を描くマテリアル。無ければ作る。エッジスタイルが範囲の外か、表現の描けない
-        /// 効果を使うなら止める（README §6.1・§6.3）——黙って近似すると、表現によって見た目が変わる。
+        /// <paramref name="representation"/> で <paramref name="style"/> を描くマテリアル。無ければ作る。エッジスタイルが範囲の外か、グリフ表現の描けない
+        /// 効果を使うなら止める（README §6.1・§6.3）——黙って近似すると、グリフ表現によって見た目が変わる。
         /// </summary>
-        /// <exception cref="ArgumentException">エッジスタイルが範囲の外か、表現が描けない効果を使う。</exception>
+        /// <exception cref="ArgumentException">エッジスタイルが範囲の外か、グリフ表現が描けない効果を使う。</exception>
         public Material Get(GlyphRepresentation representation, in GlyphEdgeStyle style)
         {
             if (representation == null)
@@ -49,7 +49,7 @@ namespace info.someiyoshino.T2Font
             var scope = representation.MaterialScope;
             if (scope == null)
             {
-                throw new ArgumentException($"表現 {representation.Kind}（'{representation.name}'）にシェーダの参照がありません。", nameof(representation));
+                throw new ArgumentException($"グリフ表現 {representation.Kind}（'{representation.name}'）にシェーダの参照がありません。", nameof(representation));
             }
 
             var key = new Key(scope, style);
@@ -91,7 +91,7 @@ namespace info.someiyoshino.T2Font
         }
 
         /// <summary>
-        /// エッジスタイルを表現で描けるか。描けなければ理由の文面、描けるなら null（README §6.3）。ホストがエッジスタイルをフォントに使う前の検査に使う。
+        /// エッジスタイルをグリフ表現で描けるか。描けなければ理由の文面、描けるなら null（README §6.3）。ホストがエッジスタイルをフォントに使う前の検査に使う。
         /// </summary>
         public static string? Check(GlyphRepresentation representation, in GlyphEdgeStyle style)
         {
@@ -107,12 +107,12 @@ namespace info.someiyoshino.T2Font
             var missing = style.Uses & ~representation.Effects;
             if (missing != GlyphEffects.None)
             {
-                return $"表現 {representation.Kind}（'{representation.name}'）は効果 {missing} を描けません（描ける効果: {representation.Effects}）。";
+                return $"グリフ表現 {representation.Kind}（'{representation.name}'）は効果 {missing} を描けません（描ける効果: {representation.Effects}）。";
             }
             return null;
         }
 
-        /// <summary><paramref name="scope"/>（表現の <see cref="GlyphRepresentation.MaterialScope"/>）に属するマテリアルを捨てる。</summary>
+        /// <summary><paramref name="scope"/>（グリフ表現の <see cref="GlyphRepresentation.MaterialScope"/>）に属するマテリアルを捨てる。</summary>
         public void Release(Object scope)
         {
             if (scope == null)
@@ -174,7 +174,7 @@ namespace info.someiyoshino.T2Font
             }
         }
 
-        // 範囲は参照の同一性で比べる（UnityEngine.Object の == は破棄済みを null と見なすので、破棄後に鍵が引けなくなる）。
+        // 範囲は参照の同一性で比べる（UnityEngine.Object の == は破棄済みを null と見なすので、破棄後にキーが引けなくなる）。
         private readonly struct Key : IEquatable<Key>
         {
             public Key(Object scope, GlyphEdgeStyle style)

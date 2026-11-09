@@ -7,11 +7,11 @@ using UnityEngine;
 namespace info.someiyoshino.T2Font
 {
     /// <summary>
-    /// 表現がグリフの幾何を書き込む器（README §4.2）。ホストが 1 つを持ち回し、グリフごとに <see cref="Clear"/> して使う（割り当て無し）。
+    /// グリフ表現がグリフの幾何を書き込む器（README §4.2）。ホストが 1 つを持ち回し、グリフごとに <see cref="Clear"/> して使う（割り当て無し）。
     ///
     /// <para>
     /// 位置は em で受け取り、<see cref="CopyTo"/> で表示サイズを掛けて <c>Mesh</c> へ詰める。UV0 は <c>(u, v, emX, emY)</c>——zw は
-    /// <b>この器が書く</b>その頂点の em 座標で、シェーダはその微分から 1 表示 px が何 em かを得る（README §5 S3）。表現は zw を
+    /// <b>この器が書く</b>その頂点の em 座標で、シェーダはその微分から 1 表示 px が何 em かを得る（README §5 S3）。グリフ表現は zw を
     /// 書けないので、この契約は破れない。
     /// </para>
     /// </summary>
@@ -31,7 +31,7 @@ namespace info.someiyoshino.T2Font
         /// <summary>書いた頂点の位置（em）。検査用。</summary>
         public IReadOnlyList<Vector3> Positions => _positions;
 
-        /// <summary>書いた頂点の UV0（xy＝表現・zw＝em）。検査用。</summary>
+        /// <summary>書いた頂点の UV0（xy＝グリフ表現・zw＝em）。検査用。</summary>
         public IReadOnlyList<Vector4> Uv0 => _uv0;
 
         /// <summary>空にする。</summary>
@@ -64,7 +64,7 @@ namespace info.someiyoshino.T2Font
         }
 
         /// <summary>
-        /// 軸に沿った矩形を 1 つ書く（頂点 4 つ・三角形 2 つ）。位置は em、UV は表現の値（左下と右上）。
+        /// 軸に沿った矩形を 1 つ書く（頂点 4 つ・三角形 2 つ）。位置は em、UV はグリフ表現の値（左下と右上）。
         /// </summary>
         public void AddQuad(float emLeft, float emBottom, float emRight, float emTop, float uLeft, float vBottom, float uRight, float vTop)
         {

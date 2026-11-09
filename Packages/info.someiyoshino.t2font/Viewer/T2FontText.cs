@@ -10,7 +10,7 @@ namespace info.someiyoshino.T2Font.Viewer
     ///
     /// <para>
     /// 1 字 1 レンダラにしてあるのは、テクスチャとマテリアルの束縛・クリップ・α の扱いを、利用側の一般的なテキスト描画と同じ条件で試すため。
-    /// 表現の具体型を知らないホストの最小の実装でもある（README §4.1）: グリフインデックスを引き、表現に幾何を書かせ、テクスチャとマテリアルを貼るだけ。
+    /// グリフ表現の具体型を知らないホストの最小の実装でもある（README §4.1）: グリフインデックスを引き、グリフ表現に幾何を書かせ、テクスチャとマテリアルを貼るだけ。
     /// 行送りは改行（U+000A）だけで、折り返し・カーニング・縦書きは持たない。
     /// </para>
     ///
@@ -211,7 +211,7 @@ namespace info.someiyoshino.T2Font.Viewer
             renderer.materialCount = 1;
             renderer.SetMaterial(_materials!.Get(representation, style), 0);
             renderer.SetTexture(representation.GetTexture(glyph));
-            // 面の色は頂点色の rgb、フェードは頂点色の α（README §5 S2）。CanvasRenderer の色はバッチの鍵に入らない。
+            // 面の色は頂点色の rgb、フェードは頂点色の α（README §5 S2）。CanvasRenderer の色はバッチのキーに入らない。
             renderer.SetColor(new Color(faceColor.r, faceColor.g, faceColor.b, alpha));
             if (clip is Rect r)
             {

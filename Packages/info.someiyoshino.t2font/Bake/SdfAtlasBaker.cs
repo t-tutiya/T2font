@@ -21,7 +21,7 @@ namespace info.someiyoshino.T2Font.Bake
 
         /// <summary>
         /// SDF の片側距離レンジ（em）。縁取り・ずらし・ぼかしが外へ広がれる上限がこれで決まる。アトラス上の px は <c>EmPx × RangeEm</c>。
-        /// 既定（＝インポーターが使う値）は全フォント共通の <see cref="SdfEncoding.RangeEm"/>。他の値は生成器の検査にだけ使う。
+        /// 既定（＝インポーターが使う値）は全フォント共通の <see cref="SdfEncoding.RangeEm"/>。他の値はジェネレーターの検査にだけ使う。
         /// </summary>
         public double RangeEm { get; set; } = SdfEncoding.RangeEm;
 

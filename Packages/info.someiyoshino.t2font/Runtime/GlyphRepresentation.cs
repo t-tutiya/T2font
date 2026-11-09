@@ -5,11 +5,11 @@ using UnityEngine;
 namespace info.someiyoshino.T2Font
 {
     /// <summary>
-    /// グリフの表現（README §1・§3.4・§4）。<c>T2FontAsset</c> のサブアセットで、インポーターが表現の種類のベイカーに作らせる。
+    /// グリフ表現（README §1・§3.4・§4）。<c>T2FontAsset</c> のサブアセットで、インポーターがグリフ表現の種類のベイカーに作らせる。
     ///
     /// <para>
-    /// ホストは表現の具体型を知らない: グリフインデックスを渡して幾何（<see cref="WriteGeometry"/>）とテクスチャ（<see cref="GetTexture"/>）を
-    /// 受け取り、マテリアルは <see cref="GlyphMaterialCache"/> が <see cref="Shader"/> から作る。表現を足すパッケージは派生クラスを
+    /// ホストはグリフ表現の具体型を知らない: グリフインデックスを渡して幾何（<see cref="WriteGeometry"/>）とテクスチャ（<see cref="GetTexture"/>）を
+    /// 受け取り、マテリアルは <see cref="GlyphMaterialCache"/> が <see cref="Shader"/> から作る。グリフ表現を足すパッケージは派生クラスを
     /// <b>クラス名とファイル名を一致させて</b>置く（Unity が MonoScript を解決するため）。
     /// </para>
     /// </summary>
@@ -18,7 +18,7 @@ namespace info.someiyoshino.T2Font
         [SerializeField] private Shader? shader;
         [SerializeField] private GlyphEffects effects;
 
-        /// <summary>表現の種類の名前（ベイク仕様の <c>representation.kind</c> と同じ綴り。診断と検査用）。</summary>
+        /// <summary>グリフ表現の種類の名前（ベイク仕様の <c>representation.kind</c> と同じ綴り。診断と検査用）。</summary>
         public abstract string Kind { get; }
 
         /// <summary>グリフを描くシェーダ（README §5 の契約を満たすもの）。インポーターが参照を入れる。null はインポートの誤り。</summary>
@@ -28,13 +28,13 @@ namespace info.someiyoshino.T2Font
         public GlyphEffects Effects => effects;
 
         /// <summary>
-        /// マテリアルを共有してよい範囲（README §4.5）。同じ値の表現どうしは、エッジスタイルが同じなら同じマテリアルを使う。既定はシェーダ
-        /// （＝同じ種類の全フォントで共有）。フォント全体のテクスチャをマテリアルに載せる表現は自分を返す。
+        /// マテリアルを共有してよい範囲（README §4.5）。同じ値のグリフ表現どうしは、エッジスタイルが同じなら同じマテリアルを使う。既定はシェーダ
+        /// （＝同じ種類の全フォントで共有）。フォント全体のテクスチャをマテリアルに載せるグリフ表現は自分を返す。
         /// </summary>
         public virtual Object? MaterialScope => shader;
 
         /// <summary>
-        /// マテリアルへ表現の定数を入れる（距離レンジ・フォント全体のテクスチャなど）。<see cref="GlyphMaterialCache"/> がマテリアルを作るときに
+        /// マテリアルへグリフ表現の定数を入れる（距離レンジ・フォント全体のテクスチャなど）。<see cref="GlyphMaterialCache"/> がマテリアルを作るときに
         /// 1 回だけ呼ぶ。エッジスタイルの uniform（README §6.1）はキャッシュが入れるので、ここでは書かない。
         /// </summary>
         public virtual void ConfigureMaterial(Material material)
@@ -48,7 +48,7 @@ namespace info.someiyoshino.T2Font
         public abstract Texture? GetTexture(int glyph);
 
         /// <summary>
-        /// グリフの幾何を em で書く（README §4.2・§4.3）。インクの無いグリフでは何も書かない。UV0.zw はホストの器が書くので、表現が書くのは
+        /// グリフの幾何を em で書く（README §4.2・§4.3）。インクの無いグリフでは何も書かない。UV0.zw はホストの器が書くので、グリフ表現が書くのは
         /// 位置（em）と UV0.xy だけ。描けると宣言した効果の外延（<see cref="GlyphEdgeStyle.MaxOuterExtentEm"/>）＋AA の半分を覆う（README §4.3）。
         /// </summary>
         public abstract void WriteGeometry(int glyph, in GlyphMetrics metrics, GlyphGeometry geometry);
@@ -59,7 +59,7 @@ namespace info.someiyoshino.T2Font
         /// </summary>
         public virtual string? Validate(int glyphCount)
         {
-            return shader == null ? $"表現 {Kind} にシェーダの参照がありません。" : null;
+            return shader == null ? $"グリフ表現 {Kind} にシェーダの参照がありません。" : null;
         }
 
         /// <summary>派生クラスの生成の口から呼ぶ（シェーダと描ける効果を入れる）。</summary>

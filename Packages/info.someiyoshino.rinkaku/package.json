@@ -1,0 +1,25 @@
+{
+  "name": "info.someiyoshino.rinkaku",
+  "version": "0.1.0",
+  "displayName": "Rinkaku",
+  "description": "A glyph representation for T2Font that keeps TrueType outlines as quadratic curves and draws them by exact signed distance: a per-texel index of the nearest curve segments, so edge styles (dilate, softness, outline) behave as with SDF while edges stay sharp at any size.",
+  "unity": "6000.3",
+  "license": "MIT",
+  "author": {
+    "name": "t-tutiya",
+    "url": "https://github.com/t-tutiya"
+  },
+  "documentationUrl": "https://github.com/t-tutiya/T2font",
+  "keywords": [
+    "font",
+    "text",
+    "glyph",
+    "bezier",
+    "signed-distance",
+    "cjk",
+    "ugui"
+  ],
+  "dependencies": {
+    "info.someiyoshino.t2font": "0.3.0"
+  }
+}

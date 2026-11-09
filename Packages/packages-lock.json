@@ -233,6 +233,14 @@
       },
       "url": "https://packages.unity.com"
     },
+    "info.someiyoshino.rinkaku": {
+      "version": "file:info.someiyoshino.rinkaku",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "info.someiyoshino.t2font": "0.3.0"
+      }
+    },
     "info.someiyoshino.t2font": {
       "version": "file:info.someiyoshino.t2font",
       "depth": 0,

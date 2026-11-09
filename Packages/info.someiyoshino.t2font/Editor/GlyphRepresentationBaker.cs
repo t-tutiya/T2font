@@ -5,7 +5,7 @@ using info.someiyoshino.T2Font.Bake;
 namespace info.someiyoshino.T2Font.Editor
 {
     /// <summary>
-    /// 表現の種類のベイカー（README §7.4）。タイポグラフィテーブルと設定から表現のサブアセット（とテクスチャ）を作る。
+    /// グリフ表現の種類のベイカー（README §7.4）。タイポグラフィテーブルと設定からグリフ表現のサブアセット（とテクスチャ）を作る。
     ///
     /// <para>
     /// インポーターが Editor の <c>TypeCache</c> で派生クラスを集め、引数の無い公開の構築子で作る。種類 1 つにベイカーは 1 つ。
@@ -19,9 +19,9 @@ namespace info.someiyoshino.T2Font.Editor
         public abstract GlyphRepresentationKind Kind { get; }
 
         /// <summary>
-        /// 表現を作る。<paramref name="settings"/> は <see cref="Kind"/> が検査した設定。テクスチャなどのサブアセットは
+        /// グリフ表現を作る。<paramref name="settings"/> は <see cref="Kind"/> が検査した設定。テクスチャなどのサブアセットは
         /// <see cref="GlyphBakeContext.AddObject"/> で渡す。誤りは <see cref="FontBakeException"/> で止める（アセットは作られない）。
-        /// 返す表現の <see cref="GlyphRepresentation.Effects"/> は <see cref="Kind"/> の宣言と同じにする（インポーターが検査する）。
+        /// 返すグリフ表現の <see cref="GlyphRepresentation.Effects"/> は <see cref="Kind"/> の宣言と同じにする（インポーターが検査する）。
         /// </summary>
         public abstract GlyphRepresentation Bake(GlyphBakeContext context, FontFaceData face, GlyphRepresentationSettings settings);
     }

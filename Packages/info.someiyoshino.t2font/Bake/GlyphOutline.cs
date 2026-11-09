@@ -38,6 +38,58 @@ namespace info.someiyoshino.T2Font.Bake
     }
 
     /// <summary>
+    /// 輪郭の区間 1 本（フォント単位・y 上向き・README §8）。直線か 2 次ベジエで、<see cref="IsLine"/> が false のとき
+    /// <see cref="ControlX"/>・<see cref="ControlY"/> が制御点。区間は輪郭の向きに並び、終点は同じ輪郭の次の区間の始点に一致する
+    /// （輪郭の最後の区間の終点は最初の区間の始点）。
+    /// </summary>
+    public readonly struct OutlineSegment
+    {
+        /// <summary>直線の区間。</summary>
+        public OutlineSegment(int contour, double x0, double y0, double x1, double y1)
+        {
+            Contour = contour;
+            X0 = x0;
+            Y0 = y0;
+            ControlX = x0;
+            ControlY = y0;
+            X1 = x1;
+            Y1 = y1;
+            IsLine = true;
+        }
+
+        /// <summary>2 次ベジエの区間。</summary>
+        public OutlineSegment(int contour, double x0, double y0, double controlX, double controlY, double x1, double y1)
+        {
+            Contour = contour;
+            X0 = x0;
+            Y0 = y0;
+            ControlX = controlX;
+            ControlY = controlY;
+            X1 = x1;
+            Y1 = y1;
+            IsLine = false;
+        }
+
+        /// <summary>区間が属する輪郭の番号（<see cref="GlyphOutline.Contours"/> の添字）。</summary>
+        public int Contour { get; }
+
+        public double X0 { get; }
+        public double Y0 { get; }
+
+        /// <summary>制御点（直線では始点と同じ値）。</summary>
+        public double ControlX { get; }
+
+        /// <summary>制御点（直線では始点と同じ値）。</summary>
+        public double ControlY { get; }
+
+        public double X1 { get; }
+        public double Y1 { get; }
+
+        /// <summary>直線か（制御点を持たない）。</summary>
+        public bool IsLine { get; }
+    }
+
+    /// <summary>
     /// グリフの輪郭（フォント単位・y 上向き）。TrueType の輪郭は on-curve 点と、2 次ベジエの制御点（off-curve）の並びで、
     /// 連続する 2 つの off-curve 点の間には中点の on-curve 点が暗黙にある（TrueType の仕様）。
     /// </summary>
@@ -100,19 +152,20 @@ namespace info.someiyoshino.T2Font.Bake
         }
 
         /// <summary>
-        /// 輪郭を線分へフラット化する。点は <c>(x × scale + offsetX, y × scale + offsetY)</c> へ写す（ピクセル座標）。
-        /// 曲線は、弦と曲線の最大のずれが <paramref name="tolerance"/>（ピクセル）以下になる本数の線分に等分する。
-        /// 2 次ベジエを n 等分したときのずれは <c>|p0 − 2·p1 + p2| / (4·n²)</c> 以下なので、本数はそこから決まる。
+        /// 輪郭を区間（直線と 2 次ベジエ）へ分けて <paramref name="segments"/> に足す（README §8）。輪郭ごとに、最初の on-curve 点から
+        /// 点の並びの向きに回り、連続する 2 つの off-curve 点の間には暗黙の中点（on-curve）を置く。全点が off-curve の輪郭は最初の 2 点の中点から
+        /// 始める。点が 2 つ未満の輪郭と、長さ 0 の直線（同じ点の重複）は出さない。<see cref="Flatten"/> はこの区間をフラット化する。
         /// </summary>
-        public void Flatten(double scale, double offsetX, double offsetY, double tolerance, List<OutlineEdge> edges)
+        public void EnumerateSegments(List<OutlineSegment> segments)
         {
-            if (tolerance <= 0)
+            if (segments == null)
             {
-                throw new ArgumentOutOfRangeException(nameof(tolerance));
+                throw new ArgumentNullException(nameof(segments));
             }
 
-            foreach (var contour in _contours)
+            for (var contourIndex = 0; contourIndex < _contours.Count; contourIndex++)
             {
+                var contour = _contours[contourIndex];
                 var n = contour.Length;
                 if (n < 2)
                 {
@@ -144,7 +197,6 @@ namespace info.someiyoshino.T2Font.Bake
                     sx = (contour[0].X + contour[1].X) * 0.5;
                     sy = (contour[0].Y + contour[1].Y) * 0.5;
                     first = 1;
-                    startIndex = 0;
                 }
 
                 var cx = sx;
@@ -161,12 +213,12 @@ namespace info.someiyoshino.T2Font.Bake
                     {
                         if (hasControl)
                         {
-                            AddQuad(cx, cy, qx, qy, p.X, p.Y, scale, offsetX, offsetY, tolerance, edges);
+                            segments.Add(new OutlineSegment(contourIndex, cx, cy, qx, qy, p.X, p.Y));
                             hasControl = false;
                         }
                         else
                         {
-                            AddLine(cx, cy, p.X, p.Y, scale, offsetX, offsetY, edges);
+                            AddLineSegment(contourIndex, cx, cy, p.X, p.Y, segments);
                         }
                         cx = p.X;
                         cy = p.Y;
@@ -177,7 +229,7 @@ namespace info.someiyoshino.T2Font.Bake
                         {
                             var mx = (qx + p.X) * 0.5;
                             var my = (qy + p.Y) * 0.5;
-                            AddQuad(cx, cy, qx, qy, mx, my, scale, offsetX, offsetY, tolerance, edges);
+                            segments.Add(new OutlineSegment(contourIndex, cx, cy, qx, qy, mx, my));
                             cx = mx;
                             cy = my;
                         }
@@ -190,12 +242,49 @@ namespace info.someiyoshino.T2Font.Bake
                 // 開始点へ閉じる。
                 if (hasControl)
                 {
-                    AddQuad(cx, cy, qx, qy, sx, sy, scale, offsetX, offsetY, tolerance, edges);
+                    segments.Add(new OutlineSegment(contourIndex, cx, cy, qx, qy, sx, sy));
                 }
                 else
                 {
-                    AddLine(cx, cy, sx, sy, scale, offsetX, offsetY, edges);
+                    AddLineSegment(contourIndex, cx, cy, sx, sy, segments);
                 }
+            }
+        }
+
+        /// <summary>
+        /// 輪郭を線分へフラット化する。点は <c>(x × scale + offsetX, y × scale + offsetY)</c> へ写す（ピクセル座標）。
+        /// 曲線は、弦と曲線の最大のずれが <paramref name="tolerance"/>（ピクセル）以下になる本数の線分に等分する。
+        /// 2 次ベジエを n 等分したときのずれは <c>|p0 − 2·p1 + p2| / (4·n²)</c> 以下なので、本数はそこから決まる。
+        /// 区間は <see cref="EnumerateSegments"/> と同じ規則で分ける。
+        /// </summary>
+        public void Flatten(double scale, double offsetX, double offsetY, double tolerance, List<OutlineEdge> edges)
+        {
+            if (tolerance <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(tolerance));
+            }
+
+            var segments = new List<OutlineSegment>();
+            EnumerateSegments(segments);
+            foreach (var segment in segments)
+            {
+                if (segment.IsLine)
+                {
+                    AddLine(segment.X0, segment.Y0, segment.X1, segment.Y1, scale, offsetX, offsetY, edges);
+                }
+                else
+                {
+                    AddQuad(segment.X0, segment.Y0, segment.ControlX, segment.ControlY, segment.X1, segment.Y1,
+                        scale, offsetX, offsetY, tolerance, edges);
+                }
+            }
+        }
+
+        private static void AddLineSegment(int contour, double x0, double y0, double x1, double y1, List<OutlineSegment> segments)
+        {
+            if (x0 != x1 || y0 != y1)
+            {
+                segments.Add(new OutlineSegment(contour, x0, y0, x1, y1));
             }
         }
 

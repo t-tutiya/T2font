@@ -45,7 +45,7 @@ namespace info.someiyoshino.T2Font.Editor
 
         /// <summary>
         /// パッケージ <paramref name="packageName"/> の中の <paramref name="relativePath"/> のアセットパス（<c>Packages/…</c>）。
-        /// 表現のパッケージが自分のシェーダを指すのに使う——導入の方法（git URL か写しか・README §11）によらず同じパスになる。
+        /// グリフ表現のパッケージが自分のシェーダを指すのに使う——導入の方法（git URL か写しか・README §11）によらず同じパスになる。
         /// </summary>
         /// <exception cref="FontBakeException">そのパッケージが登録されていない（Packages/ の下に無い）。</exception>
         public string PackageAssetPath(string packageName, string relativePath)
@@ -62,7 +62,7 @@ namespace info.someiyoshino.T2Font.Editor
             if (package == null)
             {
                 throw new FontBakeException(
-                    $"{AssetPath}: パッケージ {packageName} が登録されていません。表現のパッケージは Packages/ の下へフォルダごと置いてください。");
+                    $"{AssetPath}: パッケージ {packageName} が登録されていません。グリフ表現のパッケージは Packages/ の下へフォルダごと置いてください。");
             }
             return package.assetPath + "/" + relativePath;
         }
@@ -94,7 +94,7 @@ namespace info.someiyoshino.T2Font.Editor
         }
 
         /// <summary>
-        /// サブアセット（テクスチャなど）を渡す。<paramref name="identifier"/> は表現の中で一意な名前。インポートが成功したときだけアセットに加わり、
+        /// サブアセット（テクスチャなど）を渡す。<paramref name="identifier"/> はグリフ表現の中で一意な名前。インポートが成功したときだけアセットに加わり、
         /// 失敗したときはインポーターが破棄する。
         /// </summary>
         public void AddObject(string identifier, Object obj)
@@ -107,6 +107,41 @@ namespace info.someiyoshino.T2Font.Editor
             {
                 throw new ArgumentNullException(nameof(obj));
             }
+            RequireNewIdentifier(identifier);
+            _objects.Add(new KeyValuePair<string, Object>(identifier, obj));
+        }
+
+        /// <summary>
+        /// データテクスチャ（距離以外の値を持つテクスチャ・README §4.4）を作り、サブアセットとして渡す。非圧縮・point・linear・ミップ無し・clamp・
+        /// 非 Readable で作り、作った結果の形式と寸法を検査する。名前は <c>{BaseName} {identifier}</c>。
+        /// </summary>
+        /// <exception cref="FontBakeException">期待の形式・寸法・ミップ・filter で作れなかった（インポートの失敗になる）。</exception>
+        public Texture2D AddDataTexture(string identifier, GlyphDataPage page)
+        {
+            if (identifier == null)
+            {
+                throw new ArgumentNullException(nameof(identifier));
+            }
+            if (page == null)
+            {
+                throw new ArgumentNullException(nameof(page));
+            }
+            RequireNewIdentifier(identifier);
+
+            var texture = GlyphDataTextures.Build(AssetPath, page, out var error) ?? throw new FontBakeException(error);
+            texture.name = $"{BaseName} {identifier}";
+            _objects.Add(new KeyValuePair<string, Object>(identifier, texture));
+            return texture;
+        }
+
+        /// <summary>インポートの報告（Console に 1 行で出す）に足す文。</summary>
+        public void Report(string text)
+        {
+            _report.Add(text ?? throw new ArgumentNullException(nameof(text)));
+        }
+
+        private void RequireNewIdentifier(string identifier)
+        {
             foreach (var pair in _objects)
             {
                 if (pair.Key == identifier)
@@ -114,13 +149,6 @@ namespace info.someiyoshino.T2Font.Editor
                     throw new ArgumentException($"サブアセットの名前 '{identifier}' が重複しています。", nameof(identifier));
                 }
             }
-            _objects.Add(new KeyValuePair<string, Object>(identifier, obj));
-        }
-
-        /// <summary>インポートの報告（Console に 1 行で出す）に足す文。</summary>
-        public void Report(string text)
-        {
-            _report.Add(text ?? throw new ArgumentNullException(nameof(text)));
         }
 
         internal void DestroyObjects()

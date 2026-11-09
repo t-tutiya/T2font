@@ -10,15 +10,15 @@ using Newtonsoft.Json.Linq;
 namespace info.someiyoshino.T2Font.Bake
 {
     /// <summary>
-    /// 表現の種類の記述子（README §7.4）。ベイク仕様の <c>representation.kind</c> の名前・描ける効果・設定の検査を持つ。
-    /// UnityEngine を参照しないので、外部 NUnit でベイク仕様とエッジスタイルの照合ができる。表現を足すパッケージは派生を 1 つ置く（README §8）。
+    /// グリフ表現の種類の記述子（README §7.4）。ベイク仕様の <c>representation.kind</c> の名前・描ける効果・設定の検査を持つ。
+    /// UnityEngine を参照しないので、外部 NUnit でベイク仕様とエッジスタイルの照合ができる。グリフ表現を足すパッケージは派生を 1 つ置く（README §8）。
     /// </summary>
     public abstract class GlyphRepresentationKind
     {
         /// <summary>ベイク仕様に書く名前（小文字の英数字。例 <c>sdf</c>）。</summary>
         public abstract string Name { get; }
 
-        /// <summary>この種類の表現が描ける効果（README §6.3）。宣言の正典で、ベイカーが表現のアセットへ写す。</summary>
+        /// <summary>この種類のグリフ表現が描ける効果（README §6.3）。宣言の正典で、ベイカーがグリフ表現のアセットへ写す。</summary>
         public abstract GlyphEffects Effects { get; }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace info.someiyoshino.T2Font.Bake
         public abstract GlyphRepresentationSettings ParseSettings(SpecSection section);
     }
 
-    /// <summary>表現の種類ごとの設定（<see cref="GlyphRepresentationKind.ParseSettings"/> の結果）。</summary>
+    /// <summary>グリフ表現の種類ごとの設定（<see cref="GlyphRepresentationKind.ParseSettings"/> の結果）。</summary>
     public abstract class GlyphRepresentationSettings
     {
         /// <summary>この設定の種類。</summary>
@@ -48,7 +48,7 @@ namespace info.someiyoshino.T2Font.Bake
     }
 
     /// <summary>
-    /// 使う表現の種類の一覧（README §7.4）。利用側のプロジェクトが 1 か所で明示して並べ、ベイク仕様の読み取りとエッジスタイルの照合に渡す。
+    /// 使うグリフ表現の種類の一覧（README §7.4）。利用側のプロジェクトが 1 か所で明示して並べ、ベイク仕様の読み取りとエッジスタイルの照合に渡す。
     /// </summary>
     public sealed class GlyphRepresentationKinds
     {
@@ -69,7 +69,7 @@ namespace info.someiyoshino.T2Font.Bake
                 }
                 if (_kinds.ContainsKey(kind.Name))
                 {
-                    throw new ArgumentException($"表現の種類 \"{kind.Name}\" が 2 つあります。", nameof(kinds));
+                    throw new ArgumentException($"グリフ表現の種類 \"{kind.Name}\" が 2 つあります。", nameof(kinds));
                 }
                 _kinds.Add(kind.Name, kind);
             }
@@ -86,14 +86,18 @@ namespace info.someiyoshino.T2Font.Bake
     }
 
     /// <summary>
-    /// ベイク仕様の JSON のオブジェクト 1 つを読む補助（誤りの文面にファイル名と行を付ける）。ベイク仕様の最上位と、表現の種類の
+    /// ベイク仕様の JSON のオブジェクト 1 つを読む補助（誤りの文面にファイル名と行を付ける）。ベイク仕様の最上位と、グリフ表現の種類の
     /// <c>representation</c> の節の両方がこれで読む——どちらも「未知のキー・型の違う値は失敗」の規則に揃う（README §7.1）。
+    ///
+    /// <para>グリフ表現を足す側（README §8）が使うのは型付きの読み口（<see cref="RequireString"/>・<see cref="OptionalNumber"/>・
+    /// <see cref="OptionalBox"/> ほか）と <see cref="Fail(string, string)"/> だけで、JSON の読み手の型は公開しない——読み手を差し替えても
+    /// グリフ表現の種類の実装は変わらない。</para>
     /// </summary>
     public sealed class SpecSection
     {
         /// <param name="reservedKeys">読み手の外で扱うキー（<c>representation</c> の節の <c>kind</c> など）。
         /// <see cref="RequireKnownKeys"/> は既知として扱う。</param>
-        public SpecSection(JObject json, string sourceName, string path, IReadOnlyCollection<string> reservedKeys)
+        internal SpecSection(JObject json, string sourceName, string path, IReadOnlyCollection<string> reservedKeys)
         {
             Json = json ?? throw new ArgumentNullException(nameof(json));
             SourceName = sourceName ?? throw new ArgumentNullException(nameof(sourceName));
@@ -101,8 +105,8 @@ namespace info.someiyoshino.T2Font.Bake
             ReservedKeys = reservedKeys ?? throw new ArgumentNullException(nameof(reservedKeys));
         }
 
-        /// <summary>読むオブジェクト。</summary>
-        public JObject Json { get; }
+        /// <summary>読むオブジェクト（パッケージの中だけで使う）。</summary>
+        internal JObject Json { get; }
 
         /// <summary>誤りの文面に出すファイル名。</summary>
         public string SourceName { get; }
@@ -120,7 +124,7 @@ namespace info.someiyoshino.T2Font.Bake
             {
                 if (Array.IndexOf(known, property.Name) < 0 && !ReservedKeys.Contains(property.Name))
                 {
-                    throw Fail(property, $"未知のキー \"{property.Name}\" です（キーは {string.Join("・", known)}）。");
+                    throw FailAt(property, $"未知のキー \"{property.Name}\" です（キーは {string.Join("・", known)}）。");
                 }
             }
         }
@@ -128,7 +132,7 @@ namespace info.someiyoshino.T2Font.Bake
         /// <summary>文字列の必須のキー。</summary>
         public string RequireString(string key)
         {
-            return OptionalString(key) ?? throw Fail(null, $"キー \"{key}\" がありません。");
+            return OptionalString(key) ?? throw FailAt(null, $"キー \"{key}\" がありません。");
         }
 
         /// <summary>文字列のキー。無ければ null。</summary>
@@ -140,7 +144,7 @@ namespace info.someiyoshino.T2Font.Bake
             }
             if (token.Type != JTokenType.String)
             {
-                throw Fail(token, $"{key} は文字列にしてください。");
+                throw FailAt(token, $"{key} は文字列にしてください。");
             }
             return (string?)token ?? string.Empty;
         }
@@ -154,7 +158,7 @@ namespace info.someiyoshino.T2Font.Bake
             }
             if (token.Type != JTokenType.Integer && token.Type != JTokenType.Float)
             {
-                throw Fail(token, $"{key} は数にしてください。");
+                throw FailAt(token, $"{key} は数にしてください。");
             }
             return Convert.ToDouble(((JValue)token).Value, CultureInfo.InvariantCulture);
         }
@@ -170,7 +174,7 @@ namespace info.someiyoshino.T2Font.Bake
             }
             if (!(token is JArray box) || box.Count != 4 || !box.All(t => t.Type == JTokenType.Integer || t.Type == JTokenType.Float))
             {
-                throw Fail(token, $"{key} は [左, 下, 右, 上]（em）の 4 つの数にしてください。");
+                throw FailAt(token, $"{key} は [左, 下, 右, 上]（em）の 4 つの数にしてください。");
             }
             try
             {
@@ -178,14 +182,27 @@ namespace info.someiyoshino.T2Font.Bake
             }
             catch (ArgumentException e)
             {
-                throw Fail(token, e.Message);
+                throw FailAt(token, e.Message);
             }
+        }
+
+        /// <summary>
+        /// キー <paramref name="key"/> の値を名指した誤りを作る（キーがあれば行番号を、節の名前があればそれを文面に付ける）。
+        /// 値の範囲の外など、型付きの読み口が見ない誤りをグリフ表現の種類が止めるときに使う。
+        /// </summary>
+        public FontSpecException Fail(string key, string message)
+        {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+            return FailAt(Json.TryGetValue(key, StringComparison.Ordinal, out var token) ? token : null, message);
         }
 
         /// <summary>
         /// 誤りを作る。<paramref name="at"/> があれば行番号を、節の名前があればそれを文面に付ける。
         /// </summary>
-        public FontSpecException Fail(JToken? at, string message)
+        internal FontSpecException FailAt(JToken? at, string message)
         {
             var line = string.Empty;
             if (at is IJsonLineInfo info && info.HasLineInfo())

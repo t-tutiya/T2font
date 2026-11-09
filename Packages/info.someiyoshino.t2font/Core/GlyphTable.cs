@@ -42,7 +42,7 @@ namespace info.someiyoshino.T2Font
         }
 
         /// <summary>
-        /// <paramref name="codepoints"/> が狭義昇順か（重複が無いか）。生成器の出力と、読み込んだアセットの健全性の検査に使う。
+        /// <paramref name="codepoints"/> が狭義昇順か（重複が無いか）。ジェネレーターの出力と、読み込んだアセットの健全性の検査に使う。
         /// </summary>
         public static bool IsStrictlyAscending(IReadOnlyList<int> codepoints)
         {
