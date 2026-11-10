@@ -39,6 +39,14 @@ Tsuchiya, T. (2026). T2Font and Rinkaku: glyph representation packages for Unity
 Zenodo. https://doi.org/10.5281/zenodo.24076087
 ```
 
+The paper on Rinkaku (preprint, English and Japanese) is archived separately. /
+Rinkaku の論文（Preprint・英語版と日本語版）は別の記録にある。
+
+```
+Tsuchiya, T. (2026). Rinkaku: Exact Signed Distance Rendering of CJK Glyphs with a Nearest-Segment Index [Preprint].
+Zenodo. https://doi.org/10.5281/zenodo.24095980
+```
+
 ## 開発
 
 - 開発の規約と構造の入口は [`CLAUDE.md`](CLAUDE.md)、全ドキュメントの索引は [`docs/README.md`](docs/README.md)。
