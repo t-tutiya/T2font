@@ -30,13 +30,15 @@ https://github.com/t-tutiya/T2font.git?path=/Packages/info.someiyoshino.rinkaku#
 
 ## Citation / 引用
 
-v0.3.0 (T2Font 0.3.0 and Rinkaku 0.1.0) is archived on Zenodo with the DOI
-[10.5281/zenodo.24076087](https://doi.org/10.5281/zenodo.24076087). Each release gets its own DOI. /
-v0.3.0（T2Font 0.3.0 と Rinkaku 0.1.0）は Zenodo に記録し、DOI は上のとおり。DOI は版ごとに付く。
+Each release is archived on Zenodo with its own DOI. v0.3.0 (T2Font 0.3.0 and Rinkaku 0.1.0) is
+[10.5281/zenodo.24076088](https://doi.org/10.5281/zenodo.24076088); the DOI in the badge,
+[10.5281/zenodo.24076087](https://doi.org/10.5281/zenodo.24076087), cites all versions and resolves to the latest one. /
+リリースは版ごとに Zenodo に記録し、DOI が付く。v0.3.0（T2Font 0.3.0 と Rinkaku 0.1.0）の DOI は 10.5281/zenodo.24076088。
+バッジの DOI（10.5281/zenodo.24076087）は全版をまとめるもので、最新の版へ解決する。
 
 ```
 Tsuchiya, T. (2026). T2Font and Rinkaku: glyph representation packages for Unity uGUI text (v0.3.0) [Computer software].
-Zenodo. https://doi.org/10.5281/zenodo.24076087
+Zenodo. https://doi.org/10.5281/zenodo.24076088
 ```
 
 The paper on Rinkaku (preprint, English and Japanese) is archived separately. /
