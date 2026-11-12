@@ -10,10 +10,23 @@ using info.someiyoshino.T2Font.Bake;
 
 namespace info.someiyoshino.Rinkaku.Bake
 {
+    /// <summary>セルのセグメントの並び（README §4.3 の 4）。</summary>
+    public enum RinkakuCellOrder
+    {
+        /// <summary>
+        /// セルの中心に近い順。並びを比べる計測のためのもので、ベイク仕様からは選べない（README §5）。セルのセグメントの集合は変わらないので、
+        /// 描く絵は既定の並びと同じ。
+        /// </summary>
+        NearFirst,
+
+        /// <summary>曲線を先に、直線を後に（それぞれの中はセルの中心に近い順）。既定。</summary>
+        CurvesFirst,
+    }
+
     /// <summary>ベイクの設定（README §5）。</summary>
     public sealed class RinkakuBakeSettings
     {
-        /// <summary>索引格子の 1em のセルの数（texel の 1 辺＝1/indexEm em）。</summary>
+        /// <summary>グリッドの 1em のセルの数（texel の 1 辺＝1/indexEm em）。</summary>
         public int IndexEm { get; set; } = 16;
 
         /// <summary>1 ページの最大の高さ（texel）。幅は常に <see cref="RinkakuEncoding.PageWidth"/>。</summary>
@@ -21,6 +34,9 @@ namespace info.someiyoshino.Rinkaku.Bake
 
         /// <summary>字ごとの処理を並列に行うか（結果は並列でも直列でも同一）。</summary>
         public bool Parallel { get; set; } = true;
+
+        /// <summary>セルのセグメントの並び。既定（<see cref="RinkakuCellOrder.CurvesFirst"/>）以外は出力が変わる（README §5）。</summary>
+        public RinkakuCellOrder CellOrder { get; set; } = RinkakuCellOrder.CurvesFirst;
 
         internal void Validate()
         {
@@ -37,7 +53,7 @@ namespace info.someiyoshino.Rinkaku.Bake
         }
     }
 
-    /// <summary>グリフ 1 つのデータの量と索引の形（README §7 の表と検査に使う）。インクの無いグリフは全部 0。</summary>
+    /// <summary>グリフ 1 つのデータの量とインデックスの形（README §7 の表と検査に使う）。インクの無いグリフは全部 0。</summary>
     public readonly struct RinkakuGlyphStats
     {
         public RinkakuGlyphStats(int segments, int entries, int indexTexels, int dataTexels, int maxItems, int totalItems, int cells, bool wide)
@@ -52,28 +68,28 @@ namespace info.someiyoshino.Rinkaku.Bake
             Wide = wide;
         }
 
-        /// <summary>区間の数（和の輪郭・符号化の後）。</summary>
+        /// <summary>セグメントの数（和集合輪郭・符号化の後）。</summary>
         public int Segments { get; }
 
-        /// <summary>区間の表の項目の数（区間＋輪郭ごとの終端）。</summary>
+        /// <summary>セグメントテーブルの項目の数（セグメント＋輪郭ごとの終端）。</summary>
         public int Entries { get; }
 
-        /// <summary>索引のブロックの texel の数。</summary>
+        /// <summary>インデックスブロックの texel の数。</summary>
         public int IndexTexels { get; }
 
-        /// <summary>区間の表と溢れ表の texel の数。</summary>
+        /// <summary>セグメントテーブルとレコードの並びの texel の数。</summary>
         public int DataTexels { get; }
 
-        /// <summary>セル 1 つの区間の数の最大（1 画素の評価本数の最大）。</summary>
+        /// <summary>セル 1 つのセグメントの数の最大（1 画素の評価本数の最大）。</summary>
         public int MaxItems { get; }
 
-        /// <summary>全セルの区間の数の和（÷ <see cref="Cells"/> が 1 画素の評価本数の平均）。</summary>
+        /// <summary>全セルのセグメントの数の和（÷ <see cref="Cells"/> が 1 画素の評価本数の平均）。</summary>
         public int TotalItems { get; }
 
-        /// <summary>索引格子のセルの数。</summary>
+        /// <summary>グリッドセルの数。</summary>
         public int Cells { get; }
 
-        /// <summary>広い索引か。</summary>
+        /// <summary>ワイドインデックスか。</summary>
         public bool Wide { get; }
 
         /// <summary>グリフ 1 つのバイト数（ページの棚の隙間を除く）。</summary>
@@ -128,18 +144,18 @@ namespace info.someiyoshino.Rinkaku.Bake
     }
 
     /// <summary>
-    /// Rinkaku のベイカー（純 C#・README §4）。字ごとに和の輪郭 → 符号化 → 索引格子を作り、索引のブロックと区間の表をページへ置く。
-    /// 和の輪郭を作れない字があればインポートの失敗にして字を名指す（黙って筋を残さない・README §4.1）。
+    /// Rinkaku のベイカー（純 C#・README §4）。字ごとに和集合輪郭 → 符号化 → グリッドを作り、インデックスブロックとセグメントテーブルをページへ置く。
+    /// 和集合輪郭を作れない字があればインポートの失敗にして字を名指す（黙って筋を残さない・README §4.1）。
     /// </summary>
     public static class RinkakuAtlasBaker
     {
         /// <summary>出力のバージョン（README §6）。<b>同じ入力から出る出力が変わる変更をしたら上げる</b>。</summary>
-        public const int Version = 3;
+        public const int Version = 5;
 
         // 失敗の文に名指す字の数の上限。
         private const int MaxNamedFailures = 20;
 
-        // 索引のブロックを置く行の上限。K（ブロックの原点 − 格子の原点）を UV0.x の y 11bit に収めるための余裕を見た値（README §3.4）。
+        // インデックスブロックを置く行の上限。K（ブロックの原点 − グリッドの原点）を UV0.x の y 11bit に収めるための余裕を見た値（README §3.4）。
         private const int BlockRowLimit = 1960;
 
         /// <summary>グリフ 1 つを作った途中の結果（検査用に公開の内側で使う）。</summary>
@@ -158,16 +174,16 @@ namespace info.someiyoshino.Rinkaku.Bake
             public byte[] Block = Array.Empty<byte>();
             public int BlockWidth;
             public int BlockHeight;
-            public byte[] Overflow = Array.Empty<byte>();
-            public int OverflowTexels;
+            public byte[] Records = Array.Empty<byte>();
+            public int RecordTexels;
             public int MaxItems;
             public int TotalItems;
 
-            public int DataTexels => OverflowTexels + (2 * (Encoded?.Entries.Count ?? 0));
+            public int DataTexels => RecordTexels + (2 * (Encoded?.Entries.Count ?? 0));
         }
 
         /// <summary>
-        /// ベイクする。和の輪郭を作れない字・座標が持てる範囲の外の字があれば、それらを名指して <see cref="FontBakeException"/> にする。
+        /// ベイクする。和集合輪郭を作れない字・座標が持てる範囲の外の字があれば、それらを名指して <see cref="FontBakeException"/> にする。
         /// </summary>
         public static RinkakuAtlas Bake(FontFaceData face, RinkakuBakeSettings settings)
         {
@@ -184,13 +200,14 @@ namespace info.someiyoshino.Rinkaku.Bake
             var builds = new GlyphBuild[face.GlyphCount];
             if (settings.Parallel)
             {
-                System.Threading.Tasks.Parallel.For(0, face.GlyphCount, glyph => builds[glyph] = BuildGlyph(face, glyph, settings.IndexEm));
+                System.Threading.Tasks.Parallel.For(
+                    0, face.GlyphCount, glyph => builds[glyph] = BuildGlyph(face, glyph, settings.IndexEm, settings.CellOrder));
             }
             else
             {
                 for (var glyph = 0; glyph < face.GlyphCount; glyph++)
                 {
-                    builds[glyph] = BuildGlyph(face, glyph, settings.IndexEm);
+                    builds[glyph] = BuildGlyph(face, glyph, settings.IndexEm, settings.CellOrder);
                 }
             }
 
@@ -216,8 +233,8 @@ namespace info.someiyoshino.Rinkaku.Bake
             return FormattableString.Invariant($"U+{codepoint:X4} '{char.ConvertFromUtf32(codepoint)}'");
         }
 
-        /// <summary>グリフ 1 つの和の輪郭・符号化・索引格子を作る。失敗は <see cref="GlyphBuild.Error"/> に入る。</summary>
-        internal static GlyphBuild BuildGlyph(FontFaceData face, int glyph, int indexEm)
+        /// <summary>グリフ 1 つの和集合輪郭・符号化・グリッドを作る。失敗は <see cref="GlyphBuild.Error"/> に入る。</summary>
+        internal static GlyphBuild BuildGlyph(FontFaceData face, int glyph, int indexEm, RinkakuCellOrder order = RinkakuCellOrder.CurvesFirst)
         {
             var build = new GlyphBuild { Glyph = glyph };
             var outline = face.Outline(glyph);
@@ -264,11 +281,11 @@ namespace info.someiyoshino.Rinkaku.Bake
             }
             if (encoded.Segments.Count == 0)
             {
-                build.Error = "和の輪郭が空です（輪郭が互いに打ち消し合っています）。";
+                build.Error = "和集合輪郭が空です（輪郭が互いに打ち消し合っています）。";
                 return build;
             }
 
-            // quad は単精度で持つ（セル）。索引格子は単精度に丸めた quad を少し広げて覆う——quad の縁の画素が格子の外のセルを引かない。
+            // quad は単精度で持つ（セル）。グリッドは単精度に丸めた quad を少し広げて覆う——quad の縁の画素がグリッドの外のセルを引かない。
             var ink = face.InkBox(glyph);
             var extent = RinkakuEncoding.ExtentEm;
             build.PlaneLeft = (float)(ink.Left - extent);
@@ -279,116 +296,172 @@ namespace info.someiyoshino.Rinkaku.Bake
             const double margin = 1e-6;
             build.Grid = NearestIndex.Build(
                 encoded.Segments, indexEm, build.PlaneLeft - margin, build.PlaneBottom - margin, build.PlaneRight + margin, build.PlaneTop + margin);
+            if (order == RinkakuCellOrder.CurvesFirst)
+            {
+                build.Grid = CurvesFirst(build.Grid, encoded);
+            }
 
             if (!EncodeIndex(build, wide: encoded.Entries.Count > RinkakuEncoding.NarrowMaxEntries) && !EncodeIndex(build, wide: true))
             {
-                build.Error = "索引の溢れ表が広い索引でも持てる大きさを超えます。";
+                build.Error = "インデックスのレコードの並びがワイドインデックスでも持てる大きさを超えます。";
             }
             else if (build.MaxItems > RinkakuEncoding.MaxItemsPerCell)
             {
                 build.Error = FormattableString.Invariant(
-                    $"索引のセルの区間の数 {build.MaxItems} が上限 {RinkakuEncoding.MaxItemsPerCell} を超えます（indexEm を上げてください）。");
+                    $"インデックスのセルのセグメントの数 {build.MaxItems} が上限 {RinkakuEncoding.MaxItemsPerCell} を超えます（indexEm を上げてください）。");
             }
             return build;
         }
 
-        // 索引のブロックと溢れ表を符号化する（README §3.3）。狭い索引で溢れ表が持てなければ false。
+        // セルのセグメントを、曲線を先・直線を後に並べ直す（それぞれの中の順＝セルの中心に近い順は保つ）。直線かどうかは、シェーダが見る直線の印
+        //（項目の制御点の差が (0, 0)・README §3.2）で決める——元に戻したセグメントの形ではなく、シェーダが通る手順で分ける。
+        private static NearestIndex.Grid CurvesFirst(NearestIndex.Grid grid, GlyphEncoder.Result encoded)
+        {
+            var isLine = new bool[encoded.Segments.Count];
+            for (var segment = 0; segment < isLine.Length; segment++)
+            {
+                var entry = encoded.Entries[encoded.Segments[segment].Entry];
+                isLine[segment] = entry.Dx == 0 && entry.Dy == 0;
+            }
+
+            var cells = new int[grid.Cells.Length][];
+            for (var cell = 0; cell < cells.Length; cell++)
+            {
+                var items = grid.Cells[cell];
+                var ordered = new int[items.Length];
+                var next = 0;
+                foreach (var item in items)
+                {
+                    if (!isLine[item])
+                    {
+                        ordered[next++] = item;
+                    }
+                }
+                foreach (var item in items)
+                {
+                    if (isLine[item])
+                    {
+                        ordered[next++] = item;
+                    }
+                }
+                cells[cell] = ordered;
+            }
+            return new NearestIndex.Grid(grid.X0, grid.Y0, grid.Width, grid.Height, cells);
+        }
+
+        // インデックスブロックとレコードの並びを符号化する（README §3.3）。ナローインデックスでレコードの並びが持てなければ false。
+        //
+        // セルはセグメントの番号 2 つ (a, b)。2 本以下は番号そのもの（空きは 0）。3 本以上は a がレコードの位置（セグメントテーブルの先頭から後ろ向きの texel の差）の
+        // 下の桁、b が印（短いか長いかと、位置の上の桁）。レコードは 4 本までは番号 4 つ（空きは 0）、5 本以上は [セグメントの数, 番号, …]。同じ内容のレコードは字の中で 1 つにまとめる。
         private static bool EncodeIndex(GlyphBuild build, bool wide)
         {
             var grid = build.Grid!;
             var segments = build.Encoded!.Segments;
-            var texelsPerCell = wide ? 2 : 1;
-            var block = new byte[grid.Width * texelsPerCell * grid.Height * 4];
-            var lists = new List<byte>();
-            var listOffsets = new Dictionary<int, int>();
+            var records = new List<byte>();
+            var recordOffsets = new Dictionary<string, int>();
+            var cellRecords = new int[grid.Cells.Length];
             var maxItems = 0;
             var totalItems = 0;
+            // 番号 1 つのバイト数。
+            var unit = wide ? 2 : 1;
 
             for (var cell = 0; cell < grid.Cells.Length; cell++)
             {
                 var items = grid.Cells[cell].Select(s => segments[s].Entry + 1).ToArray();
                 maxItems = Math.Max(maxItems, items.Length);
                 totalItems += items.Length;
-                if (items.Length > 4)
+                if (items.Length <= RinkakuEncoding.ItemsInCell)
                 {
-                    listOffsets[cell] = lists.Count / 4;
-                    if (wide)
+                    continue;
+                }
+                var key = string.Join(",", items);
+                if (!recordOffsets.TryGetValue(key, out var offset))
+                {
+                    offset = records.Count / 4;
+                    recordOffsets[key] = offset;
+                    if (items.Length > RinkakuEncoding.ItemsInRecord)
                     {
-                        AppendU16(lists, items.Length - 2);
-                        for (var k = 2; k < items.Length; k++)
-                        {
-                            AppendU16(lists, items[k]);
-                        }
+                        AppendNumber(records, items.Length, wide);
                     }
-                    else
+                    foreach (var item in items)
                     {
-                        lists.Add((byte)(items.Length - 2));
-                        for (var k = 2; k < items.Length; k++)
-                        {
-                            lists.Add((byte)items[k]);
-                        }
+                        AppendNumber(records, item, wide);
                     }
-                    while (lists.Count % 4 != 0)
+                    // 短いレコードは番号 4 つぶん、長いレコードは texel の境まで、0 で埋める。
+                    var end = (offset * 4) + (RinkakuEncoding.ItemsInRecord * unit);
+                    while (records.Count < end || records.Count % 4 != 0)
                     {
-                        lists.Add(0);
+                        records.Add(0);
                     }
                 }
+                cellRecords[cell] = offset;
             }
 
-            var overflowTexels = lists.Count / 4;
-            if (overflowTexels > (wide ? RinkakuEncoding.WideMaxOverflowTexels : RinkakuEncoding.NarrowMaxOverflowTexels))
+            var recordTexels = records.Count / 4;
+            if (recordTexels > (wide ? RinkakuEncoding.WideMaxRecordTexels : RinkakuEncoding.NarrowMaxRecordTexels))
             {
                 return false;
             }
 
+            // ナローインデックスは texel 1 つにセル 2 つ（偶数のセルが前半）なので、ブロックの左端の texel は偶数のセルから始まる。
+            var shape = new RinkakuGlyphCell { gridX = grid.X0, gridWidth = grid.Width, wide = wide };
+            var originCell = RinkakuEncoding.BlockOriginCell(shape);
+            var blockWidth = RinkakuEncoding.BlockWidth(shape);
+            var block = new byte[blockWidth * grid.Height * 4];
             for (var cell = 0; cell < grid.Cells.Length; cell++)
             {
                 var items = grid.Cells[cell].Select(s => segments[s].Entry + 1).ToArray();
-                var cx = cell % grid.Width;
+                var x = grid.X0 + (cell % grid.Width);
                 var cy = cell / grid.Width;
-                var offset = ((cy * grid.Width * texelsPerCell) + (cx * texelsPerCell)) * 4;
-                var slots = new int[4];
-                if (items.Length <= 4)
+                var column = RinkakuEncoding.TexelColumn(x, wide) - RinkakuEncoding.TexelColumn(originCell, wide);
+                var offset = (((cy * blockWidth) + column) * 4) + (wide ? 0 : (x & 1) * 2);
+                int a;
+                int b;
+                if (items.Length <= RinkakuEncoding.ItemsInCell)
                 {
-                    Array.Copy(items, slots, items.Length);
+                    a = items.Length > 0 ? items[0] : 0;
+                    b = items.Length > 1 ? items[1] : 0;
                 }
                 else
                 {
-                    // 溢れ: 最初の 2 本と、溢れ表の位置（区間の表の先頭から後ろ向きの texel の差）と印。
-                    slots[0] = items[0];
-                    slots[1] = items[1];
-                    slots[2] = overflowTexels - listOffsets[cell];
-                    slots[3] = wide ? RinkakuEncoding.WideOverflowMarker : RinkakuEncoding.NarrowOverflowMarker;
+                    // レコードの位置（セグメントテーブルの先頭から後ろ向きの texel の差）: 下の桁を 1 つ目の番号に、上の桁を印に持つ。
+                    var back = recordTexels - cellRecords[cell];
+                    var lowBits = RinkakuEncoding.RecordLowBits(wide);
+                    a = back & ((1 << lowBits) - 1);
+                    b = RinkakuEncoding.RecordMarker(wide, items.Length > RinkakuEncoding.ItemsInRecord, back >> lowBits);
                 }
-                for (var k = 0; k < 4; k++)
+                if (wide)
                 {
-                    if (wide)
-                    {
-                        block[offset + (k * 2)] = (byte)(slots[k] & 0xFF);
-                        block[offset + (k * 2) + 1] = (byte)(slots[k] >> 8);
-                    }
-                    else
-                    {
-                        block[offset + k] = (byte)slots[k];
-                    }
+                    block[offset] = (byte)(a & 0xFF);
+                    block[offset + 1] = (byte)(a >> 8);
+                    block[offset + 2] = (byte)(b & 0xFF);
+                    block[offset + 3] = (byte)(b >> 8);
+                }
+                else
+                {
+                    block[offset] = (byte)a;
+                    block[offset + 1] = (byte)b;
                 }
             }
 
             build.Wide = wide;
             build.Block = block;
-            build.BlockWidth = grid.Width * texelsPerCell;
+            build.BlockWidth = blockWidth;
             build.BlockHeight = grid.Height;
-            build.Overflow = lists.ToArray();
-            build.OverflowTexels = overflowTexels;
+            build.Records = records.ToArray();
+            build.RecordTexels = recordTexels;
             build.MaxItems = maxItems;
             build.TotalItems = totalItems;
             return true;
         }
 
-        private static void AppendU16(List<byte> bytes, int value)
+        private static void AppendNumber(List<byte> bytes, int value, bool wide)
         {
             bytes.Add((byte)(value & 0xFF));
-            bytes.Add((byte)(value >> 8));
+            if (wide)
+            {
+                bytes.Add((byte)(value >> 8));
+            }
         }
 
         // ---------------------------------------------------------------- 配置
@@ -427,7 +500,7 @@ namespace info.someiyoshino.Rinkaku.Bake
                 if (fits == 0)
                 {
                     throw new FontBakeException(
-                        $"グリフ {inked[start].Glyph} の索引のブロック（{inked[start].BlockWidth}×{inked[start].BlockHeight}）が 1 ページに入りません。");
+                        $"グリフ {inked[start].Glyph} のインデックスブロック（{inked[start].BlockWidth}×{inked[start].BlockHeight}）が 1 ページに入りません。");
                 }
 
                 var group = inked.GetRange(start, fits);
@@ -460,7 +533,7 @@ namespace info.someiyoshino.Rinkaku.Bake
             public int Height { get; }
         }
 
-        // 索引のブロックを高い順に棚へ詰め（同じ高さはグリフの順）、その下の行から区間の表を線形に並べる。
+        // インデックスブロックを高い順に棚へ詰め（同じ高さはグリフの順）、その下の行からセグメントテーブルを線形に並べる。
         private static bool TryPlan(List<GlyphBuild> group, RinkakuBakeSettings settings, out Plan? plan)
         {
             plan = null;
@@ -494,7 +567,7 @@ namespace info.someiyoshino.Rinkaku.Bake
             long cursor = (long)blockRows * RinkakuEncoding.PageWidth;
             foreach (var b in group)
             {
-                bases[b.Glyph] = (int)(cursor + b.OverflowTexels);
+                bases[b.Glyph] = (int)(cursor + b.RecordTexels);
                 cursor += b.DataTexels;
             }
             var height = (int)Math.Max(1, (cursor + RinkakuEncoding.PageWidth - 1) / RinkakuEncoding.PageWidth);
@@ -519,7 +592,7 @@ namespace info.someiyoshino.Rinkaku.Bake
                 }
 
                 var dataBase = plan.Bases[b.Glyph];
-                Array.Copy(b.Overflow, 0, data, (dataBase - b.OverflowTexels) * 4, b.Overflow.Length);
+                Array.Copy(b.Records, 0, data, (dataBase - b.RecordTexels) * 4, b.Records.Length);
                 var entries = b.Encoded!.Entries;
                 for (var e = 0; e < entries.Count; e++)
                 {
@@ -546,7 +619,7 @@ namespace info.someiyoshino.Rinkaku.Bake
                 if (RinkakuEncoding.PackedOffset(cell) < 0)
                 {
                     throw new FontBakeException(
-                        $"グリフ {b.Glyph} の索引のずれが UV に詰められる範囲の外です（インク境界が em から遠すぎます）。");
+                        $"グリフ {b.Glyph} のインデックスのずれが UV に詰められる範囲の外です（インク境界が em から遠すぎます）。");
                 }
                 cells[b.Glyph] = cell;
             }

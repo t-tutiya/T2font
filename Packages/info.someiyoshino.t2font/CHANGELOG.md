@@ -5,6 +5,19 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-12
+
+### Changed
+
+- **幾何の契約（README §4.3）**: `GlyphRepresentation.WriteGeometry` が `quadExtentEm`（幾何がインク境界から広げて覆う幅・em）を受け取る。ホストは
+  描くエッジスタイルと表示サイズから `GlyphEdgeStyle.QuadExtentEm` で求めて渡し、グリフ表現はその範囲の幾何を書く（これまでは、どのスタイルでも
+  描ける効果の最大の外延まで広げていた。同梱の SDF は、距離の近似で縁が外へ出る分としてベイクの 1 texel を足す）。何も描かれない余白の画素が減る。グリフ表現の派生とホストは引数を足す——互換を壊す変更。
+
+### Added
+
+- `GlyphEdgeStyle.OuterExtentEm`・`QuadExtentEm(displayPx)`（README §4.3・§6.2）と、`GlyphRepresentation.WholeQuad`・`NarrowToInk`。
+- 適合検査: `CheckGeometry` が狭い `quadExtentEm` の幾何を、`CheckRendering` が `QuadExtentEm` の幾何で描いた絵を確かめる（README §10）。
+
 ## [0.3.0] - 2026-11-09
 
 ### Added

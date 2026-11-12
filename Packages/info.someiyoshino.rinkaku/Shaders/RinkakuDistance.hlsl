@@ -4,7 +4,7 @@
 // Rinkaku の画素の符号付き距離（README §3.5）。グリフ表現のシェーダ Rinkaku/Glyph と、GPU の途中の値を読む計測のシェーダが同じ手順を使うように、
 // 距離の求め方だけをここに置く。RinkakuTrace は計測が読む途中の値で、グリフ表現のシェーダは読まないのでコンパイラが消す。
 
-// ページの幅（texel・2^12）と、セル 1 つの区間の数の上限（RinkakuEncoding と同じ値）。
+// ページの幅（texel・2^12）と、セル 1 つのセグメントの数の上限（RinkakuEncoding と同じ値）。
 #define RINKAKU_PAGE_WIDTH_BITS 12
 #define RINKAKU_MAX_ITEMS 32
 
@@ -13,15 +13,15 @@
 #define RINKAKU_ENDPOINT_SLACK		1e-6
 
 Texture2D<float4>	_MainTex;
-// 索引格子の 1em のセルの数（RinkakuRepresentation.ConfigureMaterial が入れる）。
+// グリッドの 1em のセルの数（RinkakuRepresentation.ConfigureMaterial が入れる）。
 uniform float		_IndexEm;
 
-// 最も近い区間について、距離を解く途中の値。
+// 最も近いセグメントについて、距離を解く途中の値。
 struct RinkakuTrace
 {
-	uint	item;		// 最も近い区間の番号（1 始まり・0 は区間が無い）
-	uint	count;		// セルの区間の数
-	uint	flags;		// 1: 実根 1 つの枝 ／ 2: Newton 法を試した ／ 4: Newton 法の t を採った ／ 8: 始点を採った ／ 16: 終点を採った ／ 32: 直線の射影
+	uint	item;		// 最も近いセグメントの番号（1 始まり・0 はセグメントが無い）
+	uint	count;		// セルのセグメントの数
+	uint	flags;		// 1: 実根 1 つの枝 ／ 2: Newton 法を試した ／ 4: Newton 法の t を採った ／ 8: 始点を採った ／ 16: 終点を採った ／ 32: 直線の正射影
 	float	tClosed;	// 閉形式の t
 	float	tNewton;	// Newton 法の後の t
 	float	t;			// 両端と比べた後の t
@@ -31,7 +31,7 @@ struct RinkakuTrace
 	float2	normal;		// 符号を決めた法線
 	float	side;		// dot(pos − foot, normal)
 	int2	cellTexel;	// 引いたセルの texel
-	float4	itemD2;		// セルの先頭 4 本の距離の二乗（外接矩形で飛ばした区間は −2）
+	float4	itemD2;		// セルの先頭 4 本の距離の二乗（AABB で飛ばしたセグメントは −2）
 	float4	itemT;		// セルの先頭 4 本の t
 };
 
@@ -47,7 +47,7 @@ uint4 RinkakuBytesAt(int2 texel)
 	return (uint4)round(_MainTex.Load(int3(texel, 0)) * 255.0);
 }
 
-// 区間の表の項目（texel 2 つ・README §3.2）の 1 つ目の texel: 始点（em）。
+// セグメントテーブルの項目（texel 2 つ・README §3.2）の 1 つ目の texel: 始点（em）。
 float2 RinkakuStart(uint4 a)
 {
 	return float2(a.x | (a.y << 8), a.z | (a.w << 8)) / 16384.0 - 1.0;
@@ -63,7 +63,7 @@ float2 RinkakuControlDelta(uint4 b)
 	return float2(dx, dy) / 4096.0;
 }
 
-// 項目の 2 つ目の texel の w: 擬似法線（単位）。最も近い区間の端点にだけ要るので、区間を評価する間は読まない。
+// 項目の 2 つ目の texel の w: 擬似法線（単位）。最も近いセグメントの端点にだけ要るので、セグメントを評価する間は読まない。
 float2 RinkakuPseudoNormal(uint angle)
 {
 	float turn = angle * (6.28318530718 / 256.0);
@@ -76,8 +76,8 @@ float RinkakuDist2(float2 d, float2 c, float2 b, float t)
 	return dot(e, e);
 }
 
-// 点から直線の区間 (p0, p1) への最短距離の二乗（射影）と、最も近い点 foot・そこが端か（endpoint: 0＝途中・1＝始点・2＝終点）・右手の法線 normal。
-// 直線は制御点の差が (0, 0) の項目（README §3.2）。端は射影の t を丸めたかで決め、同じ枝の中で整数に書く（後から t と 0・1 を比べ直さない）。
+// 点から直線のセグメント (p0, p1) への最短距離の二乗（正射影）と、最も近い点 foot・そこが端か（endpoint: 0＝途中・1＝始点・2＝終点）・右手の法線 normal。
+// 直線は制御点の差が (0, 0) の項目（README §3.2）。端は正射影の t を丸めたかで決め、同じ枝の中で整数に書く（後から t と 0・1 を比べ直さない）。
 // 帯の境（t がちょうど 0・1）で途中と端を取り違えても、そこでは接線の法線と擬似法線の符号が一致するので、符号は変わらない。
 float RinkakuLineDistanceSquared(
 	float2 pos, float2 p0, float2 p1, out float t, out uint endpoint, out float2 foot, out float2 normal, inout RinkakuTrace trace)
@@ -100,7 +100,7 @@ float RinkakuLineDistanceSquared(
 }
 
 // 点から 2 次ベジエ (p0, q, p1) への最短距離の二乗（閉形式＋Newton 法 1 回）と、最も近い点 foot・そこが端か（endpoint: 0＝途中・1＝始点・
-// 2＝終点）・途中なら接線の右手の法線 normal。直線は RinkakuLineDistanceSquared で測るので、ここに来る区間は曲線で、ほぼ直線の曲線はベイクで直線に
+// 2＝終点）・途中なら接線の右手の法線 normal。直線は RinkakuLineDistanceSquared で測るので、ここに来るセグメントは曲線で、ほぼ直線の曲線はベイクで直線に
 // してある（|p0 − 2q + p1| ≥ 1/1024 em）——b = p0 − 2q + p1 は 0 にならない（README §3.2）。
 float RinkakuDistanceSquared(
 	float2 pos, float2 p0, float2 q, float2 p1, out float t, out uint endpoint, out float2 foot, out float2 normal, inout RinkakuTrace trace)
@@ -136,7 +136,7 @@ float RinkakuDistanceSquared(
 		t = RinkakuDist2(d, c, b, t1) <= RinkakuDist2(d, c, b, t2) ? t1 : t2;
 	}
 	float tClosed = t;
-	// 閉形式の t を Newton 法で 1 回磨く（ほぼ直線の長い曲線で係数が大きくなり、float の桁落ちが t に出るのを抑える）。
+	// 閉形式の t を Newton 法の 1 反復でリファインする（ほぼ直線の長い曲線で係数が大きくなり、float の桁落ちが t に出るのを抑える）。
 	float2 e = d + (c + b * t) * t;
 	float2 tangent = c + 2.0 * b * t;
 	float f = dot(e, tangent);
@@ -193,46 +193,70 @@ float RinkakuDistanceSquared(
 	return best;
 }
 
-// 画素の符号付き距離（em・インク領域の内側が正・README §3）。
-float RinkakuSignedDistanceInCell(float2 pos, int2 cellTexel, uint dataBase, bool wide, out RinkakuTrace trace)
+// 画素の符号付き距離（em・インク領域の内側が正・README §3）。half は、ナローインデックスで texel のどちらの半分がこのセルか（0＝前半・1＝後半）。
+float RinkakuSignedDistanceInCell(float2 pos, int2 cellTexel, uint half, uint dataBase, bool wide, out RinkakuTrace trace)
 {
 	trace = (RinkakuTrace)0;
 	trace.cellTexel = cellTexel;
 	trace.itemD2 = -1.0;
 	trace.itemT = -1.0;
 
-	// セルの区間の番号（4 つ。広い索引は texel 2 つに 16bit で 4 つ）。
-	uint slots[4];
+	// セルはセグメントの番号 2 つ (a, b)。ナローインデックスは texel の半分（8bit×2）、ワイドインデックスは texel 1 つ（16bit×2）（README §3.3）。
 	uint4 first = RinkakuBytesAt(cellTexel);
+	uint a;
+	uint b;
 	if (wide)
 	{
-		uint4 second = RinkakuBytesAt(cellTexel + int2(1, 0));
-		slots[0] = first.x | (first.y << 8);
-		slots[1] = first.z | (first.w << 8);
-		slots[2] = second.x | (second.y << 8);
-		slots[3] = second.z | (second.w << 8);
+		a = first.x | (first.y << 8);
+		b = first.z | (first.w << 8);
 	}
 	else
 	{
-		slots[0] = first.x;
-		slots[1] = first.y;
-		slots[2] = first.z;
-		slots[3] = first.w;
+		a = half != 0u ? first.z : first.x;
+		b = half != 0u ? first.w : first.y;
 	}
 
-	// 4 本を超えるセルは (i0, i1, 溢れ表の後ろ向きの差, 印)。溢れ表は [残りの本数, 番号, …]（README §3.3）。
-	bool overflow = slots[3] == (wide ? 65535u : 255u);
+	// 2 本以下のセルは番号そのもの。3 本以上のセルは (レコードの後ろ向きの差の下の桁, 印) で、レコードを 1 回読む: 短いレコードは番号 4 つ
+	//（3 本か 4 本・空きは 0）、長いレコードは [セグメントの数, 番号, …]（5 本以上。先頭の 3 本はレコードの最初の読みに入っている）。
+	uint slots[4];
+	slots[0] = a;
+	slots[1] = b;
+	slots[2] = 0u;
+	slots[3] = 0u;
+	// 印は番号の最大の値から下へ 4 つ: 下の 1 ビットが長いレコードか、その上の 1 ビットがレコードの位置の上の桁。
+	uint below = (wide ? 65535u : 255u) - b;
+	bool list = false;
 	uint listAddress = 0u;
 	uint count;
-	if (overflow)
+	if (below < 4u)
 	{
-		listAddress = dataBase - slots[2];
-		uint4 head = RinkakuBytes(listAddress);
-		count = 2u + (wide ? (head.x | (head.y << 8)) : head.x);
+		listAddress = dataBase - (a + ((below >> 1) << (wide ? 16u : 8u)));
+		uint4 record = RinkakuBytes(listAddress);
+		if (wide)
+		{
+			uint4 second = RinkakuBytes(listAddress + 1u);
+			record = uint4(record.x | (record.y << 8), record.z | (record.w << 8), second.x | (second.y << 8), second.z | (second.w << 8));
+		}
+		if ((below & 1u) == 0u)
+		{
+			slots[0] = record.x;
+			slots[1] = record.y;
+			slots[2] = record.z;
+			slots[3] = record.w;
+			count = record.w != 0u ? 4u : 3u;
+		}
+		else
+		{
+			list = true;
+			count = record.x;
+			slots[0] = record.y;
+			slots[1] = record.z;
+			slots[2] = record.w;
+		}
 	}
 	else
 	{
-		count = (slots[0] != 0u ? 1u : 0u) + (slots[1] != 0u ? 1u : 0u) + (slots[2] != 0u ? 1u : 0u) + (slots[3] != 0u ? 1u : 0u);
+		count = (a != 0u ? 1u : 0u) + (b != 0u ? 1u : 0u);
 	}
 	trace.count = count;
 
@@ -246,14 +270,14 @@ float RinkakuSignedDistanceInCell(float2 pos, int2 cellTexel, uint dataBase, boo
 	for (uint k = 0u; k < count && k < RINKAKU_MAX_ITEMS; k++)
 	{
 		uint item;
-		if (k < 2u || !overflow)
+		if (k < 3u || !list)
 		{
 			item = slots[k];
 		}
 		else
 		{
-			// 狭い索引は本数の 1 バイトの後ろに 1 バイトずつ、広い索引は本数の 2 バイトの後ろに 2 バイトずつ。
-			uint byteIndex = wide ? 2u + 2u * (k - 2u) : 1u + (k - 2u);
+			// 長いレコードはセグメントの数の後ろに番号が並ぶ（ナローインデックスは 1 バイトずつ、ワイドインデックスは 2 バイトずつ）。
+			uint byteIndex = (1u + k) * (wide ? 2u : 1u);
 			uint4 bytes = RinkakuBytes(listAddress + (byteIndex >> 2));
 			uint component = byteIndex & 3u;
 			item = bytes[component];
@@ -263,8 +287,8 @@ float RinkakuSignedDistanceInCell(float2 pos, int2 cellTexel, uint dataBase, boo
 			}
 		}
 
-		// 区間 item は項目 item − 1 の始点と制御点、項目 item の始点（＝終点）でできる。擬似法線（項目の 2 つ目の texel の w）は、最も近い
-		// 区間が端で決まったときにだけ、ループの後で読む。
+		// セグメント item は項目 item − 1 の始点と制御点、項目 item の始点（＝終点）でできる。擬似法線（項目の 2 つ目の texel の w）は、最も近い
+		// セグメントが端で決まったときにだけ、ループの後で読む。
 		uint entry = dataBase + 2u * (item - 1u);
 		float2 p0 = RinkakuStart(RinkakuBytes(entry));
 		uint4 controlBytes = RinkakuBytes(entry + 1u);
@@ -273,8 +297,8 @@ float RinkakuSignedDistanceInCell(float2 pos, int2 cellTexel, uint dataBase, boo
 		// 制御点の差が (0, 0) の項目は直線（README §3.2）。バイトで判定する（差の 24bit が全部 0）。
 		bool isLine = (controlBytes.x | controlBytes.y | controlBytes.z) == 0u;
 
-		// 3 点の外接矩形は区間を含むので、矩形までの距離は区間までの距離の下限。今の最短より遠い区間は三次方程式を解かない（README §3.5）。
-		// 等しいときは解く（頂点を共有する区間どうしは同じ距離になる）。
+		// 3 点の AABB はセグメントを含むので、矩形までの距離はセグメントまでの距離の下限。今の最短より遠いセグメントは三次方程式を解かない（README §3.5）。
+		// 等しいときは解く（頂点を共有するセグメントどうしは同じ距離になる）。
 		float2 gap = max(max(min(min(p0, q), p1) - pos, pos - max(max(p0, q), p1)), 0.0);
 		float4 slot = float4(k == 0u, k == 1u, k == 2u, k == 3u);
 		if (dot(gap, gap) > best)
@@ -308,7 +332,7 @@ float RinkakuSignedDistanceInCell(float2 pos, int2 cellTexel, uint dataBase, boo
 			bestFoot = foot;
 			bestNormal = normal;
 			bestEndpoint = endpoint;
-			// 始点は項目 item − 1、終点は項目 item（区間の表の番地で 2 つ先）。
+			// 始点は項目 item − 1、終点は項目 item（セグメントテーブルの番地で 2 つ先）。
 			bestEntry = endpoint == 2u ? entry + 2u : entry;
 
 			trace.item = item;
@@ -322,7 +346,7 @@ float RinkakuSignedDistanceInCell(float2 pos, int2 cellTexel, uint dataBase, boo
 		}
 	}
 
-	// 最も近い区間の向きで符号を決める: 途中は接線の右手の法線、端は擬似法線（頂点を共有する 2 区間は同じ項目の擬似法線を読む）。
+	// 最も近いセグメントの向きで符号を決める: 途中は接線の右手の法線、端は擬似法線（頂点を共有する 2 セグメントは同じ項目の擬似法線を読む）。
 	float2 normal = bestNormal;
 	if (bestEndpoint != 0u)
 	{
@@ -337,17 +361,19 @@ float RinkakuSignedDistanceInCell(float2 pos, int2 cellTexel, uint dataBase, boo
 	return inside ? magnitude : -magnitude;
 }
 
-// 補間された em 座標と UV0.xy（索引のずれ K と区間の表の番地・README §3.4）から、画素の符号付き距離を求める。
+// 補間された em 座標と UV0.xy（インデックスのずれ K とセグメントテーブルの番地・README §3.4）から、画素の符号付き距離を求める。
 float RinkakuSignedDistance(float2 em, float2 data, out RinkakuTrace trace)
 {
-	// 索引のずれ K（x 13bit・y 11bit・足し値 64）と区間の表の番地（広い索引は負）。
+	// インデックスのずれ K（x 13bit・y 11bit・足し値 64）とセグメントテーブルの番地（ワイドインデックスは負）。
 	uint packed = (uint)round(data.x);
 	int2 offset = int2(int(packed & 8191u), int(packed >> 13)) - 64;
 	bool wide = data.y < 0.0;
 	uint dataBase = (uint)round(abs(data.y));
+	// ナローインデックスは texel 1 つにセル 2 つ（偶数のセルが前半）。>> は符号を保つので、負のセルでも floor(cell.x / 2) になる。
 	int2 cell = int2(floor(em * _IndexEm));
-	int2 cellTexel = int2(cell.x * (wide ? 2 : 1), cell.y) + offset;
-	return RinkakuSignedDistanceInCell(em, cellTexel, dataBase, wide, trace);
+	int2 cellTexel = int2(wide ? cell.x : cell.x >> 1, cell.y) + offset;
+	uint half = wide ? 0u : uint(cell.x & 1);
+	return RinkakuSignedDistanceInCell(em, cellTexel, half, dataBase, wide, trace);
 }
 
 #endif

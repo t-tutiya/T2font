@@ -6,22 +6,22 @@ using System.Collections.Generic;
 namespace info.someiyoshino.Rinkaku.Bake
 {
     /// <summary>
-    /// 索引格子（README §4.3）: texel ごとに「その texel の面積のどこかから見て最近傍になる区間」の集合（必要集合）を求める。シェーダは texel の
-    /// 集合の区間だけを評価するので、集合が真の最近傍を含めば、画素の符号付き距離は全区間を評価したときと同じになる。
+    /// グリッド（README §4.3）: texel ごとに「その texel の面積のどこかから見て最近傍になるセグメント」の集合（必要集合）を求める。シェーダは texel の
+    /// 集合のセグメントだけを評価するので、集合が真の最近傍を含めば、画素の符号付き距離は全セグメントを評価したときと同じになる。
     ///
     /// <para>
-    /// 求め方: ①texel の中心から区間への距離を取り、最小＋texel の対角の長さを超える区間を外す（距離は 1-Lipschitz なので、外した区間が
-    /// texel の中で最近傍になることは無い＝証明付きの上位集合）。区間の制御点の境界ボックスまでの距離は区間までの距離の下限なので、下限が
-    /// 明らかに大きい区間は厳密な距離を解かずに外す ②上位集合が 2 本以上なら、texel の中を通る区間を必ず入れ（その上の点で距離 0 の最近傍）、
-    /// texel の閉じた面積を格子でサンプリングし（角と辺を含む）、
+    /// 求め方: ①texel の中心からセグメントへの距離を取り、最小＋texel の対角の長さを超えるセグメントを外す（距離は 1-Lipschitz なので、外したセグメントが
+    /// texel の中で最近傍になることは無い＝証明付きの上位集合）。セグメントの制御点のAABBまでの距離はセグメントまでの距離の下限なので、下限が
+    /// 明らかに大きいセグメントは厳密な距離を解かずに外す ②上位集合が 2 本以上なら、texel の中を通るセグメントを必ず入れ（その上の点で距離 0 の最近傍）、
+    /// texel の閉じた面積をグリッドでサンプリングし（角と辺を含む）、
     /// 隣り合うサンプルで最近傍が変わる所を 2 分して詰め（その区間で 3 本目が最近傍になりうると Lipschitz で言えるときだけ下る）、見つけた最近傍の
     /// 和を必要集合にする。残る取りこぼしはサンプルの線から外れた、サンプルの間隔より細い領域だけで、そこでの距離の誤差は Lipschitz からその幅の
-    /// 2 倍以下に限られる。サンプル点では、近くの点の最近傍を先に測り、境界ボックスまでの距離（下限）がそれより遠い候補は解かない。
+    /// 2 倍以下に限られる。サンプル点では、近くの点の最近傍を先に測り、AABBまでの距離（下限）がそれより遠い候補は解かない。
     /// </para>
     ///
     /// <para>
-    /// 上位集合をそのまま書かないのは、角の外側（頂点が最近傍になる楔の領域）では隣り合う 2 区間への距離が同じ頂点への距離で等しく、上位集合が
-    /// いつも 2 本以上になるため。どちらを評価しても距離も符号（頂点の擬似法線は両方の区間が同じ項目から読む）も同じなので、サンプリングで
+    /// 上位集合をそのまま書かないのは、角の外側（頂点が最近傍になる楔の領域）では隣り合う 2 セグメントへの距離が同じ頂点への距離で等しく、上位集合が
+    /// いつも 2 本以上になるため。どちらを評価しても距離も符号（頂点の擬似法線は両方のセグメントが同じ項目から読む）も同じなので、サンプリングで
     /// 1 本（番号の小さい方）に決める。
     /// </para>
     /// </summary>
@@ -31,7 +31,7 @@ namespace info.someiyoshino.Rinkaku.Bake
         private const int Samples = 6;
         private const int BisectDepth = 4;
 
-        /// <summary>索引格子（左下のセル・セルの数・セルごとの区間の番号の列〔セルの中心に近い順〕）。</summary>
+        /// <summary>グリッド（左下のセル・セルの数・セルごとのセグメントの番号の列〔セルの中心に近い順〕）。</summary>
         public sealed class Grid
         {
             public Grid(int x0, int y0, int width, int height, int[][] cells)
@@ -53,12 +53,12 @@ namespace info.someiyoshino.Rinkaku.Bake
 
             public int Height { get; }
 
-            /// <summary>セル（<c>y × Width + x</c>）ごとの区間の番号（<see cref="GlyphEncoder.Result.Segments"/> の添字・セルの中心に近い順）。</summary>
+            /// <summary>セル（<c>y × Width + x</c>）ごとのセグメントの番号（<see cref="GlyphEncoder.Result.Segments"/> の添字・セルの中心に近い順）。</summary>
             public int[][] Cells { get; }
         }
 
         /// <summary>
-        /// 範囲 [left, right]×[bottom, top]（em）を覆う索引格子を作る。
+        /// 範囲 [left, right]×[bottom, top]（em）を覆うグリッドを作る。
         /// </summary>
         public static Grid Build(IReadOnlyList<DecodedSegment> segments, int indexEm, double left, double bottom, double right, double top)
         {
@@ -92,7 +92,7 @@ namespace info.someiyoshino.Rinkaku.Bake
                     var centerX = cellLeft + (0.5 * size);
                     var centerY = cellBottom + (0.5 * size);
 
-                    // 下限の最も小さい区間の厳密な距離は最小の上界。下限が「上界＋対角」を超える区間は候補になりえないので解かない。
+                    // 下限の最も小さいセグメントの厳密な距離は最小の上界。下限が「上界＋対角」を超えるセグメントは候補になりえないので解かない。
                     var nearestBound = 0;
                     for (var i = 0; i < segments.Count; i++)
                     {
@@ -130,7 +130,7 @@ namespace info.someiyoshino.Rinkaku.Bake
                         continue;
                     }
 
-                    // セルの中を通る区間は、その上の点で距離 0 の最近傍になるので必ず要る（サンプルの間をかすめるだけの区間も落とさない）。
+                    // セルの中を通るセグメントは、その上の点で距離 0 の最近傍になるので必ず要る（サンプルの間をかすめるだけのセグメントも落とさない）。
                     found.Clear();
                     foreach (var i in candidates)
                     {
@@ -142,7 +142,7 @@ namespace info.someiyoshino.Rinkaku.Bake
                     Sample(curves, boxes, candidates, cellLeft, cellBottom, size, nearest, found);
                     var cell = new int[found.Count];
                     found.CopyTo(cell);
-                    // セルの中心に近い順に書く（同じ距離は番号の順）。シェーダは今の最短より外接矩形が遠い区間を解かずに飛ばすので、近い区間を
+                    // セルの中心に近い順に書く（同じ距離は番号の順）。シェーダは今の最短よりAABBが遠いセグメントを解かずに飛ばすので、近いセグメントを
                     // 先に解くと飛ばしが効く（README §4.3）。found は候補の部分集合なので、中心からの距離は求めてある。
                     Array.Sort(cell, (a, b) => distances[a] != distances[b] ? distances[a].CompareTo(distances[b]) : a.CompareTo(b));
                     cells[(cy * width) + cx] = cell;
@@ -169,7 +169,7 @@ namespace info.someiyoshino.Rinkaku.Bake
             }
             if (found.Count == 1 || found.Count == candidates.Count)
             {
-                // 1 本なら境は無い。候補が全部見つかっていれば、2 分しても新しい区間は出ない。
+                // 1 本なら境は無い。候補が全部見つかっていれば、2 分しても新しいセグメントは出ない。
                 return;
             }
 
@@ -206,8 +206,8 @@ namespace info.someiyoshino.Rinkaku.Bake
             var m = Nearest(curves, boxes, candidates, mx, my, a);
             found.Add(m);
 
-            // a・b・m 以外の候補が、この区間（長さ L）のどこかで最近傍になるには、中点での距離が最近傍の距離＋L 以内でなければならない
-            // （2 つの距離の差は 2-Lipschitz で、中点から端までは L/2）。そういう候補が無ければ、この区間を下っても新しい区間は出ない。
+            // a・b・m 以外の候補が、このセグメント（長さ L）のどこかで最近傍になるには、中点での距離が最近傍の距離＋L 以内でなければならない
+            // （2 つの距離の差は 2-Lipschitz で、中点から端までは L/2）。そういう候補が無ければ、このセグメントを下っても新しいセグメントは出ない。
             var length = Math.Sqrt(((bx - ax) * (bx - ax)) + ((by - ay) * (by - ay)));
             var limit = Math.Sqrt(curves[m].DistanceSquared(mx, my, out _)) + length;
             var limit2 = limit * limit;
@@ -246,7 +246,7 @@ namespace info.someiyoshino.Rinkaku.Bake
         }
 
         /// <summary>
-        /// 候補の中の最近傍（距離が等しければ番号の小さい方）。<paramref name="hint"/>（近くの点の最近傍）を先に測り、境界ボックスまでの距離（下限）が
+        /// 候補の中の最近傍（距離が等しければ番号の小さい方）。<paramref name="hint"/>（近くの点の最近傍）を先に測り、AABBまでの距離（下限）が
         /// それより遠い候補は厳密な距離を解かずに飛ばす（下限が等しい候補も、厳密な距離が小さくなりえないので飛ばしてよい）。
         /// </summary>
         private static int Nearest(
@@ -278,7 +278,7 @@ namespace info.someiyoshino.Rinkaku.Bake
             return best;
         }
 
-        /// <summary>区間が矩形（閉じた範囲）を通るか。直線は線分と矩形の切り取り、曲線は制御点の境界ボックスで 2 分して弦で判定する。</summary>
+        /// <summary>セグメントが矩形（閉じた範囲）を通るか。直線は線分と矩形の切り取り、曲線は制御点のAABBで 2 分して弦で判定する。</summary>
         private static bool Crosses(in Curve c, double left, double bottom, double right, double top, int depth)
         {
             c.Bounds(out var minX, out var minY, out var maxX, out var maxY);

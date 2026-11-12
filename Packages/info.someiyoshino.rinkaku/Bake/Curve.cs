@@ -6,8 +6,8 @@ using System.Collections.Generic;
 namespace info.someiyoshino.Rinkaku.Bake
 {
     /// <summary>
-    /// 輪郭の区間 1 本（em・y 上向き）。直線か 2 次ベジエで、直線の制御点は中点に置く——<c>B(t) = (1−t)²P0 + 2t(1−t)C + t²P1</c> がどちらでも
-    /// そのまま成り立つ（直線は t に比例して進む）。ベイクの幾何（和の輪郭・距離・巻き数）は倍精度のこの型で行う。
+    /// 輪郭のセグメント 1 本（em・y 上向き）。直線か 2 次ベジエで、直線の制御点は中点に置く——<c>B(t) = (1−t)²P0 + 2t(1−t)C + t²P1</c> がどちらでも
+    /// そのまま成り立つ（直線は t に比例して進む）。ベイクの幾何（和集合輪郭・距離・巻き数）は倍精度のこの型で行う。
     /// </summary>
     internal readonly struct Curve
     {
@@ -40,13 +40,13 @@ namespace info.someiyoshino.Rinkaku.Bake
             return new Curve(x0, y0, cx, cy, x1, y1, false);
         }
 
-        /// <summary>向きを逆にした区間。</summary>
+        /// <summary>向きを逆にしたセグメント。</summary>
         public Curve Reversed()
         {
             return new Curve(X1, Y1, Cx, Cy, X0, Y0, IsLine);
         }
 
-        /// <summary>端点を置き換えた区間（制御点はそのまま。直線は中点を置き直す）。</summary>
+        /// <summary>端点を置き換えたセグメント（制御点はそのまま。直線は中点を置き直す）。</summary>
         public Curve WithEndpoints(double x0, double y0, double x1, double y1)
         {
             return new Curve(x0, y0, Cx, Cy, x1, y1, IsLine);
@@ -109,7 +109,7 @@ namespace info.someiyoshino.Rinkaku.Bake
             return piece;
         }
 
-        /// <summary>制御点を含む境界ボックス（曲線はこの中にある）。</summary>
+        /// <summary>制御点を含むAABB（曲線はこの中にある）。</summary>
         public void Bounds(out double minX, out double minY, out double maxX, out double maxY)
         {
             minX = Math.Min(X0, Math.Min(Cx, X1));
@@ -136,7 +136,7 @@ namespace info.someiyoshino.Rinkaku.Bake
         }
 
         /// <summary>
-        /// 点 (px, py) から区間への最短距離の二乗と、そのパラメータ t。曲線は <c>f(t) = (B(t) − p)·B'(t)/2</c>（距離の二乗の導関数の 1/4）の
+        /// 点 (px, py) からセグメントへの最短距離の二乗と、そのパラメータ t。曲線は <c>f(t) = (B(t) − p)·B'(t)/2</c>（距離の二乗の導関数の 1/4）の
         /// 根のうち、f が負から正へ変わる所（極小）を求めて端点と比べる。f の極値（f' の根＝2 次方程式）で [0, 1] を f が単調な区間に分け、
         /// 各区間の根を挟み込み付きの Newton 法で取る——三角関数を使う閉形式より速く、どの形の曲線でも根を落とさない。
         /// </summary>
@@ -174,7 +174,7 @@ namespace info.someiyoshino.Rinkaku.Bake
                 t = 1;
             }
 
-            // f' = 3c3 t² + 2c2 t + c1 の根で [0, 1] を分ける（多くて 3 区間）。
+            // f' = 3c3 t² + 2c2 t + c1 の根で [0, 1] を分ける（多くて 3 セグメント）。
             var split0 = 2.0;
             var split1 = 2.0;
             var qa = 3 * c3;
@@ -197,7 +197,7 @@ namespace info.someiyoshino.Rinkaku.Bake
                 split0 = -c1 / qb;
             }
 
-            // Newton 法の初期値は点の弦への射影（多くの曲線は弦に近く、数回で収まる）。
+            // Newton 法の初期値は点の弦への正射影（多くの曲線は弦に近く、数回で収まる）。
             var chordX = X1 - X0;
             var chordY = Y1 - Y0;
             var chord2 = (chordX * chordX) + (chordY * chordY);
@@ -289,7 +289,7 @@ namespace info.someiyoshino.Rinkaku.Bake
         }
 
         /// <summary>
-        /// 点 (px, py) から +x 方向へ伸ばした半直線と区間の交差の符号付きの数（非ゼロ巻き数の寄与）。区間を y の単調な部分に分け、
+        /// 点 (px, py) から +x 方向へ伸ばした半直線とセグメントの交差の符号付きの数（非ゼロ巻き数の寄与）。セグメントを y の単調な部分に分け、
         /// 下端を含み上端を含まない規則で数える（頂点を通る半直線を二重に数えない）。上向きの交差が +1。
         /// </summary>
         public int Crossings(double px, double py)
@@ -372,7 +372,7 @@ namespace info.someiyoshino.Rinkaku.Bake
         }
     }
 
-    /// <summary>巻き数を数える（区間の集まりに対して）。</summary>
+    /// <summary>巻き数を数える（セグメントの集まりに対して）。</summary>
     internal static class Winding
     {
         /// <summary>点の非ゼロ巻き数（上向きの交差を +1）。</summary>

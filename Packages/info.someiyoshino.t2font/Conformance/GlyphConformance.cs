@@ -136,6 +136,7 @@ namespace info.someiyoshino.T2Font.Conformance
                 }
 
                 CheckOutline(problems, representation, glyph, metrics, materials);
+                CheckQuadExtent(problems, representation, glyph, metrics, materials);
                 CheckAntialiasing(problems, representation, glyph, metrics, plain);
                 CheckVertexColorSpace(problems, representation, glyph, metrics, plain);
 
@@ -159,7 +160,7 @@ namespace info.someiyoshino.T2Font.Conformance
             var representation = font.RepresentationOf(glyph);
             var metrics = font.Metrics(glyph);
             geometry.Clear();
-            representation.WriteGeometry(glyph, metrics, geometry);
+            representation.WriteGeometry(glyph, metrics, GlyphRepresentation.WholeQuad, geometry);
 
             if (!metrics.HasInk)
             {
@@ -198,8 +199,44 @@ namespace info.someiyoshino.T2Font.Conformance
                     + Invariant($"[{metrics.inkLeft:0.####}, {metrics.inkBottom:0.####}, {metrics.inkRight:0.####}, {metrics.inkTop:0.####}] ")
                     + Invariant($"を外延 {extent:0.####}em だけ広げた範囲を覆いません（README §4.3）。");
             }
+
+            // 狭い quad: 渡した幅だけインク境界から広げた範囲を覆い、覆える範囲の全部（上の矩形）からはみ出さない。
+            foreach (var requested in NarrowExtents)
+            {
+                var narrow = Math.Min(requested, extent);
+                geometry.Clear();
+                representation.WriteGeometry(glyph, metrics, requested, geometry);
+                float l = float.MaxValue, b = float.MaxValue, r = float.MinValue, t = float.MinValue;
+                for (var i = 0; i < geometry.VertexCount; i++)
+                {
+                    var p = geometry.Positions[i];
+                    var uv = geometry.Uv0[i];
+                    if (uv.z != p.x || uv.w != p.y)
+                    {
+                        return Invariant($"{Name(font, glyph)}: quad の外延 {requested:0.####}em で、UV0.zw が頂点の em 座標と違います（README §4.2）。");
+                    }
+                    l = Math.Min(l, p.x);
+                    b = Math.Min(b, p.y);
+                    r = Math.Max(r, p.x);
+                    t = Math.Max(t, p.y);
+                }
+                if (geometry.VertexCount == 0
+                    || l > metrics.inkLeft - narrow + Epsilon || b > metrics.inkBottom - narrow + Epsilon
+                    || r < metrics.inkRight + narrow - Epsilon || t < metrics.inkTop + narrow - Epsilon)
+                {
+                    return Invariant($"{Name(font, glyph)}: quad の外延 {requested:0.####}em の幾何 [{l:0.####}, {b:0.####}, {r:0.####}, {t:0.####}] が、")
+                        + "インク境界をその幅だけ広げた範囲を覆いません（README §4.3）。";
+                }
+                if (l < left - Epsilon || b < bottom - Epsilon || r > right + Epsilon || t > top + Epsilon)
+                {
+                    return Invariant($"{Name(font, glyph)}: quad の外延 {requested:0.####}em の幾何が、覆える範囲の全部の幾何からはみ出します（README §4.3）。");
+                }
+            }
             return null;
         }
+
+        // 幾何の検査で渡す quad の外延（em）: 効果なしの大きな字・縁取りの中ほど・全キーの上限の近く。
+        private static readonly float[] NarrowExtents = { 0.005f, 0.05f, 0.12f };
 
         // S4・S2: 縁取りの帯は中央の列で上下 2 本、それぞれ幅 OutlineWidthMax × 表示サイズの画素になる。
         private static void CheckOutline(
@@ -300,14 +337,84 @@ namespace info.someiyoshino.T2Font.Conformance
             }
         }
 
+        // §4.3: エッジスタイルと表示サイズから決めた quad（GlyphEdgeStyle.QuadExtentEm）が効果と AA を断たない。2 つを見る:
+        // (a) 覆える範囲の全部の quad で描いた絵で、狭い quad の外の画素が透明（断たれる画素が無い） (b) 狭い quad で描いた絵が大きくは違わない
+        //（UV の取り直しの誤り）。(b) を画素の一致で見ないのは、頂点が変わると GPU の補間の丸めで縁の急なランプが 8bit の数段動くため。
+        private static void CheckQuadExtent(
+            List<string> problems, GlyphRepresentation representation, int glyph, in GlyphMetrics metrics, GlyphMaterialCache materials)
+        {
+            var styles = new List<GlyphEdgeStyle> { GlyphEdgeStyle.None };
+            if ((representation.Effects & GlyphEffects.Outline) != 0)
+            {
+                styles.Add(new GlyphEdgeStyle(0f, 1f, 0f, 1f, 0f, 0f, GlyphEdgeStyle.OutlineWidthMax, 0f));
+            }
+            if (representation.Effects == GlyphEffects.All)
+            {
+                styles.Add(new GlyphEdgeStyle(
+                    0f, 1f, 0f, 1f, GlyphEdgeStyle.FaceDilateMax, GlyphEdgeStyle.FaceSoftnessMax, GlyphEdgeStyle.OutlineWidthMax,
+                    GlyphEdgeStyle.OutlineSoftnessMax));
+            }
+            var geometry = new GlyphGeometry();
+            foreach (var style in styles)
+            {
+                var material = materials.Get(representation, style);
+                foreach (var size in new[] { 24f, 48f, 200f })
+                {
+                    var extent = style.QuadExtentEm(size);
+                    geometry.Clear();
+                    representation.WriteGeometry(glyph, metrics, extent, geometry);
+                    float left = float.MaxValue, bottom = float.MaxValue, right = float.MinValue, top = float.MinValue;
+                    for (var i = 0; i < geometry.VertexCount; i++)
+                    {
+                        var p = geometry.Positions[i];
+                        left = Math.Min(left, p.x);
+                        bottom = Math.Min(bottom, p.y);
+                        right = Math.Max(right, p.x);
+                        top = Math.Max(top, p.y);
+                    }
+
+                    var whole = Render(representation, glyph, metrics, material, size, Color.white, null, false);
+                    // 画像の中心はインク部の中心（Render）。狭い quad の矩形を画像の画素の座標へ直す。
+                    var centerX = (metrics.inkLeft + metrics.inkRight) * 0.5f * size;
+                    var centerY = (metrics.inkBottom + metrics.inkTop) * 0.5f * size;
+                    var outside = whole.PeakAlphaOutside(
+                        (left * size) - centerX, (bottom * size) - centerY, (right * size) - centerX, (top * size) - centerY);
+                    if (outside > 2.5f / 255f)
+                    {
+                        problems.Add(Invariant(
+                            $"§4.3: 外延 {style.OuterExtentEm:0.###}em のエッジスタイルを {size}px で描くと、quad の外延 {extent:0.####}em の幾何の外に ")
+                            + Invariant($"α {outside:0.000} の画素があります（狭い quad が効果か AA を断つ）。"));
+                        continue;
+                    }
+
+                    var narrow = Render(representation, glyph, metrics, material, size, Color.white, null, false, extent);
+                    var different = whole.CountDifferent(narrow, 32f / 255f);
+                    if (different != 0)
+                    {
+                        problems.Add(Invariant(
+                            $"§4.3: 外延 {style.OuterExtentEm:0.###}em のエッジスタイルを {size}px で、quad の外延 {extent:0.####}em で描くと、")
+                            + Invariant($"覆える範囲の全部の quad で描いた絵と {different} 画素が大きく違います（狭い quad の UV0 が違う所を指している）。"));
+                    }
+                }
+            }
+        }
+
+        // quadExtentEm は描く幾何の外延。画像の大きさと字の位置は、覆える範囲の全部の幾何で決める（外延を変えても同じ画素に同じ字が来る）。
         private static RenderedImage Render(
             GlyphRepresentation representation, int glyph, in GlyphMetrics metrics, Material material, float size, Color vertexColor, Rect? clip,
-            bool vertexColorInGamma)
+            bool vertexColorInGamma, float quadExtentEm = GlyphRepresentation.WholeQuad)
         {
             var geometry = new GlyphGeometry();
-            representation.WriteGeometry(glyph, metrics, geometry);
+            representation.WriteGeometry(glyph, metrics, GlyphRepresentation.WholeQuad, geometry);
             var mesh = new Mesh { hideFlags = HideFlags.HideAndDontSave };
             geometry.CopyTo(mesh, size);
+            var bounds = mesh.bounds;
+            if (!float.IsPositiveInfinity(quadExtentEm))
+            {
+                geometry.Clear();
+                representation.WriteGeometry(glyph, metrics, quadExtentEm, geometry);
+                geometry.CopyTo(mesh, size);
+            }
             var colors = new Color[mesh.vertexCount];
             for (var i = 0; i < colors.Length; i++)
             {
@@ -316,7 +423,6 @@ namespace info.someiyoshino.T2Font.Conformance
             mesh.colors = colors;
 
             // インク部の中心を画像の中心へ置く（中央の列がインク部の中心を通る）。画像は幾何が収まる大きさにする。
-            var bounds = mesh.bounds;
             var centerX = (metrics.inkLeft + metrics.inkRight) * 0.5f * size;
             var centerY = (metrics.inkBottom + metrics.inkTop) * 0.5f * size;
             var width = (2 * Mathf.CeilToInt(Math.Max(Math.Abs(bounds.min.x - centerX), Math.Abs(bounds.max.x - centerX)))) + 8;
@@ -417,6 +523,48 @@ namespace info.someiyoshino.T2Font.Conformance
             }
 
             // α の最も大きい画素（面の奥）。
+            /// <summary>
+            /// 画像の中心を原点にした矩形（画素・y 上向き）の外に中心がある画素の、α の最大。
+            /// </summary>
+            public float PeakAlphaOutside(float left, float bottom, float right, float top)
+            {
+                var peak = 0f;
+                for (var y = 0; y < _height; y++)
+                {
+                    var py = y + 0.5f - (_height * 0.5f);
+                    for (var x = 0; x < _width; x++)
+                    {
+                        var px = x + 0.5f - (_width * 0.5f);
+                        if (px < left || px > right || py < bottom || py > top)
+                        {
+                            peak = Math.Max(peak, _pixels[(y * _width) + x].a);
+                        }
+                    }
+                }
+                return peak;
+            }
+
+            /// <summary>どれかのチャネルが tolerance を超えて違う画素の数（大きさが違えば全部）。</summary>
+            public int CountDifferent(RenderedImage other, float tolerance)
+            {
+                if (other._width != _width || other._height != _height)
+                {
+                    return _pixels.Length;
+                }
+                var count = 0;
+                for (var i = 0; i < _pixels.Length; i++)
+                {
+                    var a = _pixels[i];
+                    var b = other._pixels[i];
+                    if (Math.Abs(a.r - b.r) > tolerance || Math.Abs(a.g - b.g) > tolerance || Math.Abs(a.b - b.b) > tolerance
+                        || Math.Abs(a.a - b.a) > tolerance)
+                    {
+                        count++;
+                    }
+                }
+                return count;
+            }
+
             public Color Peak()
             {
                 var best = Color.clear;

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace info.someiyoshino.Rinkaku.Bake
 {
-    /// <summary>区間の表の項目 1 つ（README §3.2）。量子化した値で持つ。</summary>
+    /// <summary>セグメントテーブルの項目 1 つ（README §3.2）。量子化した値で持つ。</summary>
     internal readonly struct EncodedEntry
     {
         public EncodedEntry(int x, int y, int dx, int dy, int angle, bool terminal)
@@ -33,7 +33,7 @@ namespace info.someiyoshino.Rinkaku.Bake
         /// <summary>始点での擬似法線の角（0〜255・塗る側を向く）。</summary>
         public int Angle { get; }
 
-        /// <summary>輪郭の終端の項目（区間を持たず、直前の区間の終点と擬似法線だけを持つ）か。</summary>
+        /// <summary>輪郭の終端の項目（セグメントを持たず、直前のセグメントの終点と擬似法線だけを持つ）か。</summary>
         public bool Terminal { get; }
 
         public void WriteTo(byte[] data, int offset)
@@ -52,7 +52,7 @@ namespace info.someiyoshino.Rinkaku.Bake
     }
 
     /// <summary>
-    /// シェーダが見る区間 1 本（量子化した値を元に戻したもの・em）。索引の構築と検証はこの値で行う——シェーダが評価する幾何と同じにするため。
+    /// シェーダが見るセグメント 1 本（量子化した値を元に戻したもの・em）。インデックスの構築と検証はこの値で行う——シェーダが評価する幾何と同じにするため。
     /// 直線は制御点の差を (0, 0) にして持つ（README §3.2）。
     /// </summary>
     internal readonly struct DecodedSegment
@@ -67,7 +67,7 @@ namespace info.someiyoshino.Rinkaku.Bake
             EndNormalY = endNormalY;
         }
 
-        /// <summary>区間の始点の項目の番号（0 始まり）。索引の項目番号はこれ＋1。</summary>
+        /// <summary>セグメントの始点の項目の番号（0 始まり）。インデックスの項目番号はこれ＋1。</summary>
         public int Entry { get; }
 
         public Curve Curve { get; }
@@ -85,7 +85,7 @@ namespace info.someiyoshino.Rinkaku.Bake
         public double EndNormalY { get; }
 
         /// <summary>
-        /// 点の符号付き距離の符号を、この区間を最近傍として決める（README §2: 内点は接線の右手の法線、端点は擬似法線・塗る側が正）。
+        /// 点の符号付き距離の符号を、このセグメントを最近傍として決める（README §2: 内点は接線の右手の法線、端点は擬似法線・塗る側が正）。
         /// </summary>
         public bool IsInside(double px, double py, double t)
         {
@@ -113,8 +113,8 @@ namespace info.someiyoshino.Rinkaku.Bake
     }
 
     /// <summary>
-    /// 和の輪郭を区間の表へ符号化する（README §3.2・§4.2）: ほぼ直線の曲線を直線にし、制御点の差が持てない曲線を 2 分し、始点と制御点を
-    /// 量子化し、量子化で長さ 0 になった区間を除き、頂点ごとの擬似法線を求める。輪郭ごとに区間の項目を並べ、終端の項目で閉じる。
+    /// 和集合輪郭をセグメントテーブルへ符号化する（README §3.2・§4.2）: ほぼ直線の曲線を直線にし、制御点の差が持てない曲線を 2 分し、始点と制御点を
+    /// 量子化し、量子化で長さ 0 になったセグメントを除き、頂点ごとの擬似法線を求める。輪郭ごとにセグメントの項目を並べ、終端の項目で閉じる。
     /// </summary>
     internal static class GlyphEncoder
     {
@@ -194,8 +194,8 @@ namespace info.someiyoshino.Rinkaku.Bake
         }
 
         /// <summary>
-        /// 元に戻した区間。制御点が弦の上（始点と終点の間）にちょうど乗る区間は直線そのもの（同じ点の集まり）なので、直線として持ち、距離を
-        /// 射影で求める——縦横の画の区間はほぼ全部これに当たる。量子化した値は 2 進の有限小数で桁も少ないので、この判定は倍精度で厳密。
+        /// 元に戻したセグメント。制御点が弦の上（始点と終点の間）にちょうど乗るセグメントは直線そのもの（同じ点の集まり）なので、直線として持ち、距離を
+        /// 正射影で求める——縦横の画のセグメントはほぼ全部これに当たる。量子化した値は 2 進の有限小数で桁も少ないので、この判定は倍精度で厳密。
         /// </summary>
         public static Curve DecodedCurve(double x0, double y0, double cx, double cy, double x1, double y1)
         {
@@ -304,7 +304,7 @@ namespace info.someiyoshino.Rinkaku.Bake
                 }
                 if (start == end && (isLine || control == (0, 0)))
                 {
-                    // 量子化で長さ 0 になった区間（次の区間の始点が同じ点なので、除いても輪郭は閉じたまま）。
+                    // 量子化で長さ 0 になったセグメント（次のセグメントの始点が同じ点なので、除いても輪郭は閉じたまま）。
                     continue;
                 }
                 if (control.Item1 < RinkakuEncoding.ControlMin || control.Item1 > RinkakuEncoding.ControlMax
@@ -321,7 +321,7 @@ namespace info.someiyoshino.Rinkaku.Bake
             return true;
         }
 
-        // 直線は制御点の差を (0, 0) にして持つ（README §3.2）。シェーダはこれを直線の印として三次方程式を解かずに射影で測る。
+        // 直線は制御点の差を (0, 0) にして持つ（README §3.2）。シェーダはこれを直線の印として三次方程式を解かずに正射影で測る。
         // 制御点が始点に重なる 2 次ベジエは始点から終点への線分そのもの（同じ点の集まり）なので、曲線がこの印を持っても距離は同じ。
         private static (int, int) LineControl()
         {

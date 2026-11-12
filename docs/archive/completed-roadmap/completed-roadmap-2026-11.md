@@ -8,6 +8,18 @@
 
 ---
 
+## 2026-11-12 v0.4.0 の公開（T2Font 0.4.0・Rinkaku 0.2.0） — D-T2FREPUB
+
+利用側で入った Rinkaku の改修を写した。quad をエッジスタイルの外延まで実行時に狭め、Rinkaku のデータの形式が変わった（出力のバージョン 5）。
+
+- パッケージ: `Packages/info.someiyoshino.t2font/`（変更点は CHANGELOG の 0.4.0）・`Packages/info.someiyoshino.rinkaku/`（同 0.2.0）。
+- 検証のプロジェクト: テスト用の何も描かないグリフ表現（`FakeGlyphRepresentation`）の `WriteGeometry` に引数を足した。外部 NUnit は無改修で通る。
+- 文書: 根の README の導入のタグと引用、`.zenodo.json` の論文の DOI（版 1.1）、図解 03 の quad の広がりの説明。
+- **移行に効く事実**: `GlyphRepresentation.WriteGeometry` が `quadExtentEm` を受け取る（互換を壊す。派生とホストは引数を足す）。Rinkaku のベイクの出力は
+  変わる（再インポートで作り直される）。SDF のベイクの出力は変わらない。Rinkaku の README とコメントの用語が変わった（区間 → セグメント・
+  索引 → インデックス など。CHANGELOG の 0.2.0）。
+- 正典: 各パッケージの README・CHANGELOG。
+
 ## 2026-11-09 v0.3.0 の公開（T2Font 0.3.0・Rinkaku 0.1.0） — D-T2FREPUB
 
 v0.2.0 は利用側へ写され、そこで開発が続いた。その版を T2Font 0.3.0 として写し戻し、グリフ表現 Rinkaku 0.1.0 を同梱した。

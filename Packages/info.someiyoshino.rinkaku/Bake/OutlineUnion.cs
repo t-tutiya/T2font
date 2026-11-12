@@ -6,18 +6,18 @@ using System.Collections.Generic;
 namespace info.someiyoshino.Rinkaku.Bake
 {
     /// <summary>
-    /// 和の輪郭（README §4.1）。重なった輪郭・逆向きの輪郭・辺を共有して接する輪郭を、<b>非ゼロ巻き数で塗った領域の境界</b>へ作り直し、
-    /// 全部の区間を「塗る側が進行方向の右手」に向ける。
+    /// 和集合輪郭（README §4.1）。重なった輪郭・逆向きの輪郭・辺を共有して接する輪郭を、<b>非ゼロ巻き数で塗った領域の境界</b>へ作り直し、
+    /// 全部のセグメントを「塗る側が進行方向の右手」に向ける。
     ///
     /// <para>
-    /// <b>なぜ要るか</b>: Rinkaku はシェーダで最近傍の区間の向きから符号（内か外か）を決める。重なりの内側の辺が残ると、字の中にその辺への
+    /// <b>なぜ要るか</b>: Rinkaku はシェーダで最近傍のセグメントの向きから符号（内か外か）を決める。重なりの内側の辺が残ると、字の中にその辺への
     /// 距離の筋が出て、縁取りが字の中に描かれる。逆向きの輪郭は向きから決めた符号が反転する。境界だけを残して向きを揃えれば、どの点でも
-    /// 最近傍の区間の向きが内外を正しく言う。
+    /// 最近傍のセグメントの向きが内外を正しく言う。
     /// </para>
     ///
     /// <para>
-    /// 手順: ①区間どうしの交点を求める（制御点の境界ボックスで 2 分して絞り、弦で交わる所を求めて元の曲線の上で Newton 法で詰める）
-    /// ②交点で区間を分ける（de Casteljau・正確・端点は共有の頂点に揃える）③分けた片の中点の左右の点の巻き数を元の全区間で数え、
+    /// 手順: ①セグメントどうしの交点を求める（制御点のAABBで 2 分して絞り、弦で交わる所を求めて元の曲線の上で Newton 法で詰める）
+    /// ②交点でセグメントを分ける（de Casteljau・正確・端点は共有の頂点に揃える）③分けた片の中点の左右の点の巻き数を元の全セグメントで数え、
     /// 片側だけが非ゼロの片を残して塗る側を右手に向ける ④同じ片の重複を除き、頂点で片を繋いで輪郭にする（分岐する頂点では最も右へ曲がる片へ進む）。
     /// どの段でも繋げなければ失敗の文を返す（黙って生の輪郭を使わない）。
     /// </para>
@@ -34,7 +34,7 @@ namespace info.someiyoshino.Rinkaku.Bake
         // 分類で片の中点から左右へずらす距離（em）。交点の誤差より大きく、別の境界との隙間（≥ 1/(2·upem)）より遥かに小さい。
         private const double SideEpsilon = 1e-7;
 
-        /// <summary>和の輪郭の 1 本（向きを揃えた閉じた区間の列）。</summary>
+        /// <summary>和集合輪郭の 1 本（向きを揃えた閉じたセグメントの列）。</summary>
         public sealed class Loop
         {
             public Loop(List<Curve> curves)
@@ -69,9 +69,9 @@ namespace info.someiyoshino.Rinkaku.Bake
         }
 
         /// <summary>
-        /// 輪郭（区間の閉じた列の集まり）から和の輪郭を作る。失敗したら null を返し、<paramref name="error"/> に理由を入れる。
+        /// 輪郭（セグメントの閉じた列の集まり）から和集合輪郭を作る。失敗したら null を返し、<paramref name="error"/> に理由を入れる。
         /// </summary>
-        /// <param name="contours">輪郭ごとの区間（em）。各輪郭は閉じていること（区間の終点が次の区間の始点に一致し、最後は最初へ戻る）。</param>
+        /// <param name="contours">輪郭ごとのセグメント（em）。各輪郭は閉じていること（セグメントの終点が次のセグメントの始点に一致し、最後は最初へ戻る）。</param>
         public static List<Loop>? Build(IReadOnlyList<IReadOnlyList<Curve>> contours, out string error)
         {
             var segments = new List<Curve>();
@@ -141,7 +141,7 @@ namespace info.someiyoshino.Rinkaku.Bake
                     var b = segments[j];
                     if (SameGeometry(a, b))
                     {
-                        // 同じ区間（向きは問わない）の重なりは分けずに分類へ回す（逆向きは両側が塗られて消え、同じ向きは重複として除く）。
+                        // 同じセグメント（向きは問わない）の重なりは分けずに分類へ回す（逆向きは両側が塗られて消え、同じ向きは重複として除く）。
                         continue;
                     }
 
@@ -495,7 +495,7 @@ namespace info.someiyoshino.Rinkaku.Bake
                     if (next < 0)
                     {
                         var v = vertices[pieces[current].End];
-                        error = FormattableString.Invariant($"和の輪郭を閉じられません（頂点 ({v.X:0.#####}, {v.Y:0.#####}) em から先へ進む区間がありません）。");
+                        error = FormattableString.Invariant($"和集合輪郭を閉じられません（頂点 ({v.X:0.#####}, {v.Y:0.#####}) em から先へ進むセグメントがありません）。");
                         return null;
                     }
                     used[next] = true;
