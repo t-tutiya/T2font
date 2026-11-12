@@ -73,7 +73,7 @@ namespace info.someiyoshino.T2Font
             return cell.IsEmpty ? null : pages[cell.page];
         }
 
-        public override void WriteGeometry(int glyph, in GlyphMetrics metrics, GlyphGeometry geometry)
+        public override void WriteGeometry(int glyph, in GlyphMetrics metrics, float quadExtentEm, GlyphGeometry geometry)
         {
             var cell = cells[glyph];
             if (cell.IsEmpty)
@@ -81,12 +81,26 @@ namespace info.someiyoshino.T2Font
                 return;
             }
 
+            // セルの矩形（plane）を、インク境界から quadExtentEm だけ広げた矩形へ狭める。ページの UV は plane の上で線形なので、同じ割合で取り直す。
+            // 距離は texel の間を bilinear で埋めた近似で、角の外側では真の距離より近く出る（縁が texel の大きさで外へ膨らむ）。ホストが渡す幅は
+            // 真の輪郭からの幅なので、ベイクの 1 texel（1/emPx em）を足して覆う——足さないと、ベイクより大きく描いた字の縁が quad の縁で断たれる。
+            var left = cell.planeLeft;
+            var bottom = cell.planeBottom;
+            var right = cell.planeRight;
+            var top = cell.planeTop;
+            NarrowToInk(metrics, quadExtentEm + (1f / emPx), ref left, ref bottom, ref right, ref top);
+
             var page = pages[cell.page];
             float width = page.width;
             float height = page.height;
+            var texelsPerEmX = (cell.atlasRight - cell.atlasLeft) / (cell.planeRight - cell.planeLeft);
+            var texelsPerEmY = (cell.atlasTop - cell.atlasBottom) / (cell.planeTop - cell.planeBottom);
             geometry.AddQuad(
-                cell.planeLeft, cell.planeBottom, cell.planeRight, cell.planeTop,
-                cell.atlasLeft / width, cell.atlasBottom / height, cell.atlasRight / width, cell.atlasTop / height);
+                left, bottom, right, top,
+                (cell.atlasLeft + ((left - cell.planeLeft) * texelsPerEmX)) / width,
+                (cell.atlasBottom + ((bottom - cell.planeBottom) * texelsPerEmY)) / height,
+                (cell.atlasLeft + ((right - cell.planeLeft) * texelsPerEmX)) / width,
+                (cell.atlasBottom + ((top - cell.planeBottom) * texelsPerEmY)) / height);
         }
 
         public override string? Validate(int glyphCount)

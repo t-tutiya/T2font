@@ -49,9 +49,38 @@ namespace info.someiyoshino.T2Font
 
         /// <summary>
         /// グリフの幾何を em で書く（README §4.2・§4.3）。インクの無いグリフでは何も書かない。UV0.zw はホストの器が書くので、グリフ表現が書くのは
-        /// 位置（em）と UV0.xy だけ。描けると宣言した効果の外延（<see cref="GlyphEdgeStyle.MaxOuterExtentEm"/>）＋AA の半分を覆う（README §4.3）。
+        /// 位置（em）と UV0.xy だけ。インク境界を <paramref name="quadExtentEm"/> だけ広げた範囲を覆う（README §4.3）。ホストは描くエッジスタイルと
+        /// 表示サイズから <see cref="GlyphEdgeStyle.QuadExtentEm"/> で求めて渡す。グリフ表現が覆える範囲（描けると宣言した効果の外延の上限＋サポートする
+        /// 最小の表示サイズの AA の半分）より広い値には、覆える範囲の全部を書く——<see cref="WholeQuad"/> はそのための値。
         /// </summary>
-        public abstract void WriteGeometry(int glyph, in GlyphMetrics metrics, GlyphGeometry geometry);
+        public abstract void WriteGeometry(int glyph, in GlyphMetrics metrics, float quadExtentEm, GlyphGeometry geometry);
+
+        /// <summary>
+        /// <see cref="WriteGeometry"/> の <c>quadExtentEm</c> に渡すと、グリフ表現が覆える範囲の全部を書く（検査・計測・エッジスタイルを決める前の
+        /// 幾何）。
+        /// </summary>
+        public const float WholeQuad = float.PositiveInfinity;
+
+        /// <summary>
+        /// グリフ表現が持つ矩形（em）を、インク境界から <paramref name="quadExtentEm"/> だけ広げた矩形へ狭める（広げはしない）。インクの無い
+        /// 記録か <see cref="WholeQuad"/> なら変えない。派生が <see cref="WriteGeometry"/> で使う。
+        /// </summary>
+        protected static void NarrowToInk(
+            in GlyphMetrics metrics, float quadExtentEm, ref float left, ref float bottom, ref float right, ref float top)
+        {
+            if (float.IsPositiveInfinity(quadExtentEm) || !metrics.HasInk)
+            {
+                return;
+            }
+            if (!(quadExtentEm >= 0f))
+            {
+                throw new System.ArgumentOutOfRangeException(nameof(quadExtentEm), quadExtentEm, "quad の外延は 0 以上にしてください。");
+            }
+            left = System.Math.Max(left, metrics.inkLeft - quadExtentEm);
+            bottom = System.Math.Max(bottom, metrics.inkBottom - quadExtentEm);
+            right = System.Math.Min(right, metrics.inkRight + quadExtentEm);
+            top = System.Math.Min(top, metrics.inkTop + quadExtentEm);
+        }
 
         /// <summary>
         /// アセットの健全性の検査。<paramref name="glyphCount"/> はタイポグラフィテーブルのグリフの数。問題があればその文面、無ければ null。

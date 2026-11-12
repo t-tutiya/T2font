@@ -68,7 +68,7 @@ namespace info.someiyoshino.Rinkaku.Bake
 
         public override GlyphRepresentationKind Kind => RinkakuRepresentationKind.Instance;
 
-        /// <summary>索引格子の 1em のセルの数。</summary>
+        /// <summary>グリッドの 1em のセルの数。</summary>
         public int IndexEm { get; }
 
         /// <summary>1 ページの最大の高さ（texel）。</summary>

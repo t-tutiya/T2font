@@ -658,7 +658,7 @@ h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
 <tr><td class="num">3</td><td>左上</td><td class="mono">(−0.0933, 0.9992)</td><td class="mono">(−4.48, 47.96)</td><td class="mono">(0.7392, 0.4970, −0.0933, 0.9992)</td></tr>
 <!-- /gen -->
 </tbody></table></div>
-<p>quad はインク境界から四方へ 0.1875em 以上広がる。これは描けると宣言した効果の最大の外延 0.15em ＋ 14px の AA の半分（0.5 ÷ 14 ≒ 0.036em）を覆う（README §4.3・§6.2）。足りないと、幾何の縁で縁取りが平らに断たれる。</p>
+<p>quad は、ホストが渡す幅（描くエッジスタイルの外延＋表示の 1 画素）だけインク境界から広がる（README §4.3・§6.2。v0.4.0 から）。上限は、描けると宣言した効果の最大の外延 0.15em ＋ 14px の AA の半分（0.5 ÷ 14 ≒ 0.036em）で、SDF はこれにベイクの 1 texel を足す。図 4 はその上限の quad。足りないと、幾何の縁で縁取りが平らに断たれる。</p>
 
 <h3 id="mesh"><span class="num">4.3</span>Mesh へ詰める</h3>
 <p><code>GlyphGeometry.CopyTo(mesh, fontSize)</code> は、位置だけに表示サイズを掛けて <code>Mesh</code> へ詰める（<code>SetVertices</code> → <code>SetUVs(0, …)</code> → <code>SetTriangles</code>。頂点の数が決まる <code>SetVertices</code> が先）。UV0 は掛けないので、zw は em のまま残る——位置は表示 px、zw は em になり、その比が 1 表示 px あたりの em になる（§8.4）。uGUI のバッチは UV0 の 4 成分を保つ。</p>

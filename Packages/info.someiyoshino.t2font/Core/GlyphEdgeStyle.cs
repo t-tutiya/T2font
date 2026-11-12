@@ -106,6 +106,26 @@ namespace info.someiyoshino.T2Font
         }
 
         /// <summary>
+        /// このエッジスタイルがインク境界から外へ描く最大の距離（em・README §6.2）: 面の縁のずらし＋（縁取りの幅＋外縁のぼかしの半分）と
+        /// 面の縁のぼかしの半分の大きい方。面の縁のずらしが負で縁がインク境界の内側に入るときは 0。
+        /// </summary>
+        public float OuterExtentEm =>
+            Math.Max(0f, FaceDilate + Math.Max(OutlineWidth + (OutlineSoftness / 2f), FaceSoftness / 2f));
+
+        /// <summary>
+        /// このエッジスタイルを <paramref name="displayPx"/> の大きさで描くときに、幾何がインク境界から広げて覆う幅（em・README §4.3）:
+        /// <see cref="OuterExtentEm"/> ＋ 表示の 1 画素。AA に要るのは半画素で、残りの半画素は表示を 0.5 倍まで縮める演出のための余裕。
+        /// </summary>
+        public float QuadExtentEm(float displayPx)
+        {
+            if (!(displayPx > 0f))
+            {
+                throw new ArgumentOutOfRangeException(nameof(displayPx), displayPx, "表示サイズは正の値にしてください。");
+            }
+            return OuterExtentEm + (1f / displayPx);
+        }
+
+        /// <summary>
         /// 範囲（README §6.1）の外の値があれば、その最初の 1 つを「キー 値（範囲）」の文面で返す。全部が範囲の内なら null。
         /// 範囲の外のエッジスタイルは、どのグリフ表現でも正しく描けるとは限らない（外延がグリフ表現の幾何を越える）。
         /// </summary>

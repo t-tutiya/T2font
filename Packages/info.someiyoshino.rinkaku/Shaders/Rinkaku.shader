@@ -1,12 +1,12 @@
 Shader "Rinkaku/Glyph" {
 
 // Rinkaku のグリフ表現のシェーダ（README §3.5）。T2Font のシェーダの契約（S1〜S9）を満たす。
-// 画素の em 座標から索引格子のセルを引き、セルに書かれた区間（たいてい 1〜4 本）だけへ厳密な距離を解き、最近傍の区間の向きで符号を決める。
+// 画素の em 座標からグリッドセルを引き、セルに書かれたセグメント（たいてい 1〜4 本）だけへ厳密な距離を解き、最近傍のセグメントの向きで符号を決める。
 // 得た符号付き距離（em・インク領域の内側が正）は T2Font の SDF のシェーダの s と同じ意味なので、エッジスタイルの式はそれと同じ。
 Properties {
 	[NoScaleOffset]_MainTex	("Data Page", 2D) = "black" {}
 
-	// 索引格子の 1em のセルの数。RinkakuRepresentation.ConfigureMaterial がフォントの値を入れる。
+	// グリッドの 1em のセルの数。RinkakuRepresentation.ConfigureMaterial がフォントの値を入れる。
 	_IndexEm			("Index Cells per em", Float) = 16
 
 	_FaceDilate			("Face Dilate (em)", Float) = 0
@@ -62,7 +62,7 @@ SubShader {
 		struct Attributes {
 			float4	position	: POSITION;
 			float4	color		: COLOR;
-			// xy＝索引のずれと区間の表の番地（RinkakuRepresentation・README §3.4）、zw＝その頂点の em 座標。
+			// xy＝インデックスのずれとセグメントテーブルの番地（RinkakuRepresentation・README §3.4）、zw＝その頂点の em 座標。
 			float4	uv0			: TEXCOORD0;
 			UNITY_VERTEX_INPUT_INSTANCE_ID
 		};

@@ -12,13 +12,13 @@ namespace info.someiyoshino.Rinkaku
     /// Rinkaku のグリフ表現（README §3.4・§3.5）。グリフごとのセル（<see cref="RinkakuGlyphCell"/>）と、データのページ（RGBA8・幅 4096）を持つ。
     ///
     /// <para>
-    /// quad はセルの plane（インク境界＋外延・em）。<b>UV0.xy は索引と区間の表の番地</b>で、quad の 4 頂点で同じ値を持つ: x＝索引のずれ <c>K</c>
-    /// （<see cref="RinkakuEncoding.PackedOffset"/>）、y＝区間の表の番地（<see cref="RinkakuEncoding.PackedDataBase"/>・広い索引は負）。どちらも
+    /// quad はセルの plane（インク境界＋外延・em）。<b>UV0.xy はインデックスとセグメントテーブルの番地</b>で、quad の 4 頂点で同じ値を持つ: x＝インデックスのずれ <c>K</c>
+    /// （<see cref="RinkakuEncoding.PackedOffset"/>）、y＝セグメントテーブルの番地（<see cref="RinkakuEncoding.PackedDataBase"/>・ワイドインデックスは負）。どちらも
     /// 2^24 未満の整数なので float で正確に持て、シェーダは補間しない（<c>nointerpolation</c>）で受ける。
     /// </para>
     ///
     /// <para>
-    /// 索引格子の細かさ（<see cref="IndexEm"/>）はフォントごとの値でマテリアルに載せるので、マテリアルを共有してよい範囲はグリフ表現自身
+    /// グリッドの細かさ（<see cref="IndexEm"/>）はフォントごとの値でマテリアルに載せるので、マテリアルを共有してよい範囲はグリフ表現自身
     /// （<see cref="MaterialScope"/>）。テクスチャはフォントの境で替わるので、バッチの割れ方は SDF と同じ。
     /// </para>
     /// </summary>
@@ -32,7 +32,7 @@ namespace info.someiyoshino.Rinkaku
 
         public override string Kind => RinkakuEncoding.KindName;
 
-        /// <summary>索引格子の 1em のセルの数（ベイク仕様の <c>indexEm</c>）。</summary>
+        /// <summary>グリッドの 1em のセルの数（ベイク仕様の <c>indexEm</c>）。</summary>
         public int IndexEm => indexEm;
 
         /// <summary>グリフインデックス順のセル。</summary>
@@ -41,7 +41,7 @@ namespace info.someiyoshino.Rinkaku
         /// <summary>データのページ（RGBA8・幅 4096・point・linear・ミップ無し）。</summary>
         public IReadOnlyList<Texture2D> Pages => pages;
 
-        /// <summary>索引格子の細かさをマテリアルに載せるので、フォントごとにマテリアルを分ける。</summary>
+        /// <summary>グリッドの細かさをマテリアルに載せるので、フォントごとにマテリアルを分ける。</summary>
         public override Object? MaterialScope => this;
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace info.someiyoshino.Rinkaku
             return cell.IsEmpty ? null : pages[cell.page];
         }
 
-        public override void WriteGeometry(int glyph, in GlyphMetrics metrics, GlyphGeometry geometry)
+        public override void WriteGeometry(int glyph, in GlyphMetrics metrics, float quadExtentEm, GlyphGeometry geometry)
         {
             var cell = cells[glyph];
             if (cell.IsEmpty)
@@ -90,9 +90,17 @@ namespace info.someiyoshino.Rinkaku
                 return;
             }
 
+            // セルの plane（グリッドが覆う範囲）を、インク境界から quadExtentEm だけ広げた矩形へ狭める。インデックスとセグメントテーブルの番地は変わらない
+            //（狭い quad はインデックスの内側の部分だけを引く）。
+            var left = cell.planeLeft;
+            var bottom = cell.planeBottom;
+            var right = cell.planeRight;
+            var top = cell.planeTop;
+            NarrowToInk(metrics, quadExtentEm, ref left, ref bottom, ref right, ref top);
+
             float offset = RinkakuEncoding.PackedOffset(cell);
             float dataBase = RinkakuEncoding.PackedDataBase(cell);
-            geometry.AddQuad(cell.planeLeft, cell.planeBottom, cell.planeRight, cell.planeTop, offset, dataBase, offset, dataBase);
+            geometry.AddQuad(left, bottom, right, top, offset, dataBase, offset, dataBase);
         }
 
         public override string? Validate(int glyphCount)
@@ -135,19 +143,18 @@ namespace info.someiyoshino.Rinkaku
                     return $"グリフ {glyph} のページ番号 {cell.page} がページの外です（{pages.Length} 枚）。";
                 }
                 var page = pages[cell.page];
-                var texelsPerCell = cell.wide ? 2 : 1;
-                if (cell.blockX < 0 || cell.blockY < 0 || cell.blockX + (cell.gridWidth * texelsPerCell) > page.width
+                if (cell.blockX < 0 || cell.blockY < 0 || cell.blockX + RinkakuEncoding.BlockWidth(cell) > page.width
                     || cell.blockY + cell.gridHeight > page.height)
                 {
-                    return $"グリフ {glyph} の索引のブロックがページ {cell.page}（{page.width}×{page.height}）からはみ出しています。";
+                    return $"グリフ {glyph} のインデックスブロックがページ {cell.page}（{page.width}×{page.height}）からはみ出しています。";
                 }
                 if (cell.dataBase <= 0 || cell.dataBase >= page.width * page.height)
                 {
-                    return $"グリフ {glyph} の区間の表の番地 {cell.dataBase} がページ {cell.page} の外です。";
+                    return $"グリフ {glyph} のセグメントテーブルの番地 {cell.dataBase} がページ {cell.page} の外です。";
                 }
                 if (RinkakuEncoding.PackedOffset(cell) < 0)
                 {
-                    return $"グリフ {glyph} の索引のずれが UV に詰められる範囲の外です。";
+                    return $"グリフ {glyph} のインデックスのずれが UV に詰められる範囲の外です。";
                 }
             }
             return null;

@@ -26,7 +26,7 @@ namespace T2font.EditModeTests
             return null;
         }
 
-        public override void WriteGeometry(int glyph, in GlyphMetrics metrics, GlyphGeometry geometry)
+        public override void WriteGeometry(int glyph, in GlyphMetrics metrics, float quadExtentEm, GlyphGeometry geometry)
         {
         }
     }

@@ -179,7 +179,7 @@ namespace info.someiyoshino.T2Font.Viewer
                 var metrics = font.Metrics(glyph);
                 var glyphRepresentation = font.RepresentationOf(glyph);
                 _geometry.Clear();
-                glyphRepresentation.WriteGeometry(glyph, metrics, _geometry);
+                glyphRepresentation.WriteGeometry(glyph, metrics, style.QuadExtentEm(fontSize), _geometry);
                 if (_geometry.VertexCount > 0)
                 {
                     CreateGlyph(codepoint, pen, glyphRepresentation, glyph, style, clip);

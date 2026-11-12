@@ -6,13 +6,13 @@ using System.Collections.Generic;
 namespace info.someiyoshino.Rinkaku.Bake
 {
     /// <summary>
-    /// ページのバイトから、シェーダと同じ手順で画素の符号付き距離を求める参照の実装（倍精度・README §3）。形式（索引・溢れ表・区間の表の詰め方）の
+    /// ページのバイトから、シェーダと同じ手順で画素の符号付き距離を求める参照の実装（倍精度・README §3）。形式（インデックス・レコード・セグメントテーブルの詰め方）の
     /// 正しさを確かめる検査と、GPU の描画と画素ごとに比べる診断が使う。シェーダはこの手順を float で写す。
     /// </summary>
     public static class RinkakuDecoder
     {
         /// <summary>
-        /// グリフの点 (px, py)（em）の符号付き距離（インク領域の内側が正）。<paramref name="evaluated"/> は評価した区間の数（1 画素の評価本数）。
+        /// グリフの点 (px, py)（em）の符号付き距離（インク領域の内側が正）。<paramref name="evaluated"/> は評価したセグメントの数（1 画素の評価本数）。
         /// 点は quad（セルの plane）の中にあること。
         /// </summary>
         public static double SignedDistance(RinkakuAtlas atlas, int glyph, double px, double py, out int evaluated)
@@ -42,70 +42,63 @@ namespace info.someiyoshino.Rinkaku.Bake
             return inside ? distance : -distance;
         }
 
-        /// <summary>点が属する索引格子のセルの項目番号の列（溢れ表を含む）。</summary>
+        /// <summary>点が属するグリッドセルの項目番号の列（レコードを含む）。</summary>
         public static List<int> Items(byte[] data, RinkakuGlyphCell cell, int indexEm, double px, double py)
         {
-            var texelsPerCell = cell.wide ? 2 : 1;
-            var tx = ((int)Math.Floor(px * indexEm) * texelsPerCell) + cell.blockX - (cell.gridX * texelsPerCell);
+            var wide = cell.wide;
+            var cellX = (int)Math.Floor(px * indexEm);
+            var tx = RinkakuEncoding.TexelColumn(cellX, wide) + cell.blockX
+                - RinkakuEncoding.TexelColumn(RinkakuEncoding.BlockOriginCell(cell), wide);
             var ty = (int)Math.Floor(py * indexEm) + cell.blockY - cell.gridY;
+            // 番号 1 つのバイト数。ナローインデックスは texel の前半が偶数のセル、後半が奇数のセル。
+            var unit = wide ? 2 : 1;
+            var o = Texel(tx, ty) + (wide ? 0 : (cellX & 1) * 2);
+            var a = Number(data, o, wide);
+            var b = Number(data, o + unit, wide);
             var items = new List<int>();
-            var o = Texel(tx, ty);
-            if (!cell.wide)
+            if (RinkakuEncoding.IsRecordMarker(b, wide, out var list, out var high))
             {
-                if (data[o + 3] == RinkakuEncoding.NarrowOverflowMarker)
+                var record = (cell.dataBase - (a + (high << RinkakuEncoding.RecordLowBits(wide)))) * 4;
+                if (list)
                 {
-                    items.Add(data[o]);
-                    items.Add(data[o + 1]);
-                    var list = (cell.dataBase - data[o + 2]) * 4;
-                    var count = data[list];
+                    var count = Number(data, record, wide);
                     for (var k = 0; k < count; k++)
                     {
-                        items.Add(data[list + 1 + k]);
+                        items.Add(Number(data, record + ((1 + k) * unit), wide));
                     }
                 }
                 else
                 {
-                    for (var k = 0; k < 4; k++)
+                    for (var k = 0; k < RinkakuEncoding.ItemsInRecord; k++)
                     {
-                        if (data[o + k] != 0)
+                        var item = Number(data, record + (k * unit), wide);
+                        if (item != 0)
                         {
-                            items.Add(data[o + k]);
+                            items.Add(item);
                         }
                     }
-                }
-                return items;
-            }
-
-            var slots = new int[4];
-            for (var k = 0; k < 4; k++)
-            {
-                slots[k] = data[o + (k * 2)] | (data[o + (k * 2) + 1] << 8);
-            }
-            if (slots[3] == RinkakuEncoding.WideOverflowMarker)
-            {
-                items.Add(slots[0]);
-                items.Add(slots[1]);
-                var list = (cell.dataBase - slots[2]) * 4;
-                var count = data[list] | (data[list + 1] << 8);
-                for (var k = 0; k < count; k++)
-                {
-                    items.Add(data[list + 2 + (k * 2)] | (data[list + 3 + (k * 2)] << 8));
                 }
             }
             else
             {
-                foreach (var slot in slots)
+                if (a != 0)
                 {
-                    if (slot != 0)
-                    {
-                        items.Add(slot);
-                    }
+                    items.Add(a);
+                }
+                if (b != 0)
+                {
+                    items.Add(b);
                 }
             }
             return items;
         }
 
-        /// <summary>区間の表の項目（線形の番地）を読む: 始点・制御点（em）と擬似法線（単位）。</summary>
+        private static int Number(byte[] data, int offset, bool wide)
+        {
+            return wide ? data[offset] | (data[offset + 1] << 8) : data[offset];
+        }
+
+        /// <summary>セグメントテーブルの項目（線形の番地）を読む: 始点・制御点（em）と擬似法線（単位）。</summary>
         public static void ReadEntry(
             byte[] data, int address, out double x, out double y, out double cx, out double cy, out double nx, out double ny)
         {
