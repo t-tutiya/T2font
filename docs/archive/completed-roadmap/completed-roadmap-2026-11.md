@@ -8,6 +8,17 @@
 
 ---
 
+## 2026-11-12 v0.4.1 の公開（T2Font 0.4.0・Rinkaku 0.2.1） — D-T2FREPUB
+
+Rinkaku のシェーダから、セグメントの AABB で遠いセグメントを飛ばす検査を外した版を写した（統合 GPU の 40px 以上で描画の時間が 2〜11% 縮む）。
+
+- パッケージ: `Packages/info.someiyoshino.rinkaku/`（変更点は CHANGELOG の 0.2.1）。`Packages/info.someiyoshino.t2font/` は README §11 のタグだけが変わる
+  （版は 0.4.0 のまま・コードは同じ）。
+- 検証のプロジェクト: 無改修で通る。
+- 文書: 根の README の導入のタグと引用、`.zenodo.json` の論文の DOI（全版をまとめる DOI にした。論文の版が変わっても直さずに済む）。
+- **移行に効く事実**: Rinkaku のデータの形式・ベイクの出力・描く絵は変わらない（再インポートは要らない）。API の変更も無い。
+- 正典: 各パッケージの README・CHANGELOG。
+
 ## 2026-11-12 v0.4.0 の公開（T2Font 0.4.0・Rinkaku 0.2.0） — D-T2FREPUB
 
 利用側で入った Rinkaku の改修を写した。quad をエッジスタイルの外延まで実行時に狭め、Rinkaku のデータの形式が変わった（出力のバージョン 5）。

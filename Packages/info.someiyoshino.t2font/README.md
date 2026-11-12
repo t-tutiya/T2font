@@ -306,12 +306,12 @@ JSON。`//` のコメントを書ける。**未知のキー・重複したキー
 
 ## 11. 公開の版と正本
 
-- **公開の版**は `t-tutiya/T2font` の `v0.4.0`。導入は下の git URL か、フォルダごと（`.meta` と `LICENSE.md` を含めて）利用側の
+- **公開の版**は `t-tutiya/T2font` の `v0.4.1`（T2Font 0.4.0。コードは `v0.4.0` と同じで、タグは同梱の Rinkaku 0.2.1 のために進めた）。導入は下の git URL か、フォルダごと（`.meta` と `LICENSE.md` を含めて）利用側の
   `Packages/` へ写す。git URL で入れたパッケージは Library の中（読み取り専用）に置かれ、Unity の外のビルド（外部の NUnit など）からソースを
   リンクできないので、その用途では写す。
 
   ```
-  https://github.com/t-tutiya/T2font.git?path=/Packages/info.someiyoshino.t2font#v0.4.0
+  https://github.com/t-tutiya/T2font.git?path=/Packages/info.someiyoshino.t2font#v0.4.1
   ```
 
 - **本書のあるフォルダは正本**で、直接直す。契約を変えたら本書を同じ変更で直し、CHANGELOG の `[Unreleased]` に書く。`package.json` の版は
