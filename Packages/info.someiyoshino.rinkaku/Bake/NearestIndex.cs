@@ -142,8 +142,7 @@ namespace info.someiyoshino.Rinkaku.Bake
                     Sample(curves, boxes, candidates, cellLeft, cellBottom, size, nearest, found);
                     var cell = new int[found.Count];
                     found.CopyTo(cell);
-                    // セルの中心に近い順に書く（同じ距離は番号の順）。シェーダは今の最短よりAABBが遠いセグメントを解かずに飛ばすので、近いセグメントを
-                    // 先に解くと飛ばしが効く（README §4.3）。found は候補の部分集合なので、中心からの距離は求めてある。
+                    // セルの中心に近い順に書く（同じ距離は番号の順・README §4.3）。found は候補の部分集合なので、中心からの距離は求めてある。
                     Array.Sort(cell, (a, b) => distances[a] != distances[b] ? distances[a].CompareTo(distances[b]) : a.CompareTo(b));
                     cells[(cy * width) + cx] = cell;
                 }

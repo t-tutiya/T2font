@@ -46,10 +46,11 @@
 
 ---
 
-## 2026-11 — [`completed-roadmap/completed-roadmap-2026-11.md`](completed-roadmap/completed-roadmap-2026-11.md)（2 件）
+## 2026-11 — [`completed-roadmap/completed-roadmap-2026-11.md`](completed-roadmap/completed-roadmap-2026-11.md)（3 件）
 
 | 完了日 | 完了項目 | 決定 ID |
 |---|---|---|
+| 2026-11-12 | v0.4.1 の公開（T2Font 0.4.0・Rinkaku 0.2.1） | D-T2FREPUB |
 | 2026-11-12 | v0.4.0 の公開（T2Font 0.4.0・Rinkaku 0.2.0） | D-T2FREPUB |
 | 2026-11-09 | v0.3.0 の公開（T2Font 0.3.0・Rinkaku 0.1.0） | D-T2FREPUB |
 

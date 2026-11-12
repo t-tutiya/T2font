@@ -31,7 +31,7 @@ struct RinkakuTrace
 	float2	normal;		// 符号を決めた法線
 	float	side;		// dot(pos − foot, normal)
 	int2	cellTexel;	// 引いたセルの texel
-	float4	itemD2;		// セルの先頭 4 本の距離の二乗（AABB で飛ばしたセグメントは −2）
+	float4	itemD2;		// セルの先頭 4 本の距離の二乗（セルに無い本は −1）
 	float4	itemT;		// セルの先頭 4 本の t
 };
 
@@ -297,15 +297,9 @@ float RinkakuSignedDistanceInCell(float2 pos, int2 cellTexel, uint half, uint da
 		// 制御点の差が (0, 0) の項目は直線（README §3.2）。バイトで判定する（差の 24bit が全部 0）。
 		bool isLine = (controlBytes.x | controlBytes.y | controlBytes.z) == 0u;
 
-		// 3 点の AABB はセグメントを含むので、矩形までの距離はセグメントまでの距離の下限。今の最短より遠いセグメントは三次方程式を解かない（README §3.5）。
-		// 等しいときは解く（頂点を共有するセグメントどうしは同じ距離になる）。
-		float2 gap = max(max(min(min(p0, q), p1) - pos, pos - max(max(p0, q), p1)), 0.0);
+		// セルのセグメントは全部解く。3 点の AABB までの距離（セグメントまでの距離の下限）が今の最短より遠いセグメントを飛ばす検査は置かない
+		// ——曲線優先の並びでは近い直線から上限を得るのが遅れ、検査の分岐とループの制御の費用が、省ける解く手間を上回る（README §3.5）。
 		float4 slot = float4(k == 0u, k == 1u, k == 2u, k == 3u);
-		if (dot(gap, gap) > best)
-		{
-			trace.itemD2 = lerp(trace.itemD2, -2.0, slot);
-			continue;
-		}
 
 		float t;
 		uint endpoint;
