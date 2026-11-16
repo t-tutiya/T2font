@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace T2font.EditModeTests
 {
-    /// <summary>同梱の SDF の表現が適合検査（パッケージの README §10）を通ること。</summary>
+    /// <summary>同梱の SDF のグリフ表現が適合検査（パッケージの README §10）を通ること。</summary>
     [TestFixture]
     public class GlyphConformanceTests
     {

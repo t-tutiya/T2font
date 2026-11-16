@@ -12,30 +12,30 @@ def box(x,y,w,h,title,subs=(),cls='',tcls='node-t',scls='node-s',asm=None,rx=6):
 def fig_slots():
     b=[]; y0=40; rh=58
     b.append(text(16,24,'T2Font が用意する物','lbl-b'))
-    b.append(text(300,24,'CanvasRenderer','lbl-b'))
-    b.append(text(520,24,'シェーダが受け取る物','lbl-b'))
+    b.append(text(336,24,'CanvasRenderer','lbl-b'))
+    b.append(text(556,24,'シェーダが受け取る物','lbl-b'))
     rows=[
      ('GlyphGeometry.CopyTo(mesh, 48)','位置は em × 48・UV0 は em のまま','SetMesh(mesh)','POSITION・TEXCOORD0'),
-     ('GlyphMaterialCache.Get(表現, スタイル)','T2Font/SDF・_RangeEm・エッジスタイル','SetMaterial(material, 0)','_RangeEm・_FaceDilate …'),
+     ('GlyphMaterialCache.Get(representation, style)','T2Font/SDF・_RangeEm・エッジスタイル','SetMaterial(material, 0)','_RangeEm・_FaceDilate …'),
      ('SdfRepresentation.GetTexture(glyph)','pages[cell.page]','SetTexture(page)','_MainTex'),
      ('faceColor.rgb・alpha','面の色とフェード','SetColor(color)','COLOR（頂点色）'),
      ('RectTransform の矩形','ルートの Canvas の空間','EnableRectClipping(rect)','UNITY_UI_CLIP_RECT・_ClipRect'),
     ]
-    b.append(f'<rect class="node host" x="290" y="{y0-6}" width="196" height="{len(rows)*rh+4}" rx="6"/>')
+    b.append(f'<rect class="node host" x="326" y="{y0-6}" width="196" height="{len(rows)*rh+4}" rx="6"/>')
     for i,(a1,a2,m,s) in enumerate(rows):
         y=y0+i*rh
-        b.append(f'<rect class="node" x="16" y="{y}" width="246" height="{rh-10}" rx="5"/>')
+        b.append(f'<rect class="node" x="16" y="{y}" width="282" height="{rh-10}" rx="5"/>')
         b.append(text(26,y+20,a1,'lbl-s mono')); b.append(text(26,y+37,a2,'lbl-s'))
-        b.append(f'<rect class="node in" x="300" y="{y+6}" width="176" height="{rh-22}" rx="4"/>')
-        b.append(text(310,y+29,m,'lbl-s mono'))
-        b.append(f'<rect class="node sdf" x="520" y="{y}" width="224" height="{rh-10}" rx="5"/>')
-        b.append(text(530,y+29,s,'lbl-s mono'))
-        b.append(right(262,298,y+24)); b.append(right(478,518,y+24))
+        b.append(f'<rect class="node in" x="336" y="{y+6}" width="176" height="{rh-22}" rx="4"/>')
+        b.append(text(346,y+29,m,'lbl-s mono'))
+        b.append(f'<rect class="node sdf" x="556" y="{y}" width="188" height="{rh-10}" rx="5"/>')
+        b.append(text(566,y+29,s,'lbl-s mono'))
+        b.append(right(298,334,y+24)); b.append(right(514,554,y+24))
     yb=y0+len(rows)*rh+10
-    b.append(text(300,yb+12,'materialCount = 1 を先に','lbl-s'))
-    b.append(text(300,yb+28,'SetMesh は最後に呼ぶ','lbl-s'))
-    b.append(text(520,yb+12,'テクスチャとクリップは','lbl-s'))
-    b.append(text(520,yb+28,'Canvas がバッチへ渡す','lbl-s'))
+    b.append(text(336,yb+12,'materialCount = 1 を先に','lbl-s'))
+    b.append(text(336,yb+28,'SetMesh は最後に呼ぶ','lbl-s'))
+    b.append(text(556,yb+12,'テクスチャとクリップは','lbl-s'))
+    b.append(text(556,yb+28,'Canvas がバッチへ渡す','lbl-s'))
     return svg(760,yb+40,'\n'.join(b),'CanvasRenderer の 5 つの口と、T2Font が渡す物・シェーダが受け取る物')
 
 # ── 図 6: バッチ ────────────────────────────────────────

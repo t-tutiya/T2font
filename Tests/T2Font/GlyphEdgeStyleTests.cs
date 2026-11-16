@@ -22,7 +22,7 @@ namespace info.someiyoshino.T2Font.Tests
         [Test]
         public void 外延と14pxのAAの半分が同梱のSDFの距離レンジに収まる()
         {
-            // 同梱の SDF の距離レンジ（README §9）。範囲を広げるときは、どの表現が描けなくなるかを確かめる。
+            // 同梱の SDF の距離レンジ（README §9）。範囲を広げるときは、どのグリフ表現が描けなくなるかを確かめる。
             const float SdfRangeEm = 0.1875f;
             Assert.That(GlyphEdgeStyle.MaxOuterExtentEm + (0.5f / 14f), Is.LessThanOrEqualTo(SdfRangeEm));
             Assert.That(-GlyphEdgeStyle.FaceDilateMin + (GlyphEdgeStyle.FaceSoftnessMax / 2f) + (0.5f / 14f), Is.LessThanOrEqualTo(SdfRangeEm));

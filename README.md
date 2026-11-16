@@ -10,7 +10,7 @@ The package lives in [`Packages/info.someiyoshino.t2font/`](Packages/info.someiy
 exact signed distance through a per-texel index of the nearest segments, so SDF-style edge effects (dilation, softness, outlines) work while
 edges stay sharp at any size. It lives in [`Packages/info.someiyoshino.rinkaku/`](Packages/info.someiyoshino.rinkaku/README.md) (MIT).
 
-Unity uGUI の文字描画のためのパッケージ。フォントアセットを「タイポグラフィテーブル」と差し替えられる「グリフの表現」に分け、表現を足しても字を置く側の
+Unity uGUI の文字描画のためのパッケージ。フォントアセットを「タイポグラフィテーブル」と差し替えられる「グリフ表現」に分け、グリフ表現を足しても字を置く側の
 コードが変わらない API を提供する。使い方と契約はパッケージの README、ライセンスは MIT（権利者 t-tutiya）。
 
 v0.3.0 から、グリフ表現 **Rinkaku**（輪郭）を同梱する。TrueType の輪郭を 2 次ベジエのセグメントのまま持ち、セルごとの最近傍のセグメントのインデックスを引いて
