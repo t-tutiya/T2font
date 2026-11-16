@@ -11,7 +11,7 @@ using NUnit.Framework;
 namespace info.someiyoshino.T2font.Tests
 {
     /// <summary>
-    /// アセンブリ一覧（<c>docs/generated/assembly-reference.md</c>）の生成器と golden 検査。
+    /// アセンブリ一覧（<c>docs/generated/assembly-reference.md</c>）のジェネレーターと golden 検査。
     ///
     /// <para>
     /// <b>なぜ生成物か</b>: asmdef の参照関係を文書の表へ手で書き写すと、asmdef を変えたときに表だけが古くなる。
@@ -20,7 +20,7 @@ namespace info.someiyoshino.T2font.Tests
     /// </para>
     ///
     /// <para>
-    /// 生成器を足すときの見本も兼ねる: 出力は <see cref="GeneratedText.AppendLineLf(StringBuilder, string)"/> で
+    /// ジェネレーターを足すときの見本も兼ねる: 出力は <see cref="GeneratedText.AppendLineLf(StringBuilder, string)"/> で
     /// 組み立て（D-GENEOL）、検査と書き出しは <see cref="GeneratedGolden.AssertUpToDate"/> に任せる（D-REGEN）。
     /// 行はアセンブリ名の順に並べる——名前は共通の接頭辞を持つので、プロジェクト名を変えても行の順は変わらない。
     /// </para>

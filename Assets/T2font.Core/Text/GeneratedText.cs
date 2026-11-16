@@ -17,7 +17,7 @@ namespace info.someiyoshino.T2font
     /// </para>
     ///
     /// <para>
-    /// 規約は「生成器の出力はプラットフォームに依存してはならない」1 本。<c>AppendLine</c> を使わず
+    /// 規約は「ジェネレーターの出力はプラットフォームに依存してはならない」1 本。<c>AppendLine</c> を使わず
     /// <see cref="AppendLineLf(StringBuilder, string)"/> を使い、改行を選べない整形器（Newtonsoft 等）の
     /// 出力は <see cref="NormalizeNewlines"/> で畳んでから書き出す。
     /// </para>

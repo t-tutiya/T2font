@@ -206,7 +206,7 @@ namespace info.someiyoshino.T2Font.Tests
         }
 
         [Test]
-        public void 同じ名前の表現の種類は並べられない()
+        public void 同じ名前のグリフ表現の種類は並べられない()
         {
             Assert.Throws<ArgumentException>(() => _ = new GlyphRepresentationKinds(new GlyphRepresentationKind[] { SdfRepresentationKind.Instance, SdfRepresentationKind.Instance }));
         }
