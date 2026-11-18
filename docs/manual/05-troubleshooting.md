@@ -18,7 +18,7 @@
 
 | 症状 | 原因 | 直し方 |
 |---|---|---|
-| Console に「`'名前'` に字 X（U+…）がありません。代替グリフで描きます。」 | ベイク仕様の文字セットに無い字を描いた。実行時に組み立てた文字列に多い | ベイク仕様の `characters` か `charsets` に足す。ホストが別のフォントへ振り分けるなら、先に `T2FontAsset.Contains` で確かめる。文面はコードポイントごとに 1 回（再生を始めるたびに数え直す） |
+| Console に「`'名前'` に字 X（U+…）がありません。代替グリフで描きます。」 | ベイク仕様の文字セットに無い字を描いた。実行時に組み立てた文字列に多い | ベイク仕様の `characters` か `charsets` に足す。出荷用に文字セットを絞っているなら、字の集め方を見直す（[出荷用に文字セットを絞る](04-shipping-fonts.md)）。ホストが別のフォントへ振り分けるなら、先に `T2FontAsset.Contains` で確かめる。文面はコードポイントごとに 1 回（再生を始めるたびに数え直す） |
 | 何も描かれない（誤りも出ない） | `CanvasRenderer.materialCount` を入れる前に `SetMaterial` した。`SetMesh` の後に Mesh を詰めた。Canvas の下に無い | [ホストの書き方](02-host-guide.md) §6 の順に渡す（`materialCount`→`SetMaterial`→`SetTexture`→`SetColor`→`SetMesh`） |
 | 何も描かれず、エッジスタイルの誤りが出る | エッジスタイルの値が範囲の外か、グリフ表現が描けない効果を使う（`GlyphMaterialCache.Check`・`Get` が止める・README §6.3） | 値を README §6.1 の範囲に収める。グリフ表現の描ける効果は `GlyphRepresentation.Effects` |
 | 「フォント '名前' にグリフ表現がありません。再インポートしてください。」 | フォントアセットが壊れている（インポートの途中で止まったなど） | ベイク仕様を右クリックして Reimport |
