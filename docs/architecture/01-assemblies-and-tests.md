@@ -29,6 +29,10 @@
 | ランタイム | `T2font` | `Assets/RunTime/` | MonoBehaviour・UnityEngine に依存するコード |
 | Core | `T2font.Core` | `Assets/T2font.Core/` | Unity 非依存のロジック（外部 NUnit で検査できる） |
 
+**利用の手引きのコード例**（`T2font.Samples`・`Assets/Samples/`）は、上の層のどれにも属さない。パッケージの公開 API だけを参照し、
+本プロジェクトのアセンブリからは参照されない。手引き（`docs/manual/`）は `// manual:begin` と `// manual:end` の印の間を
+ジェネレーター（`Tests/ManualSnippetDocTests.cs`）で写すので、コード例は Job B のコンパイルで API の変化に追従する（D-USERDOCS）。
+
 テスト側のアセンブリ（`Assets/Tests/` 配下）は `UNITY_INCLUDE_TESTS` を条件シンボルに持ち、プレイヤービルドに入らない。
 
 | アセンブリ | 置き場 | 役割 |

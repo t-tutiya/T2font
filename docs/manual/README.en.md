@@ -18,7 +18,9 @@ their own Unity projects.
 |---|---|
 | [`01-quickstart.en.md`](01-quickstart.en.md) | Install the packages and draw your first characters on a Canvas, then switch the glyph representation from SDF to Rinkaku |
 
-Japanese pages (日本語の文書): see the table in [`README.md`](README.md).
+Japanese pages (日本語の文書), listed in [`README.md`](README.md):
+
+- [`02-host-guide.md`](02-host-guide.md): writing your own host (loading a font, placing glyphs, geometry, materials, fades, cleanup)
 
 ## How it works
 

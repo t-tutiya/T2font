@@ -1,0 +1,17 @@
+{
+    "name": "T2font.Samples",
+    "rootNamespace": "info.someiyoshino.T2font.Samples",
+    "references": [
+        "Someiyoshino.T2Font.Core",
+        "Someiyoshino.T2Font"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

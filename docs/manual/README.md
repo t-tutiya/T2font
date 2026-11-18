@@ -16,6 +16,7 @@ T2Font（Unity uGUI の文字描画のパッケージ）と Rinkaku（その上�
 | 文書 | こんなときに読む |
 |---|---|
 | [`01-quickstart.md`](01-quickstart.md) | 導入して、Canvas に最初の字を出す。グリフ表現を SDF から Rinkaku へ替えて比べる |
+| [`02-host-guide.md`](02-host-guide.md) | 自分のテキスト描画（ホスト）に組み込む。フォントの読み込み・字の配置・幾何・マテリアル・フェード・片付け |
 
 ### 英語版 / English
 

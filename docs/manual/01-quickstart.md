@@ -117,6 +117,7 @@ Rinkaku は画素あたりの描画の費用が SDF より大きい（Rinkaku �
 
 ## 9. 次に読む
 
-- 自分のテキスト描画に組み込む・出荷のために文字セットを絞るなど、目的別の文書は [`README.md`](README.md) の表から選ぶ。
+- 自分のテキスト描画に組み込む: [`02-host-guide.md`](02-host-guide.md)。
+- 出荷のために文字セットを絞るなど、目的別の文書は [`README.md`](README.md) の表から選ぶ。
 - `.t2font` のキー・文字セット・インポートの失敗の全部は [ベイク仕様の書き方](../architecture/04-bake-spec.html)。
 - 契約（API の約束・シェーダの規約）は [T2Font の README](../../Packages/info.someiyoshino.t2font/README.md)。
