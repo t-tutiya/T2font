@@ -24,6 +24,7 @@ Japanese pages (日本語の文書), listed in [`README.md`](README.md):
 - [`03-choosing-representation.md`](03-choosing-representation.md): choosing between SDF and Rinkaku, and tuning their settings
 - [`04-shipping-fonts.md`](04-shipping-fonts.md): re-baking font assets with only the characters your shipped text uses
 - [`05-troubleshooting.md`](05-troubleshooting.md): import errors, missing glyphs, appearance, performance and platform issues by symptom
+- [`06-custom-representation.md`](06-custom-representation.md): adding a new rendering technique as a glyph representation
 
 ## API reference
 

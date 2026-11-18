@@ -34,7 +34,7 @@
   `docs/architecture/`（どうなっているか）・`docs/guides/`（どう作業するか）・`docs/manual/`（どう使うか）・`docs/plans/`・`docs/archive/`。移設してもファイル名は変えない。
 - `docs/architecture/`: アーキテクチャ解説（索引は `docs/architecture/README.md`）。構造や動作が変わったら該当章を更新する。
 - `docs/manual/`: パッケージの利用者向けの手引き（どう使うか・入口とクイックスタートは英語版も持つ・D-USERDOCS）。契約は README の節へリンクし、複製しない。
-  コード例は `Assets/Samples/` などの `// manual:begin`〜`// manual:end` の間からジェネレーターが写す（手で直さない）。
+  コード例は `Assets/Samples/` などの `// manual:begin`〜`// manual:end` の間と、`gen:source:` が指すパッケージの宣言からジェネレーターが写す（手で直さない）。
 - `docs/roadmap.md`: 現在地と今後（着手・完了した際は状態を更新する）。`docs/plans/`: これから作る物の設計正典（着手時に参照）。
 - `docs/guides/testing-workflow.md`（テストの置き場と実行手順）／`docs/guides/code-quality.md`（`dotnet format`・`csc.rsp`・CI）。
 - `docs/archive/`: 完了・凍結・歴史専用。**設計判断ログ `docs/archive/decisions.md`（「なぜ」の正典・決定 ID で追跡）以外は通常参照不要**。

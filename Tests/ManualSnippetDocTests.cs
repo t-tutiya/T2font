@@ -6,6 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NUnit.Framework;
 
 namespace info.someiyoshino.T2font.Tests
@@ -23,6 +26,12 @@ namespace info.someiyoshino.T2font.Tests
     /// 印は入れ子にしてよい（外側のコード例には内側の印の行を含めない）。名前はリポジトリ全体で一意で、どの手引きからも使われない印は誤り。
     /// 再生成は <c>UPDATE_GENERATED=1</c> の <c>dotnet test</c> か <c>[regen]</c> 付きの push（D-REGEN）。
     /// </para>
+    ///
+    /// <para>
+    /// 印を置けないファイル（パッケージの中は本リポジトリで直さない・D-T2FREPUB）は、<c>&lt;!-- gen:source:パス#型 --&gt;</c> か
+    /// <c>&lt;!-- gen:source:パス#型.メンバー,メンバー --&gt;</c> で、型やメンバーの宣言をそのまま引く（Roslyn で構文だけ読む・同じ名前の多重定義は全部）。
+    /// パッケージを写し直すと引いた宣言も変わり、再生成を強いる。
+    /// </para>
     /// </summary>
     [TestFixture]
     public class ManualSnippetDocTests
@@ -31,7 +40,9 @@ namespace info.someiyoshino.T2font.Tests
 
         private static readonly Regex BeginMarker = new(@"^\s*//\s*manual:begin\s+(?<name>[\w.-]+)\s*$", RegexOptions.Compiled);
         private static readonly Regex EndMarker = new(@"^\s*//\s*manual:end\s+(?<name>[\w.-]+)\s*$", RegexOptions.Compiled);
-        private static readonly Regex GenStart = new(@"^<!-- gen:(?<name>[\w.-]+) -->$", RegexOptions.Compiled);
+        private static readonly Regex GenStart = new(@"^<!-- gen:(?<name>\S+) -->$", RegexOptions.Compiled);
+
+        private const string SourcePrefix = "source:";
 
         private static string ManualDirectory => Path.Combine(RepoRoot.Find(), "docs", "manual");
 
@@ -57,7 +68,7 @@ namespace info.someiyoshino.T2font.Tests
 
             string relative = "docs/manual/" + fileName;
             string text = File.ReadAllText(Path.Combine(ManualDirectory, fileName));
-            GeneratedGolden.AssertUpToDate(Expand(text, snippets, relative), relative, "Assets/ の manual:begin〜manual:end の印");
+            GeneratedGolden.AssertUpToDate(Expand(text, snippets, relative), relative, "Assets/ の manual:begin〜manual:end の印と、gen:source: が引く宣言");
         }
 
         [Test]
@@ -171,7 +182,12 @@ namespace info.someiyoshino.T2font.Tests
                 {
                     Assert.Fail($"{relative}: <!-- gen:{name} --> の終わり（{GenEnd}）がありません。");
                 }
-                if (!snippets.TryGetValue(name, out Snippet? snippet))
+                Snippet? snippet;
+                if (name.StartsWith(SourcePrefix, StringComparison.Ordinal))
+                {
+                    snippet = Declaration(name.Substring(SourcePrefix.Length), relative);
+                }
+                else if (!snippets.TryGetValue(name, out snippet))
                 {
                     Assert.Fail($"{relative}: コード例 {name} が Assets/ にありません（// manual:begin {name} と // manual:end {name} の印を置く）。");
                 }
@@ -180,6 +196,79 @@ namespace info.someiyoshino.T2font.Tests
                 i = end + 1;
             }
             return string.Join("\n", output);
+        }
+
+        /// <summary>
+        /// <c>パス#型</c> か <c>パス#型.メンバー,メンバー</c> が指す宣言（直前の XML コメントを含む）を引く。パスはリポジトリ相対。
+        /// </summary>
+        private static Snippet Declaration(string selector, string relative)
+        {
+            int hash = selector.IndexOf('#');
+            if (hash < 0)
+            {
+                Assert.Fail($"{relative}: gen:source:{selector} は「パス#型」か「パス#型.メンバー,メンバー」で書いてください。");
+            }
+            string path = selector.Substring(0, hash);
+            string target = selector.Substring(hash + 1);
+            int dot = target.IndexOf('.');
+            string typeName = dot < 0 ? target : target.Substring(0, dot);
+            string[] memberNames = dot < 0 ? Array.Empty<string>() : target.Substring(dot + 1).Split(',');
+
+            string file = Path.Combine(RepoRoot.Find(), path.Replace('/', Path.DirectorySeparatorChar));
+            if (!File.Exists(file))
+            {
+                Assert.Fail($"{relative}: gen:source: のファイル {path} がありません。");
+            }
+            CompilationUnitSyntax unit = CSharpSyntaxTree.ParseText(File.ReadAllText(file).Replace("\r\n", "\n")).GetCompilationUnitRoot();
+            BaseTypeDeclarationSyntax? type = unit.DescendantNodes().OfType<BaseTypeDeclarationSyntax>()
+                .FirstOrDefault(t => t.Identifier.Text == typeName);
+            if (type == null)
+            {
+                Assert.Fail($"{relative}: {path} に型 {typeName} がありません。");
+            }
+
+            var nodes = new List<SyntaxNode>();
+            if (memberNames.Length == 0)
+            {
+                nodes.Add(type!);
+            }
+            foreach (string memberName in memberNames)
+            {
+                List<MemberDeclarationSyntax> found = (type as TypeDeclarationSyntax)?.Members
+                    .Where(m => MemberName(m) == memberName)
+                    .ToList() ?? new List<MemberDeclarationSyntax>();
+                if (found.Count == 0)
+                {
+                    Assert.Fail($"{relative}: {path} の型 {typeName} にメンバー {memberName} がありません。");
+                }
+                nodes.AddRange(found);
+            }
+
+            var lines = new List<string>();
+            foreach (SyntaxNode node in nodes)
+            {
+                if (lines.Count > 0)
+                {
+                    lines.Add(string.Empty);
+                }
+                lines.AddRange(node.ToFullString().TrimEnd().Split('\n').SkipWhile(l => l.Trim().Length == 0));
+            }
+            return new Snippet(memberNames.Length == 0 ? path : path + "（抜粋）", lines);
+        }
+
+        private static string? MemberName(MemberDeclarationSyntax member)
+        {
+            return member switch
+            {
+                MethodDeclarationSyntax method => method.Identifier.Text,
+                PropertyDeclarationSyntax property => property.Identifier.Text,
+                ConstructorDeclarationSyntax constructor => constructor.Identifier.Text,
+                FieldDeclarationSyntax field => field.Declaration.Variables.First().Identifier.Text,
+                EventFieldDeclarationSyntax eventField => eventField.Declaration.Variables.First().Identifier.Text,
+                EventDeclarationSyntax eventDeclaration => eventDeclaration.Identifier.Text,
+                BaseTypeDeclarationSyntax nested => nested.Identifier.Text,
+                _ => null,
+            };
         }
 
         /// <summary>コード例を C# のフェンスで囲んだ行にする。共通の字下げを除き、先頭に出所のパスをコメントで置く。</summary>

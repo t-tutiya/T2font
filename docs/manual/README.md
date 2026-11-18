@@ -20,6 +20,7 @@ T2Font（Unity uGUI の文字描画のパッケージ）と Rinkaku（その上�
 | [`03-choosing-representation.md`](03-choosing-representation.md) | SDF と Rinkaku のどちらでベイクするかを決める。設定の調え方 |
 | [`04-shipping-fonts.md`](04-shipping-fonts.md) | 出荷のときに、本文で使う字だけでフォントアセットをベイクし直す |
 | [`05-troubleshooting.md`](05-troubleshooting.md) | インポートの失敗・字が出ない・見た目・性能・環境の問題を、症状から引く |
+| [`06-custom-representation.md`](06-custom-representation.md) | 新しい描き方をグリフ表現として足す（種類の記述子・グリフ表現・シェーダ・ベイカー・適合検査） |
 
 ### 英語版 / English
 
