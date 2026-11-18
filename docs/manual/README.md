@@ -17,6 +17,8 @@ T2Font（Unity uGUI の文字描画のパッケージ）と Rinkaku（その上�
 |---|---|
 | [`01-quickstart.md`](01-quickstart.md) | 導入して、Canvas に最初の字を出す。グリフ表現を SDF から Rinkaku へ替えて比べる |
 | [`02-host-guide.md`](02-host-guide.md) | 自分のテキスト描画（ホスト）に組み込む。フォントの読み込み・字の配置・幾何・マテリアル・フェード・片付け |
+| [`03-choosing-representation.md`](03-choosing-representation.md) | SDF と Rinkaku のどちらでベイクするかを決める。設定の調え方 |
+| [`05-troubleshooting.md`](05-troubleshooting.md) | インポートの失敗・字が出ない・見た目・性能・環境の問題を、症状から引く |
 
 ### 英語版 / English
 

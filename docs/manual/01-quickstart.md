@@ -113,11 +113,12 @@ T2Font はそれを使わない（インポーターがファイルのバイト�
    大きさに依らず角が鋭い。エッジスタイルの値は同じ意味のまま使える。
 
 ベイク仕様を替えても、送り幅とインク境界（タイポグラフィテーブル）は変わらない。グリフ表現を替えても、字の並びは動かない（README §2.3）。
-Rinkaku は画素あたりの描画の費用が SDF より大きい（Rinkaku の README §7）。
+Rinkaku は画素あたりの描画の費用が SDF より大きい。どちらを使うかは [`03-choosing-representation.md`](03-choosing-representation.md)。
 
 ## 9. 次に読む
 
 - 自分のテキスト描画に組み込む: [`02-host-guide.md`](02-host-guide.md)。
+- うまく動かない: [`05-troubleshooting.md`](05-troubleshooting.md)。
 - 出荷のために文字セットを絞るなど、目的別の文書は [`README.md`](README.md) の表から選ぶ。
 - `.t2font` のキー・文字セット・インポートの失敗の全部は [ベイク仕様の書き方](../architecture/04-bake-spec.html)。
 - 契約（API の約束・シェーダの規約）は [T2Font の README](../../Packages/info.someiyoshino.t2font/README.md)。

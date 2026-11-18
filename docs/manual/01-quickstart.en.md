@@ -116,7 +116,8 @@ host logs an error to the Console and does not draw (README §6.3).
    corners; Rinkaku keeps them sharp at any display size. Edge style values keep the same meaning.
 
 Switching the glyph representation does not change the advances or the ink bounds (the typography table), so the layout of the characters
-does not move (README §2.3). Rinkaku costs more per pixel to draw than SDF (Rinkaku README §7).
+does not move (README §2.3). Rinkaku costs more per pixel to draw than SDF (Rinkaku README §7); see [`03-choosing-representation.md`](03-choosing-representation.md)
+(Japanese) for when to use which.
 
 ## 9. What to read next
 
