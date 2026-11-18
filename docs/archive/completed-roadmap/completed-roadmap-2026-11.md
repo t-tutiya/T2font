@@ -8,6 +8,19 @@
 
 ---
 
+## 2026-11-18 着手候補 4: 利用者向けの手引きと API リファレンス — D-USERDOCS
+
+パッケージを自分のプロジェクトで使うプログラマ向けに、手引き `docs/manual/` と、パッケージのソースから生成する API リファレンス
+`docs/generated/api/` を置いた。
+
+- 手引き: 入口とクイックスタート（日英）・ホストの書き方・グリフ表現の選び方・出荷用に文字セットを絞る・トラブルシューティング・グリフ表現を足す。
+- コード例: `Assets/Samples/`（`T2font.Samples`・`T2font.Samples.Editor`）の印の間と、パッケージの宣言（`gen:source:`）をジェネレーター
+  `Tests/ManualSnippetDocTests.cs` が手引きへ写す。
+- API リファレンス: `Tests/ApiReferenceDocTests.cs` が Roslyn で構文だけ読み、契約の内（役割別）と外に分けて書く。XML コメントの無い公開メンバーの一覧
+  （`docs/generated/api/undocumented.md`）は、パッケージの正本の開発環境へ返す。
+- **移行に効く事実**: 新しい版を写したら、`[regen]` で API リファレンスと手引きのコード例を作り直し、新しい公開型を分類表へ足す（足さないと検査が落ちる）。
+- 正典: `docs/manual/README.md`・`docs/generated/api/README.md`。残した作業（Rinkaku の図解を写す）は roadmap のゲート付きの区画。
+
 ## 2026-11-12 v0.4.1 の公開（T2Font 0.4.0・Rinkaku 0.2.1） — D-T2FREPUB
 
 Rinkaku のシェーダから、セグメントの AABB で遠いセグメントを飛ばす検査を外した版を写した（統合 GPU の 40px 以上で描画の時間が 2〜11% 縮む）。
