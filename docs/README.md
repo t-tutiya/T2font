@@ -11,6 +11,7 @@
 | 場所 | 軸（何を語るか） | 主な読み手 |
 |---|---|---|
 | [`roadmap.md`](roadmap.md) | 次に何をやるか | 全員 |
+| [`manual/`](manual/README.md) | **どう使うか**（パッケージを自分のプロジェクトで使う手順とコード例。入口とクイックスタートは英語版も持つ） | パッケージの利用者 |
 | [`reference/`](reference/README.md) | **どう書くか**（データ・スクリプト・設定ファイルの書き方） | データの書き手 |
 | [`generated/`](generated/) | **どう書くか／どうなっているか**のうち機械生成の網羅表。**手で編集しない** | 同上 |
 | [`architecture/`](architecture/README.md) | **どうなっているか**（構造・動作原理・不変条件） | 開発者・Claude |
@@ -27,6 +28,11 @@
 | [`plans/README.md`](plans/README.md) | **設計計画の索引**。これから作る物の生きた設計正典（着手時に読む） |
 | [`archive/decisions.md`](archive/decisions.md) | **設計判断ログ（索引）**。「なぜそうしたか」の正典 |
 
+## 利用の手引き（`manual/`）
+
+パッケージを自分のプロジェクトで使うプログラマ向け。入口は [`manual/README.md`](manual/README.md)（英語版は [`manual/README.en.md`](manual/README.en.md)）。
+契約の正典はパッケージの README で、手引きは手順とコード例を受け持つ（D-USERDOCS）。コード例は検証のプロジェクトのコンパイルされるファイルから生成する。
+
 ## 書き方（`reference/`）
 
 書き手の入口は [`reference/README.md`](reference/README.md)。
@@ -38,6 +44,7 @@
 | ドキュメント | 生成元 |
 |---|---|
 | [`generated/assembly-reference.md`](generated/assembly-reference.md) | `Assets/` 配下の `.asmdef`（ジェネレーターは `Tests/AssemblyReferenceDocTests.cs`） |
+| [`generated/api/README.md`](generated/api/README.md) | パッケージのソースの公開型と XML コメント、契約の内と外の分類表（ジェネレーターは `Tests/ApiReferenceDocTests.cs`・D-USERDOCS） |
 
 ## 作業手順（`guides/`）
 
@@ -62,7 +69,7 @@
 
 ## ドキュメント運用ルール
 
-- **正典の所在**: 構造＝`architecture/`、書き方＝`reference/`（機械生成分は `generated/`）、作業規約＝`guides/working-agreement.md`、設計判断の経緯＝`archive/decisions.md`、計画＝`roadmap.md`、これから作る物の設計＝`plans/`。**ファイル名は移設しても変えない**——コード・データ・文書はファイル名と § 番号で参照している（D-DOCTREE）。
+- **正典の所在**: 構造＝`architecture/`、使い方（利用者向けの手順）＝`manual/`、書き方＝`reference/`（機械生成分は `generated/`）、作業規約＝`guides/working-agreement.md`、設計判断の経緯＝`archive/decisions.md`、計画＝`roadmap.md`、これから作る物の設計＝`plans/`。**ファイル名は移設しても変えない**——コード・データ・文書はファイル名と § 番号で参照している（D-DOCTREE）。
 
 - **記述の重複禁止（1 つの事実は 1 か所・D-DOCDUP）**: **同じ内容を 2 つの文書が持たない**。文書は「何を語っているか」＝**軸**で正典が決まり、正典以外は**その軸の記述を持たず、決定 ID か章名で参照する**。
 
@@ -71,13 +78,14 @@
   | **なぜそうしたか**（裁定・理由・採らなかった案・経緯・診断） | `archive/decisions/decisions-YYYY-MM.md` | **決定 ID 1 個**（例＝`（D-DOCDUP）`）。理由を要約し直さない |
   | **どうなっているか**（構造・動作原理・不変条件） | `architecture/` の各章 | 章名＋1 行。仕組みを再説明しない |
   | **どう書くか**（データ・スクリプト・設定の文法） | `reference/` の各書（機械生成分は `generated/`） | 節番号で参照。表を複製しない |
+  | **どう使うか**（パッケージの利用者の手順とコード例） | `manual/` の各書（契約はパッケージの README が持つ） | 章名で参照。契約の表を手引きへ複製しない |
   | **どう作業するか** | `guides/` の各書（作業規約は `guides/working-agreement.md`） | 節名で参照 |
   | **いつ何が終わったか** | `archive/completed-roadmap*.md` | — |
   | **次に何をやるか**（現在地・順序） | `roadmap.md` | — |
   | **これから作る物の設計** | `plans/` の各設計文書 | — |
 
   **軸が重なって 2 文書のどちらにも書けるときは、下の梯子で上に居るほうが持ち、下は参照だけを残す**。
-  `archive/decisions/` ＞ `archive/completed-roadmap.md` ＞ `architecture/` ＞ `reference/`・`guides/` ＞ `roadmap.md` ＞ ソースコメント・`CLAUDE.md` ＞ データのコメント。
+  `archive/decisions/` ＞ `archive/completed-roadmap.md` ＞ `architecture/` ＞ `reference/`・`guides/`・`manual/` ＞ `roadmap.md` ＞ ソースコメント・`CLAUDE.md` ＞ データのコメント。
   **梯子が順位を付けているのは「なぜ」の記述だけ**である——`architecture/` は構造の説明については正典であり、上の軸表が優先する（梯子は同軸の衝突を解く道具で、軸の所有権を動かさない）。
 
   **梯子の下ほど書ける量が減る**。ソースコメントは**コードから読み取れない制約**だけを現在形で書き（規約は `guides/working-agreement.md`「コードコメント規約」）、データのコメントは**そのファイルの読み方**だけを書く。どちらも裁定の要約を置かない——**決定 ID を 1 個書けば追跡できる**。

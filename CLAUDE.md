@@ -31,8 +31,10 @@
 変更を加えた際は常に最新の状態に保つ。主要な正典:
 
 - **フォルダは記述の軸で分かれる（D-DOCTREE）**: `docs/reference/`（どう書くか）・`docs/generated/`（自動生成・**手で編集しない**）・
-  `docs/architecture/`（どうなっているか）・`docs/guides/`（どう作業するか）・`docs/plans/`・`docs/archive/`。移設してもファイル名は変えない。
+  `docs/architecture/`（どうなっているか）・`docs/guides/`（どう作業するか）・`docs/manual/`（どう使うか）・`docs/plans/`・`docs/archive/`。移設してもファイル名は変えない。
 - `docs/architecture/`: アーキテクチャ解説（索引は `docs/architecture/README.md`）。構造や動作が変わったら該当章を更新する。
+- `docs/manual/`: パッケージの利用者向けの手引き（どう使うか・入口とクイックスタートは英語版も持つ・D-USERDOCS）。契約は README の節へリンクし、複製しない。
+  コード例は `Assets/Samples/` などの `// manual:begin`〜`// manual:end` の間と、`gen:source:` が指すパッケージの宣言からジェネレーターが写す（手で直さない）。
 - `docs/roadmap.md`: 現在地と今後（着手・完了した際は状態を更新する）。`docs/plans/`: これから作る物の設計正典（着手時に参照）。
 - `docs/guides/testing-workflow.md`（テストの置き場と実行手順）／`docs/guides/code-quality.md`（`dotnet format`・`csc.rsp`・CI）。
 - `docs/archive/`: 完了・凍結・歴史専用。**設計判断ログ `docs/archive/decisions.md`（「なぜ」の正典・決定 ID で追跡）以外は通常参照不要**。
@@ -65,4 +67,6 @@ Unity の版は `ProjectSettings/ProjectVersion.txt` が正典（LTS の最新�
   シェーダがレンダーターゲットへ描き、画面に出るまでの図解。Runtime・シェーダ・ベイカーの出力を変えたら `Tools/docs-figures/03-atlas-to-screen/` で図を作り直す。
 - **ベイク仕様の書き方**（`docs/architecture/04-bake-spec.html`・契約はパッケージの README §7・§9）: `.t2font` のキー・アセットを作る手順・失敗の文面・文字セットの中身。
   文字セット・ベイク仕様の読み取り・ベイカーの文面を変えたら `Tools/docs-figures/04-bake-spec/` で表と付録を作り直す。
+- **Rinkaku の図解**（`docs/architecture/rinkaku/`・契約は Rinkaku の README）: 正本の開発環境の図解を版ごとに写したもの。本リポジトリでは図を作り直さない（D-T2FREPUB）。
+- **HTML の図解の公開**（`.github/workflows/pages.yml`・`Tools/pages/build_site.py`・D-PAGES）: `docs/architecture/` の HTML を `main` への push で GitHub Pages へ配る。
 - **テストの三層**（`docs/guides/testing-workflow.md`・D-TESTARCH）: 外部 NUnit／EditMode／Play Mode。安い層で表現できるものは安い層へ置く。

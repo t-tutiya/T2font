@@ -68,6 +68,7 @@ using 削除・コード書き換えを一切行わない。
 
 `.github/workflows/quality.yml` に 2 ジョブを持つ。**CI は PR ゲートであると同時に、リモートセッションにとっての検証経路でもある**
 （検証経路③・D-ENV4。手順の正典は `working-agreement.md`）。書き出し側は別ワークフロー `.github/workflows/regenerate.yml`（D-REGEN）。
+検査ではないワークフローに `.github/workflows/pages.yml`（HTML の図解を `main` への push で GitHub Pages へ配る・D-PAGES）がある。
 
 ### Job A: lint & unit（Unity ライセンス不要・高速・無料）
 

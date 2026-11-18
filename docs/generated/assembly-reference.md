@@ -22,4 +22,6 @@
 | `T2font.EditModeTests` | `Assets/Tests/EditMode/` | `UnityEngine.TestRunner`・`UnityEditor.TestRunner`・`T2font`・`T2font.Core`・`T2font.CoreTestSupport`・`T2font.TestSupport`・`T2font.Editor`・`Someiyoshino.T2Font.Core`・`Someiyoshino.T2Font`・`Someiyoshino.T2Font.Viewer`・`Someiyoshino.T2Font.Conformance`・`nunit.framework.dll` | 使う | `Editor` | `UNITY_INCLUDE_TESTS` |
 | `T2font.Editor` | `Assets/Editor/` | `T2font`・`T2font.Core`・`Someiyoshino.T2Font.Core`・`Someiyoshino.T2Font`・`Someiyoshino.T2Font.Viewer` | 使う | `Editor` | — |
 | `T2font.PlayModeTests` | `Assets/Tests/PlayMode/` | `UnityEngine.TestRunner`・`UnityEditor.TestRunner`・`T2font`・`T2font.Core`・`T2font.CoreTestSupport`・`T2font.TestSupport`・`nunit.framework.dll` | 使う | 全て | `UNITY_INCLUDE_TESTS` |
+| `T2font.Samples` | `Assets/Samples/` | `Someiyoshino.T2Font.Core`・`Someiyoshino.T2Font` | 使う | 全て | — |
+| `T2font.Samples.Editor` | `Assets/Samples/Editor/` | `Someiyoshino.T2Font.Core`・`Someiyoshino.T2Font`・`Someiyoshino.T2Font.Bake`・`Someiyoshino.T2Font.Editor` | 使う | `Editor` | — |
 | `T2font.TestSupport` | `Assets/Tests/Shared/` | `T2font`・`T2font.Core`・`T2font.CoreTestSupport` | 使う | 全て | `UNITY_INCLUDE_TESTS` |

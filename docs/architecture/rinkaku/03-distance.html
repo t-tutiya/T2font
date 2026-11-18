@@ -1,0 +1,769 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Rinkaku の距離の解き方</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&amp;family=M+PLUS+1+Code:wght@400;600&amp;family=Shippori+Mincho+B1:wght@600;800&amp;display=swap">
+<style>
+/* レイアウト: 本文は 1 列（約 44 字）、図版と表は本文より広い列。1100px 以上では左に目次の列を足す。 */
+:root {
+  --paper: #f2f4f3;
+  --surface: #fbfcfb;
+  --sunken: #e6eae9;
+  --ink: #15191b;
+  --muted: #56626a;
+  --rule: #d2d9d8;
+  --rule-strong: #a7b2b4;
+  --guide: #0a7280;
+  --ctrl: #b0136b;
+  --amber: #a85f00;
+  --tint-guide: rgba(10, 114, 128, 0.10);
+  --tint-guide-strong: rgba(10, 114, 128, 0.30);
+  --tint-ctrl: rgba(176, 19, 107, 0.12);
+  --tint-amber: rgba(168, 95, 0, 0.15);
+  --glyph-fill: rgba(21, 25, 27, 0.09);
+  --invert: 0;
+  --atl-0: #ffc247;
+  --atl-1: #3fd0db;
+  --atl-2: #ff72c2;
+  --atl-q: rgba(255, 255, 255, 0.55);
+  --atl-bg: #050607;
+  --atl-cap: #c3cdd0;
+  --font-display: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  --font-body: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic UI", "Meiryo", "Noto Sans JP", sans-serif;
+  --font-mono: "M PLUS 1 Code", "SFMono-Regular", Menlo, Consolas, "Noto Sans Mono CJK JP", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1213;
+    --surface: #151a1c;
+    --sunken: #1d2427;
+    --ink: #e1e6e7;
+    --muted: #97a3a8;
+    --rule: #283134;
+    --rule-strong: #485559;
+    --guide: #46c1cc;
+    --ctrl: #ef68b4;
+    --amber: #e5a23b;
+    --tint-guide: rgba(70, 193, 204, 0.12);
+    --tint-guide-strong: rgba(70, 193, 204, 0.34);
+    --tint-ctrl: rgba(239, 104, 180, 0.16);
+    --tint-amber: rgba(229, 162, 59, 0.18);
+    --glyph-fill: rgba(225, 230, 231, 0.10);
+    --invert: 1;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1213;
+  --surface: #151a1c;
+  --sunken: #1d2427;
+  --ink: #e1e6e7;
+  --muted: #97a3a8;
+  --rule: #283134;
+  --rule-strong: #485559;
+  --guide: #46c1cc;
+  --ctrl: #ef68b4;
+  --amber: #e5a23b;
+  --tint-guide: rgba(70, 193, 204, 0.12);
+  --tint-guide-strong: rgba(70, 193, 204, 0.34);
+  --tint-ctrl: rgba(239, 104, 180, 0.16);
+  --tint-amber: rgba(229, 162, 59, 0.18);
+  --glyph-fill: rgba(225, 230, 231, 0.10);
+  --invert: 1;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.85;
+  -webkit-text-size-adjust: 100%;
+}
+.wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 96px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 56px;
+}
+.masthead, .toc, main { min-width: 0; }
+
+/* 見出しと本文 */
+.masthead { grid-column: 1 / -1; padding-bottom: 28px; border-bottom: 1px solid var(--rule); margin-bottom: 8px; }
+.eyebrow { margin: 0 0 10px; font-family: var(--font-mono); font-size: 0.8rem; letter-spacing: 0.06em; color: var(--guide); }
+h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.1rem, 1.5rem + 2.6vw, 3.4rem);
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-wrap: balance;
+}
+.lede { max-width: 40em; margin: 18px 0 0; font-size: 1.08rem; }
+.specimen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px 28px;
+  margin: 26px 0 0;
+  max-width: 960px;
+}
+.specimen div { min-width: 0; border-top: 2px solid var(--ink); padding-top: 8px; }
+.specimen dt { font-size: 0.78rem; letter-spacing: 0.08em; color: var(--muted); }
+.specimen dd { margin: 2px 0 0; font-size: 0.92rem; line-height: 1.6; overflow-wrap: anywhere; }
+.masthead .note { margin-top: 22px; }
+
+h2 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.45rem, 1.2rem + 0.9vw, 1.9rem);
+  line-height: 1.35;
+  margin: 72px 0 18px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rule);
+  text-wrap: balance;
+  max-width: 920px;
+}
+h2 .num { display: inline-block; min-width: 1.6em; font-family: var(--font-mono); font-weight: 600; color: var(--guide); }
+h3 { font-size: 1.14rem; line-height: 1.5; margin: 44px 0 10px; text-wrap: balance; max-width: 44em; }
+h3 .num { font-family: var(--font-mono); font-weight: 600; color: var(--guide); margin-right: 0.5em; }
+h4 { font-size: 1rem; margin: 30px 0 6px; max-width: 44em; }
+p, ul, ol, dl.defs { max-width: 44em; }
+p { margin: 0 0 14px; }
+ul, ol { padding-left: 1.4em; margin: 0 0 14px; }
+li { margin-bottom: 4px; }
+a { color: var(--guide); text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid var(--guide); outline-offset: 2px; border-radius: 2px; }
+code, .mono { font-family: var(--font-mono); }
+code { font-size: 0.86em; background: var(--sunken); padding: 0.05em 0.35em; border-radius: 3px; overflow-wrap: anywhere; }
+pre {
+  max-width: 920px;
+  overflow-x: auto;
+  background: var(--sunken);
+  padding: 14px 16px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  line-height: 1.7;
+}
+pre code { background: none; padding: 0; font-size: inherit; }
+.note {
+  max-width: 44em;
+  padding: 10px 14px;
+  border-left: 3px solid var(--guide);
+  background: var(--tint-guide);
+  font-size: 0.94rem;
+}
+.note.warn { border-left-color: var(--amber); background: var(--tint-amber); }
+.formula {
+  max-width: 44em;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+/* 目次 */
+.toc { font-size: 0.9rem; margin: 24px 0 8px; }
+.toc h2 { all: unset; display: block; font-size: 0.78rem; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px; }
+.toc ol { list-style: none; padding: 0; margin: 0; max-width: none; columns: 2 15em; column-gap: 28px; }
+.toc li { margin: 0 0 4px; break-inside: avoid; line-height: 1.5; }
+.toc li li { padding-left: 1.6em; font-size: 0.86rem; }
+.toc ol ol { columns: auto; margin-top: 4px; }
+.toc a { text-decoration: none; color: var(--ink); }
+.toc a:hover { color: var(--guide); }
+.toc .n { font-family: var(--font-mono); color: var(--guide); display: inline-block; min-width: 1.6em; }
+@media (min-width: 1100px) {
+  .wrap { grid-template-columns: 210px minmax(0, 1fr); }
+  .toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; margin-top: 60px; }
+  .toc ol { columns: auto; }
+}
+
+/* 図版 */
+figure.fig {
+  margin: 26px 0 30px;
+  max-width: 920px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 16px;
+}
+figure.fig.dark-plate { background: var(--atl-bg); border-color: var(--atl-bg); }
+figure.fig.dark-plate figcaption { color: var(--atl-cap); }
+figure.fig.dark-plate .fn { color: var(--atl-1); }
+figcaption { margin-top: 12px; font-size: 0.88rem; line-height: 1.7; color: var(--muted); max-width: 52em; }
+figcaption .fn { font-family: var(--font-mono); color: var(--guide); margin-right: 0.6em; font-weight: 600; }
+.scroll { overflow-x: auto; }
+svg.dia { display: block; width: 100%; height: auto; min-width: 600px; }
+svg.dia.narrow { min-width: 0; max-width: 300px; margin: 0 auto; }
+svg.dia.atlas { min-width: 0; }
+svg.dia text { font-family: var(--font-body); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 10px 0 0; padding: 0; list-style: none; font-size: 0.84rem; color: var(--muted); max-width: none; }
+.legend li { display: flex; align-items: center; gap: 6px; margin: 0; }
+.legend svg { flex: none; }
+.sw { display: inline-block; width: 14px; height: 14px; border-radius: 2px; flex: none; }
+
+.quad { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+.quad figure { margin: 0; min-width: 0; }
+.quad img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); background: var(--surface); }
+.quad figcaption { margin-top: 6px; font-size: 0.82rem; }
+img.pixel { image-rendering: pixelated; }
+.inv { filter: invert(var(--invert)) hue-rotate(calc(var(--invert) * 180deg)); }
+.render-plate img { display: block; max-width: 100%; height: auto; border-radius: 2px; }
+
+.split { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (min-width: 760px) { .split { grid-template-columns: minmax(0, 1fr) 300px; } }
+
+/* 表 */
+.tbl { max-width: 920px; overflow-x: auto; margin: 16px 0 22px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; line-height: 1.6; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; vertical-align: top; padding: 7px 10px; border-bottom: 1px solid var(--rule); }
+th { font-weight: 700; font-size: 0.8rem; letter-spacing: 0.04em; color: var(--muted); background: var(--sunken); white-space: nowrap; }
+td.num, th.num { text-align: right; }
+td.mono, td .mono { font-family: var(--font-mono); font-size: 0.86rem; }
+tr.read td { background: var(--tint-guide); }
+tr.read td:first-child { box-shadow: inset 3px 0 0 var(--guide); }
+tr.pick td { background: var(--tint-ctrl); }
+.yes { color: var(--guide); font-weight: 700; }
+td.nw { white-space: nowrap; }
+.nb { display: inline-block; }
+.bytes { font-family: var(--font-mono); white-space: nowrap; }
+.chip { display: inline-block; padding: 0 0.4em; border-radius: 3px; font-family: var(--font-mono); font-size: 0.85rem; }
+.f-hdr { background: var(--sunken); }
+.f-pts { background: var(--tint-amber); }
+.f-ins { background: var(--sunken); }
+.f-flg { background: var(--tint-ctrl); }
+.f-x { background: var(--tint-guide-strong); }
+.f-y { background: var(--tint-guide); }
+.f-pad { background: transparent; color: var(--muted); }
+
+/* グリフインデックスの並び */
+.strip { display: flex; gap: 4px; overflow-x: auto; padding: 4px 0 8px; max-width: 920px; }
+.strip .g { flex: none; min-width: 56px; padding: 6px 6px 4px; border: 1px solid var(--rule); background: var(--surface); border-radius: 3px; text-align: center; }
+.strip .g b { display: block; font-size: 1.35rem; line-height: 1.3; font-weight: 400; min-height: 1.3em; }
+.strip .g span { display: block; font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); line-height: 1.4; }
+.strip .gap { flex: none; align-self: center; color: var(--muted); padding: 0 4px; }
+.strip .g.nd { border-color: var(--ctrl); }
+
+dl.defs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 18px; }
+@media (min-width: 640px) { dl.defs { grid-template-columns: 11em minmax(0, 1fr); } }
+dl.defs dt { font-weight: 700; }
+dl.defs dd { margin: 0 0 8px; }
+
+footer { margin-top: 72px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 0.84rem; color: var(--muted); max-width: 920px; }
+
+/* SVG の部品（色はすべて上のトークンから） */
+.lbl { font-size: 13px; fill: var(--ink); }
+.lbl-s { font-size: 11.5px; fill: var(--muted); }
+.lbl-b { font-size: 13px; font-weight: 700; fill: var(--ink); }
+.dia .mono { font-family: var(--font-mono); }
+.dia .strong { fill: var(--ink); font-weight: 700; }
+.dia .ctrl { fill: var(--ctrl); }
+.node { fill: var(--surface); stroke: var(--rule-strong); stroke-width: 1.2; }
+.node.in { fill: var(--tint-guide); stroke: var(--guide); }
+.node.host { fill: var(--sunken); stroke: var(--rule-strong); }
+.node.sdf { stroke: var(--ctrl); stroke-width: 1.6; }
+.node-t { font-size: 14px; font-weight: 700; fill: var(--ink); }
+.node-s { font-size: 12px; fill: var(--muted); font-family: var(--font-mono); }
+.asm { font-size: 11px; fill: var(--guide); font-family: var(--font-mono); letter-spacing: 0.04em; }
+.flow { stroke: var(--muted); stroke-width: 1.5; fill: none; }
+.ah-flow, .ah-dim { fill: var(--muted); }
+.ah-guide { fill: var(--guide); }
+.ah-ink { fill: var(--ink); }
+.ah-ctrl { fill: var(--ctrl); }
+.ah-amber { fill: var(--atl-0); }
+.map-bg { fill: var(--sunken); }
+.map-hdr { fill: var(--amber); }
+.map-read { fill: var(--guide); }
+.map-other { fill: var(--rule-strong); }
+.leader { stroke: var(--muted); stroke-width: 1; }
+.leader-c { stroke: var(--ctrl); stroke-width: 1.4; fill: none; }
+.cellbox { fill: var(--surface); stroke: var(--rule-strong); }
+.cellbox.hl { fill: var(--tint-ctrl); stroke: var(--ctrl); }
+.glyfblk { fill: var(--sunken); stroke: var(--rule-strong); }
+.glyfblk.hl { fill: var(--tint-ctrl); stroke: var(--ctrl); stroke-width: 1.5; }
+.base { stroke: var(--guide); stroke-width: 1.2; }
+.vguide { stroke: var(--guide); stroke-width: 1; stroke-dasharray: 5 4; }
+.vguide.faint { opacity: 0.5; }
+.g-fill { fill: var(--glyph-fill); }
+.g-stroke { stroke: var(--ink); stroke-width: 1.3; stroke-linejoin: round; }
+.g-solid { fill: var(--ink); }
+.pt-on { fill: var(--ink); }
+.pt-off { fill: var(--surface); stroke: var(--ctrl); stroke-width: 1.6; }
+.pt-implied { fill: var(--amber); }
+.ctrl-poly { fill: none; stroke: var(--ctrl); stroke-width: 0.9; stroke-dasharray: 3 3; opacity: 0.85; }
+.dim { stroke: var(--muted); stroke-width: 1; }
+.dim-g { stroke: var(--guide); stroke-width: 1.2; }
+.tick { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 3; }
+.gapband { fill: var(--tint-amber); }
+.emsq { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 4; }
+.inkbox { fill: none; stroke: var(--ctrl); stroke-width: 1.2; stroke-dasharray: 5 3; }
+.origin { fill: var(--guide); stroke: var(--surface); stroke-width: 1.5; }
+.curve { fill: none; stroke: var(--ink); stroke-width: 1.4; }
+.chord { fill: none; stroke: var(--guide); stroke-width: 2.2; stroke-linejoin: round; }
+.pt-seg { fill: var(--guide); }
+.scan { stroke: var(--amber); stroke-width: 1.6; }
+.xing { fill: var(--surface); stroke: var(--amber); stroke-width: 2; }
+.wnum { font-family: var(--font-mono); font-size: 13px; font-weight: 600; fill: var(--guide); }
+.px-in { fill: var(--tint-guide-strong); }
+.grid { stroke: var(--rule); stroke-width: 0.6; }
+.grid-t { stroke: var(--rule-strong); stroke-width: 1.6; }
+.pc-in { fill: var(--ink); }
+.pc-out { fill: var(--rule-strong); }
+.edge { stroke: var(--ctrl); stroke-width: 1.6; fill: none; }
+.texel { fill: var(--surface); }
+.texel.mid { fill: var(--sunken); }
+.tap { fill: var(--tint-ctrl); stroke: var(--ctrl); stroke-width: 1.2; }
+.texc { fill: var(--guide); }
+.para { fill: none; stroke: var(--rule-strong); stroke-width: 1.2; }
+.env { fill: none; stroke: var(--guide); stroke-width: 2.6; }
+.enc { fill: none; stroke: var(--guide); stroke-width: 2.6; stroke-linejoin: round; }
+.band-ext { fill: var(--tint-ctrl); }
+.band-aa { fill: var(--tint-amber); }
+.cell { fill: var(--surface); stroke: var(--ink); stroke-width: 1.4; }
+.cellink { fill: var(--tint-amber); stroke: var(--amber); stroke-width: 1.2; }
+.glyphrect { fill: none; stroke: var(--guide); stroke-width: 2; }
+.slot { stroke-width: 2; fill-opacity: 0.14; }
+.slot.c0 { fill: var(--atl-0); stroke: var(--atl-0); }
+.slot.c1 { fill: var(--atl-1); stroke: var(--atl-1); }
+.slot.c2 { fill: var(--atl-2); stroke: var(--atl-2); }
+.qrect { fill: none; stroke: var(--atl-q); stroke-width: 1.2; stroke-dasharray: 4 3; }
+.fillorder { stroke: var(--atl-0); stroke-width: 3; }
+.atl { font-size: 22px; fill: var(--atl-0); font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+html { scroll-behavior: smooth; }
+h2[id], h3[id], h4[id] { scroll-margin-top: 20px; }
+.quad svg.dia.narrow { max-width: none; }
+.on-plate { fill: var(--atl-cap); }
+.tbl table { min-width: 640px; }
+
+/* Rinkaku の章で足す部品: インデックスのセルの濃淡（青の段）・グラフの系列の色（系列に固定）・画像の並べ方。 */
+:root {
+  --series-rk: #2a78d6;
+  --series-sdf: #eb6834;
+  --series-dense: #1baf7a;
+  --n1: #cde2fb;
+  --n2: #9ec5f4;
+  --n3: #6da7ec;
+  --n4: #3987e5;
+  --n5: #1c5cab;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --series-rk: #3987e5;
+    --series-sdf: #d95926;
+    --series-dense: #199e70;
+    --n1: #184f95;
+    --n2: #1c5cab;
+    --n3: #256abf;
+    --n4: #3987e5;
+    --n5: #6da7ec;
+  }
+}
+:root[data-theme="dark"] {
+  --series-rk: #3987e5;
+  --series-sdf: #d95926;
+  --series-dense: #199e70;
+  --n1: #184f95;
+  --n2: #1c5cab;
+  --n3: #256abf;
+  --n4: #3987e5;
+  --n5: #6da7ec;
+}
+.n1 { fill: var(--n1); }
+.n2 { fill: var(--n2); }
+.n3 { fill: var(--n3); }
+.n4 { fill: var(--n4); }
+.n5 { fill: var(--n5); }
+.panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; max-width: 920px; }
+.panels figure { margin: 0; min-width: 0; }
+.panels img { display: block; width: 100%; height: auto; border: 1px solid var(--rule); background: #fff; }
+.panels figcaption { margin-top: 6px; font-size: 0.82rem; line-height: 1.5; }
+.panels.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+svg.dia.chart { min-width: 560px; }
+.line { fill: none; stroke-width: 2; stroke-linejoin: round; }
+.line.s-rk { stroke: var(--series-rk); }
+.line.s-sdf { stroke: var(--series-sdf); }
+.dot { stroke: var(--surface); stroke-width: 2; }
+.dot.s-rk { fill: var(--series-rk); }
+.dot.s-sdf { fill: var(--series-sdf); }
+.bar.s-rk { fill: var(--series-rk); }
+.bar.s-sdf { fill: var(--series-sdf); }
+.bar.s-dense { fill: var(--series-dense); }
+
+/* 02 章で足す部品: 書いたセグメントの色（4 色・サンプルと同じ色）・集合の入れ子・区間の帯・式の行。 */
+.eq { margin: 0.9em 0; padding: 0.55em 0.9em; background: var(--sunken); border-radius: 4px; font-family: var(--font-mono); font-size: 0.95rem; overflow-x: auto; white-space: nowrap; }
+main var { font-style: italic; font-family: var(--font-mono); }
+.seg-w { fill: none; stroke-width: 3.4; stroke-linecap: round; }
+.seg-w.w0 { stroke: var(--guide); }
+.seg-w.w1 { stroke: var(--ctrl); }
+.seg-w.w2 { stroke: var(--amber); }
+.seg-w.w3 { stroke: var(--series-rk); }
+.sample { stroke: var(--surface); stroke-width: 1; }
+.sample.w0 { fill: var(--guide); }
+.sample.w1 { fill: var(--ctrl); }
+.sample.w2 { fill: var(--amber); }
+.sample.w3 { fill: var(--series-rk); }
+.sample.seg-out { fill: var(--rule-strong); }
+.seg-super { fill: none; stroke: var(--ink); stroke-width: 2; stroke-dasharray: 6 4; stroke-linecap: round; }
+.seg-out { fill: none; stroke: var(--rule-strong); stroke-width: 1.2; }
+.ring-super { fill: var(--tint-amber); stroke: var(--amber); stroke-width: 1.4; }
+.ring-min { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.cell-box { fill: none; stroke: var(--ink); stroke-width: 2; }
+.frame { fill: var(--surface); stroke: var(--rule); stroke-width: 1; }
+.set-all { fill: var(--surface); stroke: var(--rule-strong); stroke-width: 1.2; }
+.set-super { fill: var(--tint-amber); stroke: var(--amber); stroke-width: 1.4; }
+.set-interval { fill: none; stroke: var(--amber); stroke-width: 1.2; stroke-dasharray: 6 4; }
+.set-need { fill: var(--surface); stroke: var(--ink); stroke-width: 1.4; }
+.set-written { fill: var(--tint-guide-strong); stroke: var(--guide); stroke-width: 1.6; }
+.sliver { fill: var(--tint-amber); stroke: var(--amber); stroke-width: 1.2; }
+.thr { stroke: var(--ctrl); stroke-width: 1.4; stroke-dasharray: 5 4; }
+.iv-outer { stroke-width: 1.2; }
+.iv-outer.keep { fill: var(--tint-guide-strong); stroke: var(--guide); }
+.iv-outer.fp { fill: var(--tint-ctrl); stroke: var(--ctrl); }
+.iv-outer.out { fill: var(--sunken); stroke: var(--rule-strong); }
+.iv-true { fill: var(--ink); }
+
+/* 03 章で足す部品: f(t) のグラフ・極小と極大の足・接線・誤差のグラフの系列・強調する表の行。 */
+.ctrl-poly { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 3; }
+.f-curve { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
+.foot-min { stroke: var(--guide); stroke-width: 1.6; }
+.foot-max { stroke: var(--ctrl); stroke-width: 1.4; stroke-dasharray: 4 3; }
+.dot-min { fill: var(--guide); }
+.dot-max { fill: var(--ctrl); }
+.t-range { fill: var(--sunken); }
+.tangent { stroke: var(--amber); stroke-width: 1.8; }
+.line.s-closed { stroke: var(--series-sdf); }
+.line.s-newton { stroke: var(--series-rk); }
+tr.hl td { background: var(--tint-amber); }
+.tcap { font-size: 0.88rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="masthead">
+<p class="eyebrow">Rinkaku アーキテクチャ解説 03 ／ パッケージ info.someiyoshino.rinkaku</p>
+<h1><span class="nb">Rinkaku の</span><span class="nb">距離の解き方</span></h1>
+<p class="lede">Rinkaku のシェーダは、画素ごとにセルのセグメントを 1 本ずつ読み、画素からそのセグメントまでの最短距離を求める。曲線（2 次ベジエ）への最短距離は、<b>3 次方程式の根</b>として表せる。シェーダはその根を<b>公式（閉形式）</b>で一度に求め、<b>Newton 法の 1 反復</b>で仕上げる。本書は、この計算を式の導出から順にたどり、単精度の計算で何が起き、Newton 法がそれをどう直すかを実データで示す。</p>
+<dl class="specimen">
+<div><dt>対象の読者</dt><dd>大学の初年度の数学（微分・ベクトルの内積・2 次方程式）を知っている人。3 次方程式の解の公式・3 倍角の公式・Newton 法・浮動小数点は付録で補う</dd></div>
+<div><dt>コード</dt><dd><code>Packages/info.someiyoshino.rinkaku/Shaders/RinkakuDistance.hlsl</code> の <code>RinkakuDistanceSquared</code>（曲線）・<code>RinkakuLineDistanceSquared</code>（直線）。同じ手順を C# の単精度で写したモデルは <code>Tests/Rinkaku/RinkakuShaderModel.cs</code></dd></div>
+<div><dt>前提</dt><dd>01 章「Rinkaku の構造」の §4（セグメントテーブル）・§7（シェーダ）</dd></div>
+</dl>
+<p class="note">シェーダの契約の正典はパッケージ Rinkaku の README §3.5。本書は、その手順がなぜその形なのかを数式で説明する。符号（内か外か）の決め方は 01 章 §7.4 にあり、本書は距離の大きさだけを扱う。</p>
+<p class="note"><b>本書は写し</b>: パッケージ Rinkaku の正本の開発環境（T2Engine）の図解を、Rinkaku 0.2.2（タグ <code>v0.4.2</code>）の時点で写したもの。文中の決定 ID（D-RINKAKU）・着手候補と段の番号（RK-n）と、<code>docs/archive/</code>・<code>Tools/</code>・<code>Tests/</code>・<code>Assets/Tests/</code>・<code>papers/</code> のパスは写し元のリポジトリのもので、本リポジトリには無い。図の作り直しも写し元で行い、版ごとに写す（D-T2FREPUB・D-USERDOCS）。</p>
+</header>
+
+<nav class="toc" aria-label="目次">
+<h2>目次</h2>
+<ol>
+<li><a href="#flow"><span class="n">1</span>全体の流れ</a></li>
+<li><a href="#bezier"><span class="n">2</span>2 次ベジエを t の式で書く</a></li>
+<li><a href="#extremum"><span class="n">3</span>最も近い点の条件</a></li>
+<li><a href="#cubic"><span class="n">4</span>3 次方程式を作る</a></li>
+<li><a href="#depressed"><span class="n">5</span>2 次の項を消す</a></li>
+<li><a href="#branch"><span class="n">6</span>判別式で枝を分ける</a></li>
+<li><a href="#cardano"><span class="n">7</span>実根 1 つ: カルダノの公式</a></li>
+<li><a href="#trig"><span class="n">8</span>実根 3 つ: 三角関数の解</a></li>
+<li><a href="#ends"><span class="n">9</span>範囲 0〜1 と両端</a></li>
+<li><a href="#float"><span class="n">10</span>単精度で起きること</a></li>
+<li><a href="#newton"><span class="n">11</span>Newton 法の 1 反復</a></li>
+<li><a href="#line"><span class="n">12</span>直線は正射影</a></li>
+<li><a href="#appendix">付録</a>
+<ol>
+<li><a href="#app-vector">A ベクトルの内積と微分</a></li>
+<li><a href="#app-cubic">B 3 次方程式の根の数と解の公式</a></li>
+<li><a href="#app-triple">C 3 倍角の公式</a></li>
+<li><a href="#app-newton">D Newton 法と 2 次収束</a></li>
+<li><a href="#app-float">E 浮動小数点と桁落ち</a></li>
+</ol></li>
+<li><a href="#terms"><span class="n">13</span>記号と用語</a></li>
+<li><a href="#method"><span class="n">14</span>図の作り方</a></li>
+</ol>
+</nav>
+
+<main>
+
+<h2 id="flow"><span class="num">1</span>全体の流れ</h2>
+<p>画素の位置を <var>P</var>（em）とする。シェーダは画素のセルに書かれたセグメントを順に読み、セグメントごとに「<var>P</var> からの最短距離の二乗」を求めて、いちばん小さいものを残す（01 章 §7）。1 本のセグメントについての手順は次のとおり。</p>
+<figure class="fig" id="fig-flow">
+<div class="scroll"><svg class="dia" viewBox="0 0 760 520" width="760" height="520" role="img" aria-label="セグメント 1 本の距離の手順" xmlns="http://www.w3.org/2000/svg">
+<rect class="node" x="200" y="12" width="360" height="44" rx="6"/><text class="node-t" x="380" y="32" text-anchor="middle">セグメントの 3 点を読む</text><text class="node-s" x="380" y="49" text-anchor="middle">p₀・q・p₁（項目の texel 3 つ）</text>
+<line x1="380" y1="56" x2="380" y2="76" class="flow"/><polygon class="ah-flow" points="380,82 375.5,74 384.5,74"/>
+<rect class="node" x="250" y="84" width="260" height="36" rx="18"/><text class="node-t" x="380" y="107" text-anchor="middle">制御点の差が 0（直線）？</text>
+<line x1="510" y1="102" x2="600" y2="102" class="flow"/><polygon class="ah-flow" points="606,102 598,97.5 598,106.5"/><text x="548" y="96" class="lbl-s" text-anchor="middle">はい</text>
+<rect class="node" x="608" y="78" width="140" height="48" rx="6"/><text class="node-t" x="678" y="98" text-anchor="middle">正射影（§12）</text><text class="node-s" x="678" y="115" text-anchor="middle">t を 0〜1 に丸める</text>
+<line x1="380" y1="120" x2="380" y2="142" class="flow"/><polygon class="ah-flow" points="380,148 375.5,140 384.5,140"/><text x="388" y="138" class="lbl-s">いいえ（曲線）</text>
+<rect class="node in" x="150" y="150" width="460" height="52" rx="6"/><text class="node-t" x="380" y="171" text-anchor="middle">3 次方程式の係数（§2〜§5）</text><text class="node-s" x="380" y="190" text-anchor="middle">a・b・c・d → kx・ky・kz → p・q → h ＝ q² ＋ 4p³</text>
+<line x1="300" y1="202" x2="230" y2="232" class="flow"/><polygon class="ah-flow" points="224.5,234.5 230.5,227.5 234,235.8"/>
+<line x1="460" y1="202" x2="530" y2="232" class="flow"/><polygon class="ah-flow" points="535.5,234.5 526,235.8 529.5,227.5"/>
+<text x="238" y="222" class="lbl-s">h ≥ 0</text><text x="510" y="222" class="lbl-s">h &lt; 0</text>
+<rect class="node in" x="60" y="238" width="300" height="52" rx="6"/><text class="node-t" x="210" y="259" text-anchor="middle">カルダノの公式（§7）</text><text class="node-s" x="210" y="278" text-anchor="middle">実根 1 つ・立方根 2 つ</text>
+<rect class="node in" x="400" y="238" width="300" height="52" rx="6"/><text class="node-t" x="550" y="259" text-anchor="middle">三角関数の解（§8）</text><text class="node-s" x="550" y="278" text-anchor="middle">極小 2 つを求め、f の小さい方</text>
+<line x1="210" y1="290" x2="330" y2="322" class="flow"/><polygon class="ah-flow" points="336,323.5 327,326.7 329.3,318"/>
+<line x1="550" y1="290" x2="430" y2="322" class="flow"/><polygon class="ah-flow" points="424,323.5 430.7,318 433,326.7"/>
+<rect class="node sdf" x="200" y="326" width="360" height="52" rx="6"/><text class="node-t" x="380" y="347" text-anchor="middle">Newton 法の 1 反復（§11）</text><text class="node-s" x="380" y="366" text-anchor="middle">g′ &gt; 0 で、距離が縮むときだけ採る</text>
+<line x1="380" y1="378" x2="380" y2="398" class="flow"/><polygon class="ah-flow" points="380,404 375.5,396 384.5,396"/>
+<rect class="node" x="200" y="406" width="360" height="52" rx="6"/><text class="node-t" x="380" y="427" text-anchor="middle">両端と比べる（§9）</text><text class="node-s" x="380" y="446" text-anchor="middle">同じ近さ（1e−6 em）なら端を選ぶ</text>
+<line x1="380" y1="458" x2="380" y2="476" class="flow"/><polygon class="ah-flow" points="380,482 375.5,474 384.5,474"/>
+<line x1="678" y1="126" x2="678" y2="500" class="flow"/><line x1="678" y1="500" x2="566" y2="500" class="flow"/><polygon class="ah-flow" points="560,500 568,495.5 568,504.5"/>
+<rect class="node host" x="200" y="484" width="360" height="32" rx="6"/><text class="node-t" x="380" y="505" text-anchor="middle">距離の二乗・最も近い点・端か</text>
+</svg></div>
+<figcaption><span class="fn">図 1</span>セグメント 1 本の距離の手順（模式図）。括弧の中は本書の節。曲線の手順のうち、閉形式の部分が §4〜§8、Newton 法が §11、両端との比べが §9。</figcaption>
+</figure>
+<p>距離そのものではなく<b>距離の二乗</b>を比べるのは、平方根を最後の 1 回（画素の距離を返すとき）だけにするためである。距離が小さい方が二乗も小さいので、比べた結果は同じになる。</p>
+
+<h2 id="bezier"><span class="num">2</span>2 次ベジエを t の式で書く</h2>
+<p>セグメントは始点 <var>p₀</var>・制御点 <var>q</var>・終点 <var>p₁</var> の 3 点で決まる 2 次ベジエ曲線で、パラメータ <var>t</var>（0 ≤ <var>t</var> ≤ 1）の点は</p>
+<div class="eq">B(t) ＝ (1 − t)² p₀ ＋ 2(1 − t)t q ＋ t² p₁</div>
+<p>である（<var>t</var> ＝ 0 で始点、<var>t</var> ＝ 1 で終点）。展開して <var>t</var> の次数でまとめると、</p>
+<div class="eq">B(t) ＝ p₀ ＋ 2a t ＋ b t²　　ただし　a ＝ q − p₀,　b ＝ p₀ − 2q ＋ p₁</div>
+<p>になる。<var>a</var> は始点から制御点へのベクトル、<var>b</var> は曲がり具合（<var>b</var> ＝ 0 なら直線）を表す。微分は</p>
+<div class="eq">B′(t) ＝ 2a ＋ 2b t（接線の向き）　　B″(t) ＝ 2b（一定）</div>
+<p>シェーダのコードは同じ量を次の名前で持つ（<code>c</code> は <var>2a</var>、<code>d</code> は始点から見た画素の逆向き）。</p>
+<div class="tbl"><table>
+<thead><tr><th>コード</th><th>式</th><th>意味</th></tr></thead>
+<tbody>
+<tr><td class="mono">a</td><td class="mono">q − p₀</td><td>始点から制御点へ</td></tr>
+<tr><td class="mono">b</td><td class="mono">p₀ − 2q + p₁</td><td>B″/2（曲がり）</td></tr>
+<tr><td class="mono">c</td><td class="mono">2a</td><td>B′(0)（始点の接線）</td></tr>
+<tr><td class="mono">d</td><td class="mono">p₀ − P</td><td>画素から始点へ</td></tr>
+</tbody>
+</table></div>
+<p>画素から曲線の点へのベクトルは <var>e(t) ＝ B(t) − P ＝ d ＋ c t ＋ b t²</var> で、コードの <code>RinkakuDist2</code> は <var>|e(t)|²</var> を <code>d + (c + b t) t</code> の形（掛け算を減らす Horner の形）で計算する。</p>
+<p class="note">ここに来るセグメントは必ず <var>b ≠ 0</var> である。ベイカーは、ほぼ直線の曲線（<var>|b|</var> &lt; 1/1024 em）を直線にして書き、直線は §12 の別の手順で測る（README §3.2）。§4 で <var>|b|²</var> で割るので、この約束が要る。</p>
+
+<h2 id="extremum"><span class="num">3</span>最も近い点の条件</h2>
+<p>距離の二乗を <var>t</var> の関数として</p>
+<div class="eq">f(t) ＝ |B(t) − P|² ＝ e(t)·e(t)</div>
+<p>と置く。<var>B(t)</var> は <var>t</var> の 2 次式なので、<var>f(t)</var> は <var>t</var> の <b>4 次式</b>で、<var>t⁴</var> の係数は <var>|b|²</var> &gt; 0。求めたいのは区間 0 ≤ <var>t</var> ≤ 1 での <var>f</var> の最小値で、最小になる所は</p>
+<ul>
+<li>区間の内側で <var>f′(t)</var> ＝ 0 になる所（極小）か、</li>
+<li>区間の端（<var>t</var> ＝ 0 か 1）</li>
+</ul>
+<p>のどちらかである。内積の微分（付録 A）から</p>
+<div class="eq">f′(t) ＝ 2 e(t)·e′(t) ＝ 2 (B(t) − P)·B′(t)</div>
+<p>なので、<var>f′(t)</var> ＝ 0 は「<b>画素から曲線の点へのベクトルが、その点の接線と直交する</b>」——画素から曲線へ下ろした<b>垂線の足</b>——という条件である。以後、</p>
+<div class="eq">g(t) ＝ f′(t) / 2 ＝ (B(t) − P)·B′(t)</div>
+<p>を使う。<var>g</var> は 3 次式なので、実根（実数の根）は 1 つか 3 つある（付録 B）。<var>f</var> は 4 次で <var>t</var> → ±∞ で +∞ へ行くので、根が 3 つのときは小さい順に<b>極小・極大・極小</b>、1 つのときはそれが<b>極小</b>（<var>f</var> の最小）である。</p>
+
+<figure class="fig" id="fig-f">
+<div class="scroll"><!-- gen:FIG_F -->
+<svg class="dia" viewBox="0 0 760 540" width="760" height="540" role="img" aria-label="2 次ベジエと点の距離の二乗 f(t) のグラフ" xmlns="http://www.w3.org/2000/svg"><path d="M49 229.5L144 39.5L239 229.5" class="ctrl-poly"/><path d="M49 229.5L51.97 223.66L54.94 218L57.91 212.52L60.88 207.23L63.84 202.13L66.81 197.21L69.78 192.48L72.75 187.94L75.72 183.58L78.69 179.4L81.66 175.41L84.62 171.61L87.59 167.99L90.56 164.56L93.53 161.31L96.5 158.25L99.47 155.37L102.44 152.68L105.41 150.18L108.38 147.86L111.34 145.73L114.31 143.78L117.28 142.01L120.25 140.44L123.22 139.05L126.19 137.84L129.16 136.82L132.12 135.98L135.09 135.33L138.06 134.87L141.03 134.59L144 134.5L146.97 134.59L149.94 134.87L152.91 135.33L155.88 135.98L158.84 136.82L161.81 137.84L164.78 139.05L167.75 140.44L170.72 142.01L173.69 143.78L176.66 145.73L179.62 147.86L182.59 150.18L185.56 152.68L188.53 155.37L191.5 158.25L194.47 161.31L197.44 164.56L200.41 167.99L203.38 171.61L206.34 175.41L209.31 179.4L212.28 183.58L215.25 187.94L218.22 192.48L221.19 197.21L224.16 202.13L227.13 207.23L230.09 212.52L233.06 218L236.03 223.66L239 229.5" class="g-stroke" fill="none" stroke-width="2"/><circle cx="49" cy="229.5" r="3.5" class="pt-on"/><text x="55" y="223.5" class="lbl-s">p₀</text><circle cx="144" cy="39.5" r="3.5" class="pt-off"/><text x="150" y="33.5" class="lbl-s">q</text><circle cx="239" cy="229.5" r="3.5" class="pt-on"/><text x="245" y="223.5" class="lbl-s">p₁</text><line x1="144" y1="214.3" x2="88.61" y2="166.8" class="foot-min"/><circle cx="88.61" cy="166.8" r="3" class="dot-min"/><line x1="144" y1="214.3" x2="144" y2="134.5" class="foot-max"/><circle cx="144" cy="134.5" r="3" class="dot-max"/><line x1="144" y1="214.3" x2="199.39" y2="166.8" class="foot-min"/><circle cx="199.39" cy="166.8" r="3" class="dot-min"/><circle cx="144" cy="214.3" r="4" class="origin"/><text x="151" y="228.3" class="lbl-b">点 A</text><rect x="361.43" y="40" width="307.14" height="180" class="t-range"/><line x1="300" y1="220" x2="730" y2="220" class="dim"/><line x1="300" y1="220" x2="300" y2="40" class="dim"/><text x="361.43" y="236" class="lbl-s mono" text-anchor="middle">0</text><text x="515" y="236" class="lbl-s mono" text-anchor="middle">0.5</text><text x="668.57" y="236" class="lbl-s mono" text-anchor="middle">1</text><text x="730" y="236" class="lbl-s" text-anchor="end">t</text><text x="306" y="44" class="lbl-s">f(t)＝|B(t) − P|²</text><path d="M300 40L303.07 49.91L306.14 59.35L309.21 68.31L312.29 76.83L315.36 84.9L318.43 92.56L321.5 99.8L324.57 106.65L327.64 113.11L330.71 119.2L333.79 124.94L336.86 130.33L339.93 135.4L343 140.14L346.07 144.58L349.14 148.72L352.21 152.58L355.29 156.16L358.36 159.49L361.43 162.57L364.5 165.41L367.57 168.02L370.64 170.41L373.71 172.6L376.79 174.59L379.86 176.39L382.93 178.02L386 179.48L389.07 180.77L392.14 181.92L395.21 182.93L398.29 183.8L401.36 184.55L404.43 185.18L407.5 185.7L410.57 186.12L413.64 186.45L416.71 186.69L419.79 186.85L422.86 186.94L425.93 186.96L429 186.92L432.07 186.83L435.14 186.69L438.21 186.51L441.29 186.29L444.36 186.04L447.43 185.76L450.5 185.46L453.57 185.15L456.64 184.82L459.71 184.48L462.79 184.14L465.86 183.8L468.93 183.46L472 183.13L475.07 182.81L478.14 182.5L481.21 182.2L484.29 181.92L487.36 181.66L490.43 181.43L493.5 181.21L496.57 181.02L499.64 180.86L502.71 180.73L505.79 180.62L508.86 180.55L511.93 180.5L515 180.49L518.07 180.5L521.14 180.55L524.21 180.62L527.29 180.73L530.36 180.86L533.43 181.02L536.5 181.21L539.57 181.43L542.64 181.66L545.71 181.92L548.79 182.2L551.86 182.5L554.93 182.81L558 183.13L561.07 183.46L564.14 183.8L567.21 184.14L570.29 184.48L573.36 184.82L576.43 185.15L579.5 185.46L582.57 185.76L585.64 186.04L588.71 186.29L591.79 186.51L594.86 186.69L597.93 186.83L601 186.92L604.07 186.96L607.14 186.94L610.21 186.85L613.29 186.69L616.36 186.45L619.43 186.12L622.5 185.7L625.57 185.18L628.64 184.55L631.71 183.8L634.79 182.93L637.86 181.92L640.93 180.77L644 179.48L647.07 178.02L650.14 176.39L653.21 174.59L656.29 172.6L659.36 170.41L662.43 168.02L665.5 165.41L668.57 162.57L671.64 159.49L674.71 156.16L677.79 152.58L680.86 148.72L683.93 144.58L687 140.14L690.07 135.4L693.14 130.33L696.21 124.94L699.29 119.2L702.36 113.11L705.43 106.65L708.5 99.8L711.57 92.56L714.64 84.9L717.71 76.83L720.79 68.31L723.86 59.35L726.93 49.91L730 40" class="f-curve"/><line x1="425.45" y1="220" x2="425.45" y2="186.96" class="foot-min"/><circle cx="425.45" cy="186.96" r="3.5" class="dot-min"/><line x1="515" y1="220" x2="515" y2="180.49" class="foot-max"/><circle cx="515" cy="180.49" r="3.5" class="dot-max"/><line x1="604.55" y1="220" x2="604.55" y2="186.96" class="foot-min"/><circle cx="604.55" cy="186.96" r="3.5" class="dot-min"/><text x="300" y="256" class="lbl-s">g(t)＝0 の根: t₁ ＝ 0.208（極小）・t₂ ＝ 0.5（極大）・t₃ ＝ 0.792（極小）</text><path d="M49 479.5L144 289.5L239 479.5" class="ctrl-poly"/><path d="M49 479.5L51.97 473.66L54.94 468L57.91 462.52L60.88 457.23L63.84 452.13L66.81 447.21L69.78 442.48L72.75 437.94L75.72 433.58L78.69 429.4L81.66 425.41L84.62 421.61L87.59 417.99L90.56 414.56L93.53 411.31L96.5 408.25L99.47 405.37L102.44 402.68L105.41 400.18L108.38 397.86L111.34 395.73L114.31 393.78L117.28 392.01L120.25 390.44L123.22 389.05L126.19 387.84L129.16 386.82L132.12 385.98L135.09 385.33L138.06 384.87L141.03 384.59L144 384.5L146.97 384.59L149.94 384.87L152.91 385.33L155.88 385.98L158.84 386.82L161.81 387.84L164.78 389.05L167.75 390.44L170.72 392.01L173.69 393.78L176.66 395.73L179.62 397.86L182.59 400.18L185.56 402.68L188.53 405.37L191.5 408.25L194.47 411.31L197.44 414.56L200.41 417.99L203.38 421.61L206.34 425.41L209.31 429.4L212.28 433.58L215.25 437.94L218.22 442.48L221.19 447.21L224.16 452.13L227.13 457.23L230.09 462.52L233.06 468L236.03 473.66L239 479.5" class="g-stroke" fill="none" stroke-width="2"/><circle cx="49" cy="479.5" r="3.5" class="pt-on"/><text x="55" y="473.5" class="lbl-s">p₀</text><circle cx="144" cy="289.5" r="3.5" class="pt-off"/><text x="150" y="283.5" class="lbl-s">q</text><circle cx="239" cy="479.5" r="3.5" class="pt-on"/><text x="245" y="473.5" class="lbl-s">p₁</text><line x1="197.2" y1="361.7" x2="175.34" y2="394.84" class="foot-min"/><circle cx="175.34" cy="394.84" r="3" class="dot-min"/><circle cx="197.2" cy="361.7" r="4" class="origin"/><text x="204.2" y="375.7" class="lbl-b">点 B</text><rect x="361.43" y="290" width="307.14" height="180" class="t-range"/><line x1="300" y1="470" x2="730" y2="470" class="dim"/><line x1="300" y1="470" x2="300" y2="290" class="dim"/><text x="361.43" y="486" class="lbl-s mono" text-anchor="middle">0</text><text x="515" y="486" class="lbl-s mono" text-anchor="middle">0.5</text><text x="668.57" y="486" class="lbl-s mono" text-anchor="middle">1</text><text x="730" y="486" class="lbl-s" text-anchor="end">t</text><text x="306" y="294" class="lbl-s">f(t)＝|B(t) − P|²</text><path d="M300 290L303.07 296.63L306.14 303.04L309.21 309.24L312.29 315.24L315.36 321.04L318.43 326.65L321.5 332.07L324.57 337.31L327.64 342.37L330.71 347.26L333.79 351.98L336.86 356.54L339.93 360.93L343 365.18L346.07 369.27L349.14 373.23L352.21 377.04L355.29 380.71L358.36 384.25L361.43 387.66L364.5 390.95L367.57 394.12L370.64 397.17L373.71 400.11L376.79 402.95L379.86 405.67L382.93 408.3L386 410.82L389.07 413.26L392.14 415.6L395.21 417.85L398.29 420.01L401.36 422.1L404.43 424.1L407.5 426.03L410.57 427.89L413.64 429.68L416.71 431.39L419.79 433.05L422.86 434.64L425.93 436.17L429 437.64L432.07 439.05L435.14 440.42L438.21 441.73L441.29 442.99L444.36 444.2L447.43 445.37L450.5 446.49L453.57 447.57L456.64 448.62L459.71 449.62L462.79 450.58L465.86 451.51L468.93 452.41L472 453.27L475.07 454.1L478.14 454.89L481.21 455.66L484.29 456.4L487.36 457.11L490.43 457.79L493.5 458.44L496.57 459.07L499.64 459.67L502.71 460.25L505.79 460.8L508.86 461.33L511.93 461.83L515 462.3L518.07 462.76L521.14 463.18L524.21 463.59L527.29 463.96L530.36 464.32L533.43 464.64L536.5 464.95L539.57 465.22L542.64 465.47L545.71 465.69L548.79 465.88L551.86 466.04L554.93 466.17L558 466.27L561.07 466.34L564.14 466.38L567.21 466.37L570.29 466.34L573.36 466.26L576.43 466.15L579.5 466L582.57 465.8L585.64 465.56L588.71 465.28L591.79 464.95L594.86 464.57L597.93 464.13L601 463.65L604.07 463.1L607.14 462.5L610.21 461.84L613.29 461.12L616.36 460.33L619.43 459.47L622.5 458.54L625.57 457.54L628.64 456.47L631.71 455.31L634.79 454.07L637.86 452.75L640.93 451.34L644 449.84L647.07 448.24L650.14 446.54L653.21 444.74L656.29 442.84L659.36 440.83L662.43 438.71L665.5 436.47L668.57 434.11L671.64 431.62L674.71 429.01L677.79 426.26L680.86 423.38L683.93 420.36L687 417.2L690.07 413.88L693.14 410.41L696.21 406.78L699.29 402.99L702.36 399.03L705.43 394.9L708.5 390.59L711.57 386.1L714.64 381.42L717.71 376.54L720.79 371.47L723.86 366.2L726.93 360.72L730 355.02" class="f-curve"/><line x1="565.66" y1="470" x2="565.66" y2="466.38" class="foot-min"/><circle cx="565.66" cy="466.38" r="3.5" class="dot-min"/><text x="300" y="506" class="lbl-s">g(t)＝0 の根: t₁ ＝ 0.665（極小）</text><line x1="30" y1="528" x2="52" y2="528" class="foot-min"/><text x="58" y="532" class="lbl-s">極小（垂線の足）</text><line x1="190" y1="528" x2="212" y2="528" class="foot-max"/><text x="218" y="532" class="lbl-s">極大（垂線の足だが最も遠い向き）</text><rect x="420" y="520" width="22" height="12" class="t-range"/><text x="448" y="532" class="lbl-s">セグメントの範囲 0 ≤ t ≤ 1</text></svg>
+<!-- /gen --></div>
+<figcaption><span class="fn">図 2</span>同じ曲線（p₀ ＝ (0, 0)・q ＝ (0.5, 1)・p₁ ＝ (1, 0)）に対する 2 つの点と、距離の二乗 <var>f(t)</var>（倍精度で描いた）。上の点 A ＝ <!-- gen:EX_A_P -->(0.5, 0.08)<!-- /gen --> は曲線の頂上の曲率の中心より遠い所にあり、<var>g(t)</var> ＝ 0 の根は <!-- gen:EX_A_ROOTS -->3<!-- /gen --> つ（<!-- gen:EX_A_H -->h &lt; 0<!-- /gen -->・§6）——左右の 2 つが極小で、頂上の足は極大（遠い向き）。下の点 B ＝ <!-- gen:EX_B_P -->(0.78, 0.62)<!-- /gen --> は曲線の外側にあり、根は <!-- gen:EX_B_ROOTS -->1<!-- /gen --> つ（<!-- gen:EX_B_H -->h ≥ 0<!-- /gen -->）。灰色の帯がセグメントの範囲。</figcaption>
+</figure>
+
+<h2 id="cubic"><span class="num">4</span>3 次方程式を作る</h2>
+<p><var>e(t) ＝ d ＋ 2a t ＋ b t²</var>、<var>B′(t) ＝ 2a ＋ 2b t</var> を <var>g(t)</var> に入れて展開する（内積は掛け算と同じように分配できる）。</p>
+<div class="eq">g(t) ＝ (d ＋ 2a t ＋ b t²)·(2a ＋ 2b t)<br>
+　　＝ 2 [ (b·b) t³ ＋ 3(a·b) t² ＋ (2 a·a ＋ d·b) t ＋ d·a ]</div>
+<p>（<var>t²</var> の項は <var>2a t·b t</var> と <var>b t²·a</var> から <var>2(a·b) + (a·b) ＝ 3(a·b)</var>、<var>t</var> の項は <var>2a t·a</var> と <var>d·b t</var> から。）全体の係数 2 は根に関係しないので落とし、さらに <var>t³</var> の係数 <var>b·b ＝ |b|²</var>（§2 の約束で 0 でない）で割ると、</p>
+<div class="eq">t³ ＋ 3k<sub>x</sub> t² ＋ 3k<sub>y</sub> t ＋ k<sub>z</sub> ＝ 0</div>
+<div class="eq">k<sub>x</sub> ＝ (a·b) / |b|²　　k<sub>y</sub> ＝ (2|a|² ＋ d·b) / (3|b|²)　　k<sub>z</sub> ＝ (d·a) / |b|²</div>
+<p>コードでは <code>kk = 1/|b|²</code> を 1 回だけ計算し（割り算は掛け算より重い）、<code>kx</code>・<code>ky</code>・<code>kz</code> はそれを掛けて作る。係数を 3 で割った形にしてあるのは、次の節の式を短くするためである。</p>
+
+<h2 id="depressed"><span class="num">5</span>2 次の項を消す</h2>
+<p>3 次方程式の公式は、<var>t²</var> の項が無い形 <var>s³ ＋ 3p s ＋ q ＝ 0</var> に対して書くのが簡単である。<var>t ＝ s − k<sub>x</sub></var> と置いて代入すると（平行移動）、</p>
+<div class="eq">(s − k<sub>x</sub>)³ ＋ 3k<sub>x</sub>(s − k<sub>x</sub>)² ＋ 3k<sub>y</sub>(s − k<sub>x</sub>) ＋ k<sub>z</sub><br>
+＝ s³ ＋ 3(k<sub>y</sub> − k<sub>x</sub>²) s ＋ (2k<sub>x</sub>³ − 3k<sub>x</sub>k<sub>y</sub> ＋ k<sub>z</sub>)</div>
+<p>（<var>s²</var> の項は <var>−3k<sub>x</sub> s² ＋ 3k<sub>x</sub> s²</var> で消える。これが <var>t²</var> の係数を <var>3k<sub>x</sub></var> にしておいた理由。）よって</p>
+<div class="eq">s³ ＋ 3p s ＋ q ＝ 0　　p ＝ k<sub>y</sub> − k<sub>x</sub>²　　q ＝ k<sub>x</sub>(2k<sub>x</sub>² − 3k<sub>y</sub>) ＋ k<sub>z</sub></div>
+<p>コードの <code>p</code>・<code>q3</code> がこの <var>p</var>・<var>q</var> である（<code>q3</code> は制御点の <code>q</code> と区別するための名前）。根 <var>s</var> が求まれば <var>t ＝ s − k<sub>x</sub></var>。</p>
+
+<h2 id="branch"><span class="num">6</span>判別式で枝を分ける</h2>
+<p><var>s³ ＋ 3p s ＋ q ＝ 0</var> の実根の数は、</p>
+<div class="eq">h ＝ q² ＋ 4p³</div>
+<p>の符号で決まる（付録 B）。<var>h</var> &gt; 0 なら実根は 1 つ、<var>h</var> &lt; 0 なら異なる実根が 3 つ、<var>h</var> ＝ 0 なら重根を含む。シェーダは <code>h &gt;= 0.0</code> で 2 つの枝に分ける。</p>
+<ul>
+<li><b><var>h</var> ≥ 0（§7）</b>: カルダノの公式で、根を立方根で直接書く。</li>
+<li><b><var>h</var> &lt; 0（§8）</b>: カルダノの公式は途中で負の数の平方根（複素数）を通るので使えず、三角関数で書く。</li>
+</ul>
+<p>図 2 の点 A が <var>h</var> &lt; 0、点 B が <var>h</var> ≥ 0 に当たる。字の画素では、ほとんどの評価が <var>h</var> ≥ 0 の枝を通る（検査用の 129 字を 128px で描いたとき、曲線の評価の <!-- gen:ERR_ONE_ROOT -->92.5%<!-- /gen -->）。実根が 3 つになるのは、画素が曲線の凹んだ側で、曲率の中心より奥にあるときだけだからである（<var>t</var> を 0〜1 の外まで延ばした放物線で数える）。</p>
+
+<h2 id="cardano"><span class="num">7</span>実根 1 つ: カルダノの公式</h2>
+<p>根を 2 つの数の和 <var>s ＝ u ＋ v</var> と置く。代入すると</p>
+<div class="eq">u³ ＋ v³ ＋ 3(uv ＋ p)(u ＋ v) ＋ q ＝ 0</div>
+<p>なので、<var>uv ＝ −p</var> となるように <var>u</var>, <var>v</var> を選べば、<var>u³ ＋ v³ ＝ −q</var> だけが残る。<var>u³</var> と <var>v³</var> は、和が <var>−q</var>、積が <var>(uv)³ ＝ −p³</var> の 2 数なので、2 次方程式 <var>z² ＋ q z − p³ ＝ 0</var> の 2 根である。解の公式から</p>
+<div class="eq">u³, v³ ＝ ( −q ± √(q² ＋ 4p³) ) / 2 ＝ ( −q ± √h ) / 2</div>
+<p>ここで <var>h</var> ≥ 0 なので平方根は実数。<var>u</var>, <var>v</var> はその実数の立方根で、</p>
+<div class="eq">t ＝ ∛( (√h − q)/2 ) ＋ ∛( (−√h − q)/2 ) − k<sub>x</sub></div>
+<p>がシェーダの式である（コードの <code>x</code> は 2 つの立方根の中身の組、<code>uv</code> は 2 つの立方根）。</p>
+<ul>
+<li>HLSL の <code>pow(x, 1/3)</code> は <var>x</var> &lt; 0 で定義されないので、<code>sign(x) * pow(abs(x), 1/3)</code> と書いて負の数の実数の立方根を取る（∛(−8) ＝ −2）。</li>
+<li>求めた <var>t</var> は <code>saturate</code> で 0〜1 に丸める。根が範囲の外なら、範囲の中の最小は端にあり（<var>f</var> は根の手前まで単調）、丸めた値がその端になる。</li>
+</ul>
+
+<h2 id="trig"><span class="num">8</span>実根 3 つ: 三角関数の解</h2>
+<p><var>h</var> &lt; 0 のときは <var>p</var> &lt; 0 である（<var>q² ≥ 0</var> なので <var>4p³ &lt; 0</var>）。<var>z ＝ √(−p)</var> と置き、根を <var>s ＝ 2z cos φ</var> の形で探す。代入して <var>p ＝ −z²</var> を使うと</p>
+<div class="eq">8z³ cos³φ − 6z³ cos φ ＋ q ＝ 0　⇔　2z³ (4cos³φ − 3cos φ) ＝ −q</div>
+<p>3 倍角の公式 <var>4cos³φ − 3cos φ ＝ cos 3φ</var>（付録 C）から、</p>
+<div class="eq">cos 3φ ＝ −q / (2z³)</div>
+<p><var>h</var> &lt; 0 は <var>q² &lt; −4p³ ＝ 4z⁶</var>、つまり右辺の絶対値が 1 未満であることと同じなので、<var>3φ</var> は <code>acos</code> で取れる。<var>φ₀ ＝ arccos(−q/(2z³)) / 3</var>（0〜π/3）とすると、<var>cos 3φ</var> は周期 2π なので、<var>φ ＝ φ₀, φ₀ ± 2π/3</var> がどれも解になり、3 つの根は</p>
+<div class="eq">s₁ ＝ 2z cos φ₀　≥　s₂ ＝ 2z cos(φ₀ − 2π/3)　≥　s₃ ＝ 2z cos(φ₀ ＋ 2π/3)</div>
+<p>コードは <code>v</code> ＝ <var>φ₀</var>、<code>m</code> ＝ cos <var>φ₀</var>、<code>n</code> ＝ √3 sin <var>φ₀</var> として、加法定理から</p>
+<div class="eq">s₁ ＝ 2z m　　s₃ ＝ 2z(−½ m − (√3/2) sin φ₀) ＝ −z(m ＋ n)</div>
+<p>の 2 つだけを計算する（コードの <code>(m + m) * z</code> と <code>(-n - m) * z</code>。<code>acos</code> の引数 <code>q3 / (p * z * 2)</code> は <var>p z ＝ −z³</var> なので <var>−q/(2z³)</var> と同じ）。真ん中の <var>s₂</var> は §3 のとおり <var>f</var> の<b>極大</b>なので最小になりえず、計算しない。2 つの極小の <var>t</var> をそれぞれ 0〜1 に丸め、<var>f</var> の小さい方を選ぶ。</p>
+
+<h2 id="ends"><span class="num">9</span>範囲 0〜1 と両端</h2>
+<p>§7・§8 の後、シェーダは Newton 法で <var>t</var> を仕上げ（§11）、最後に<b>両端の距離 <var>f(0)</var>・<var>f(1)</var> も必ず比べる</b>。同じ近さ（距離で 1e−6 em の幅の中）なら端を選ぶ。これは距離の大きさのためではなく、最も近い点が端か途中かで符号の決め方が変わるからで（端は擬似法線・01 章 §7.4）、閉形式の根の小さな誤差で「端なのに途中」と判定するのを避ける。幅は距離の二乗の差に直して <var>δ(2r ＋ δ)</var>（<var>r</var> は距離・<var>δ</var> ＝ 1e−6）で比べる。</p>
+
+<h2 id="float"><span class="num">10</span>単精度で起きること</h2>
+<p>§4〜§8 は数学としては厳密だが、GPU は <b>32 ビットの浮動小数点（単精度・float）</b>で計算する。単精度の数は有効数字が 2 進で 24 桁（10 進で約 7 桁）しかなく、計算のたびに丸めが入る（付録 E）。多くの場合、閉形式の答えは 1e−7 em ほどの誤差で済むが、<b>ほぼ同じ大きさの 2 数の引き算</b>があると、残る桁が少なくなって誤差が急に大きくなる（<b>桁落ち</b>）。</p>
+<p>カルダノの公式にはそういう引き算がある。<var>|p|</var> が <var>|q|</var> に比べて小さいと、<var>h ＝ q² ＋ 4p³</var> の平方根は <var>|q|</var> にほぼ等しく、<var>(√h − q)/2</var>（<var>q</var> &gt; 0 のとき）は「ほとんど同じ 2 数の差」になる。真の値は <var>−p³/q</var> 程度の小さな数だが、単精度の <var>√h</var> と <var>q</var> はそれぞれ下の桁に丸めの誤差を持つので、差には誤差しか残らない。</p>
+
+<h3 id="float-example"><span class="num">10.1</span>実例</h3>
+<p>検査用の 129 字を 128px で描いたときの曲線の評価 <!-- gen:ERR_COUNT -->1,306,936<!-- /gen --> 回のうち、閉形式の誤差が最も大きかった 1 回を、途中の値ごとに倍精度（float64）と単精度（float32）で並べる。曲線は <!-- gen:W_CURVE -->p₀＝(0.171997, 0.057983)・q＝(0.367065, 0.079956)・p₁＝(0.528015, 0.117004)<!-- /gen -->、画素は <!-- gen:W_POINT -->(0.457567, 0.103192)<!-- /gen -->（曲線までの距離 <!-- gen:W_DIST -->0.00133<!-- /gen --> em・曲線のすぐ近く）。</p>
+<div class="tbl"><table>
+<thead><tr><th>途中の値</th><th>倍精度</th><th>単精度</th></tr></thead>
+<tbody>
+<tr><td class="mono">k<sub>x</sub></td><td class="num mono"><!-- gen:W_KX_D -->-4.5453533<!-- /gen --></td><td class="num mono"><!-- gen:W_KX_F -->-4.5453534<!-- /gen --></td></tr>
+<tr><td class="mono">p</td><td class="num mono"><!-- gen:W_P_D -->-0.025577577<!-- /gen --></td><td class="num mono"><!-- gen:W_P_F -->-0.025579453<!-- /gen --></td></tr>
+<tr><td class="mono">q</td><td class="num mono"><!-- gen:W_Q_D -->52.808478<!-- /gen --></td><td class="num mono"><!-- gen:W_Q_F -->52.808464<!-- /gen --></td></tr>
+<tr><td class="mono">h ＝ q² ＋ 4p³</td><td class="num mono"><!-- gen:W_H_D -->2788.7352<!-- /gen --></td><td class="num mono"><!-- gen:W_H_F -->2788.7339<!-- /gen --></td></tr>
+<tr><td class="mono">√h</td><td class="num mono"><!-- gen:W_SQRTH_D -->52.808477<!-- /gen --></td><td class="num mono"><!-- gen:W_SQRTH_F -->52.808464<!-- /gen --></td></tr>
+<tr class="hl"><td class="mono">(√h − q)/2</td><td class="num mono"><!-- gen:W_X0_D -->-3.168652×10<sup>-7</sup><!-- /gen --></td><td class="num mono"><!-- gen:W_X0_F -->0<!-- /gen --></td></tr>
+<tr><td class="mono">(−√h − q)/2</td><td class="num mono"><!-- gen:W_X1_D -->-52.808477<!-- /gen --></td><td class="num mono"><!-- gen:W_X1_F -->-52.808464<!-- /gen --></td></tr>
+<tr class="hl"><td class="mono">u ＝ ∛(√h − q)/2</td><td class="num mono"><!-- gen:W_U_D -->-0.0068174953<!-- /gen --></td><td class="num mono"><!-- gen:W_U_F -->0<!-- /gen --></td></tr>
+<tr><td class="mono">v ＝ ∛(−√h − q)/2</td><td class="num mono"><!-- gen:W_V_D -->-3.7517557<!-- /gen --></td><td class="num mono"><!-- gen:W_V_F -->-3.7517555<!-- /gen --></td></tr>
+<tr><td class="mono">t ＝ u ＋ v − k<sub>x</sub></td><td class="num mono"><!-- gen:W_T_D -->0.78678012<!-- /gen --></td><td class="num mono"><!-- gen:W_T_F -->0.79359794<!-- /gen --></td></tr>
+</tbody>
+</table></div>
+<p class="tcap"><span class="fn">表 1</span>カルダノの公式の途中の値。単精度では <var>√h</var> と <var>q</var> が同じ数に丸められ、<var>(√h − q)/2</var> がちょうど 0 になる。真の値は −3×10<sup>−7</sup> ほどで、立方根を取ると −0.0068 になる——立方根は小さな数を大きく引き伸ばす（∛(10<sup>−7</sup>) ≈ 0.0046）ので、消えた桁が <var>t</var> の 3 桁目に現れる。</p>
+<p><var>t</var> の誤差 0.0068 は、この曲線（弦の長さ約 0.36em）の上で約 0.0025em 動くことに当たり、距離の誤差は 128px の表示で <!-- gen:ERR_WORST_PX -->0.174<!-- /gen --> 画素になる。縁取りの縁が 1 画素の何割かずれて見えうる大きさである。</p>
+
+<h3 id="float-stats"><span class="num">10.2</span>全画素での誤差</h3>
+<p>同じ評価の全部について、単精度のモデル（シェーダと同じ式の C#）の距離と、倍精度で十分に詰めた距離の差を測った。「閉形式だけ」は §7・§8 の <var>t</var> と両端のうち近いもの、「Newton の後」はシェーダが返す値。GPU の近似を真似る列は、<code>acos</code> を多項式で近似し（誤差 6.7×10<sup>−5</sup> rad）、立方根を <code>exp2(log2(x)/3)</code> で求め、掛け算と足し算を 1 回の丸めにまとめる（FMA）。</p>
+<div class="tbl"><table>
+<thead><tr><th>計算</th><th>誤差の最大（em）</th><th>99.9% 点（em）</th><th>1e−5 em を超えた評価</th></tr></thead>
+<tbody>
+<tr><td>IEEE の単精度・閉形式だけ</td><td class="num"><!-- gen:IEEE_CLOSED_MAX -->1.4×10<sup>-3</sup><!-- /gen --></td><td class="num"><!-- gen:IEEE_CLOSED_P999 -->6.7×10<sup>-7</sup><!-- /gen --></td><td class="num"><!-- gen:IEEE_CLOSED_OVER -->215（0.016%）<!-- /gen --></td></tr>
+<tr><td>IEEE の単精度・Newton の後</td><td class="num"><!-- gen:IEEE_FINAL_MAX -->1.0×10<sup>-6</sup><!-- /gen --></td><td class="num"><!-- gen:IEEE_FINAL_P999 -->3.8×10<sup>-7</sup><!-- /gen --></td><td class="num"><!-- gen:IEEE_FINAL_OVER -->0<!-- /gen --></td></tr>
+<tr><td>GPU の近似を真似る・閉形式だけ</td><td class="num"><!-- gen:GPU_CLOSED_MAX -->1.4×10<sup>-3</sup><!-- /gen --></td><td class="num"><!-- gen:GPU_CLOSED_P999 -->6.7×10<sup>-7</sup><!-- /gen --></td><td class="num"><!-- gen:GPU_CLOSED_OVER -->220（0.017%）<!-- /gen --></td></tr>
+<tr><td>GPU の近似を真似る・Newton の後</td><td class="num"><!-- gen:GPU_FINAL_MAX -->1.0×10<sup>-6</sup><!-- /gen --></td><td class="num"><!-- gen:GPU_FINAL_P999 -->3.8×10<sup>-7</sup><!-- /gen --></td><td class="num"><!-- gen:GPU_FINAL_OVER -->0<!-- /gen --></td></tr>
+</tbody>
+</table></div>
+<p class="tcap"><span class="fn">表 2</span>距離の誤差（検査用の 129 字・128px の全画素・曲線の評価 <!-- gen:ERR_COUNT -->1,306,936<!-- /gen --> 回）。</p>
+<figure class="fig" id="fig-err">
+<div class="scroll"><!-- gen:FIG_ERR -->
+<svg class="dia chart" viewBox="0 0 760 320" width="760" height="320" role="img" aria-label="距離の誤差が x を超える評価の割合（閉形式だけと Newton 法の後）" xmlns="http://www.w3.org/2000/svg"><line x1="90" y1="250" x2="90" y2="30" class="grid"/><text x="90" y="268" class="lbl-s mono" text-anchor="middle">1e-9</text><line x1="168.75" y1="250" x2="168.75" y2="30" class="grid"/><text x="168.75" y="268" class="lbl-s mono" text-anchor="middle">1e-8</text><line x1="247.5" y1="250" x2="247.5" y2="30" class="grid"/><text x="247.5" y="268" class="lbl-s mono" text-anchor="middle">1e-7</text><line x1="326.25" y1="250" x2="326.25" y2="30" class="grid"/><text x="326.25" y="268" class="lbl-s mono" text-anchor="middle">1e-6</text><line x1="405" y1="250" x2="405" y2="30" class="grid"/><text x="405" y="268" class="lbl-s mono" text-anchor="middle">1e-5</text><line x1="483.75" y1="250" x2="483.75" y2="30" class="grid"/><text x="483.75" y="268" class="lbl-s mono" text-anchor="middle">1e-4</text><line x1="562.5" y1="250" x2="562.5" y2="30" class="grid"/><text x="562.5" y="268" class="lbl-s mono" text-anchor="middle">1e-3</text><line x1="641.25" y1="250" x2="641.25" y2="30" class="grid"/><text x="641.25" y="268" class="lbl-s mono" text-anchor="middle">1e-2</text><line x1="720" y1="250" x2="720" y2="30" class="grid"/><text x="720" y="268" class="lbl-s mono" text-anchor="middle">1e-1</text><line x1="90" y1="250" x2="720" y2="250" class="grid"/><text x="82" y="254" class="lbl-s mono" text-anchor="end">1e-7</text><line x1="90" y1="218.57" x2="720" y2="218.57" class="grid"/><text x="82" y="222.57" class="lbl-s mono" text-anchor="end">1e-6</text><line x1="90" y1="187.14" x2="720" y2="187.14" class="grid"/><text x="82" y="191.14" class="lbl-s mono" text-anchor="end">1e-5</text><line x1="90" y1="155.71" x2="720" y2="155.71" class="grid"/><text x="82" y="159.71" class="lbl-s mono" text-anchor="end">1e-4</text><line x1="90" y1="124.29" x2="720" y2="124.29" class="grid"/><text x="82" y="128.29" class="lbl-s mono" text-anchor="end">1e-3</text><line x1="90" y1="92.86" x2="720" y2="92.86" class="grid"/><text x="82" y="96.86" class="lbl-s mono" text-anchor="end">1e-2</text><line x1="90" y1="61.43" x2="720" y2="61.43" class="grid"/><text x="82" y="65.43" class="lbl-s mono" text-anchor="end">1e-1</text><line x1="90" y1="30" x2="720" y2="30" class="grid"/><text x="82" y="34" class="lbl-s mono" text-anchor="end">1</text><text x="720" y="290" class="lbl-s" text-anchor="end">距離の誤差 x（em・対数）</text><text x="90" y="18" class="lbl-s">誤差が x を超える評価の割合（対数）</text><path d="M90 35.99L97.87 37.35L105.75 38.98L113.63 40.95L121.5 43.28L129.38 46.08L137.25 49.38L145.12 53.31L153 57.98L160.88 63.41L168.75 69.76L176.62 76.99L184.5 84.51L192.38 92.34L200.25 99.82L208.12 104.82L216 107.44L223.88 108.56L231.75 109.28L239.63 110.02L247.5 110.79L255.37 111.58L263.25 112.42L271.12 113.53L279 114.85L286.88 116.25L294.75 117.93L302.62 120.42L310.5 123.21L318.38 127.84L326.25 135.07L334.12 136.55L342 137.73L349.88 138.93L357.75 140.21L365.62 141.62L373.5 143.15L381.38 144.93L389.25 145.96L397.12 147.65L405 148.61L412.88 150.32L420.75 152.62L428.62 154.39L436.5 156.65L444.38 159.37L452.25 162.24L460.12 165.89L468 169.67L475.88 173.31L483.75 175.8L491.62 178.85L499.5 182.04L507.38 187.22L515.25 190.8L523.12 193.84L531 195.66L538.88 195.66L546.75 197.77L554.62 212.76L562.5 222.23L570.38 222.23" class="line s-closed"/><path d="M90 36.07L97.87 37.45L105.75 39.09L113.63 41.08L121.5 43.45L129.38 46.29L137.25 49.66L145.12 53.72L153 58.53L160.88 64.23L168.75 70.98L176.62 78.84L184.5 87.21L192.38 96.22L200.25 105.41L208.12 111.41L216 114.25L223.88 115.23L231.75 115.77L239.63 116.25L247.5 116.9L255.37 117.68L263.25 118.4L271.12 119.59L279 121.02L286.88 122.62L294.75 124.75L302.62 128.23L310.5 132.69L318.38 141.96L326.25 222.23" class="line s-newton"/><line x1="90" y1="300" x2="112" y2="300" class="line s-closed"/><text x="118" y="304" class="lbl-s">閉形式の t と両端だけ</text><line x1="290" y1="300" x2="312" y2="300" class="line s-newton"/><text x="318" y="304" class="lbl-s">Newton 法の 1 反復の後（シェーダ）</text></svg>
+<!-- /gen --></div>
+<figcaption><span class="fn">図 3</span>誤差が <var>x</var> を超える評価の割合（GPU の近似を真似た計算・両対数）。閉形式だけでは、ごく一部（1 万回に 2 回ほど）の評価に 1e−5〜1e−3 em の誤差が残る。Newton 法の 1 反復の後は、全部が 1e−6 em 以下（§9 で端を選ぶ幅と同じ大きさ）に収まる。</figcaption>
+</figure>
+<p>大きな誤差を作っているのは §10.1 の桁落ちで、GPU の近似（<code>acos</code> の多項式など）を真似ても真似なくても、ほとんど変わらない。誤差が出るのはまれだが、まれでも 1 画素の何割かになるので、字の縁取りのような見た目では無視できない。</p>
+
+<h2 id="newton"><span class="num">11</span>Newton 法の 1 反復</h2>
+<p>閉形式で得た <var>t₀</var> は、ほとんどの場合ほぼ正しく、まれに §10 の桁落ちで少しずれる。どちらの場合も、<var>t₀</var> は真の根のすぐ近くにある。根の近くから根へ速く近づく方法が <b>Newton 法</b>（付録 D）で、方程式 <var>g(t)</var> ＝ 0 について</p>
+<div class="eq">t₁ ＝ t₀ − g(t₀) / g′(t₀)</div>
+<p>と更新する。<var>g</var> のグラフに <var>t₀</var> で接線を引き、その接線が <var>t</var> 軸と交わる所を次の <var>t</var> にする、という意味である（図 4）。</p>
+<figure class="fig" id="fig-newton">
+<div class="scroll"><!-- gen:FIG_NEWTON -->
+<svg class="dia" viewBox="0 0 760 330" width="760" height="330" role="img" aria-label="Newton 法の 1 反復: 接線が t 軸と交わる所へ進む" xmlns="http://www.w3.org/2000/svg"><line x1="70" y1="160" x2="700" y2="160" class="dim"/><text x="706" y="164" class="lbl-s">t</text><path d="M70 280L75.25 277.99L80.5 275.99L85.75 273.98L91 271.98L96.25 269.97L101.5 267.96L106.75 265.96L112 263.95L117.25 261.95L122.5 259.95L127.75 257.94L133 255.94L138.25 253.93L143.5 251.93L148.75 249.93L154 247.92L159.25 245.92L164.5 243.92L169.75 241.92L175 239.91L180.25 237.91L185.5 235.91L190.75 233.91L196 231.91L201.25 229.9L206.5 227.9L211.75 225.9L217 223.9L222.25 221.9L227.5 219.9L232.75 217.9L238 215.9L243.25 213.9L248.5 211.9L253.75 209.9L259 207.91L264.25 205.91L269.5 203.91L274.75 201.91L280 199.91L285.25 197.92L290.5 195.92L295.75 193.92L301 191.92L306.25 189.93L311.5 187.93L316.75 185.93L322 183.94L327.25 181.94L332.5 179.95L337.75 177.95L343 175.95L348.25 173.96L353.5 171.96L358.75 169.97L364 167.98L369.25 165.98L374.5 163.99L379.75 161.99L385 160L390.25 158.01L395.5 156.01L400.75 154.02L406 152.03L411.25 150.04L416.5 148.04L421.75 146.05L427 144.06L432.25 142.07L437.5 140.08L442.75 138.08L448 136.09L453.25 134.1L458.5 132.11L463.75 130.12L469 128.13L474.25 126.14L479.5 124.15L484.75 122.16L490 120.17L495.25 118.18L500.5 116.2L505.75 114.21L511 112.22L516.25 110.23L521.5 108.24L526.75 106.26L532 104.27L537.25 102.28L542.5 100.29L547.75 98.31L553 96.32L558.25 94.33L563.5 92.35L568.75 90.36L574 88.38L579.25 86.39L584.5 84.4L589.75 82.42L595 80.43L600.25 78.45L605.5 76.47L610.75 74.48L616 72.5L621.25 70.51L626.5 68.53L631.75 66.55L637 64.56L642.25 62.58L647.5 60.6L652.75 58.62L658 56.63L663.25 54.65L668.5 52.67L673.75 50.69L679 48.71L684.25 46.72L689.5 44.74L694.75 42.76L700 40.78" class="f-curve"/><text x="696" y="58.78" class="lbl-s" text-anchor="end">g(t)＝(B(t) − P)·B′(t)</text><line x1="586.3" y1="83.72" x2="340.85" y2="176.58" class="tangent"/><line x1="560" y1="160" x2="560" y2="93.67" class="tick"/><circle cx="560" cy="93.67" r="4" class="dot-max"/><circle cx="560" cy="160" r="3.5" class="dot-max"/><text x="560" y="182" class="lbl-b" text-anchor="middle">t₀（閉形式）</text><circle cx="384.68" cy="160" r="4" class="dot-min"/><text x="384.68" y="148" class="lbl-b" text-anchor="middle">t₁（1 反復）</text><text x="384.68" y="182" class="lbl-s" text-anchor="middle">≈ 真の根</text><text x="70" y="24" class="lbl-s">t の範囲 0.7745〜0.7991（表 2 の評価・倍精度）</text><line x1="70" y1="306" x2="92" y2="306" class="tangent"/><text x="98" y="310" class="lbl-s">t₀ での接線（傾き g′(t₀)）。t 軸と交わる所が t₁ ＝ t₀ − g(t₀)/g′(t₀)</text></svg>
+<!-- /gen --></div>
+<figcaption><span class="fn">図 4</span>表 1 の評価での Newton 法の 1 反復（倍精度で描いた）。閉形式の <var>t₀</var> から接線をたどった <var>t₁</var> が、ほとんど真の根に重なる。</figcaption>
+</figure>
+
+<h3 id="newton-terms"><span class="num">11.1</span>g と g′ を求める</h3>
+<p><var>g(t) ＝ e(t)·B′(t)</var>（§3）を、内積の積の微分（付録 A）で微分すると</p>
+<div class="eq">g′(t) ＝ B′(t)·B′(t) ＋ e(t)·B″(t) ＝ |B′(t)|² ＋ 2 e(t)·b</div>
+<p>コードでは <code>e</code> ＝ <var>e(t)</var>、<code>tangent</code> ＝ <var>B′(t)</var> ＝ <code>c + 2 b t</code>、<code>f</code> ＝ <var>g(t)</var>、<code>df</code> ＝ <var>g′(t)</var> である（コードの <code>f</code>・<code>df</code> は本書の <var>g</var>・<var>g′</var>。<var>g ＝ f′/2</var> なので、本書の <var>f</var> を最小にする Newton 法とも読める）。どれも §2 の <code>a</code>・<code>b</code>・<code>c</code>・<code>d</code> と <var>t</var> から、掛け算と足し算だけで出る。</p>
+
+<h3 id="newton-guards"><span class="num">11.2</span>守りの 2 つの条件</h3>
+<ol>
+<li><b><var>g′(t₀)</var> &gt; 0 のときだけ動く</b>: <var>g′ ＝ f″/2</var> なので、<var>g′</var> &gt; 0 は「<var>f</var> がそこで下に凸」＝極小の近くにいる印である。<var>g′</var> ≤ 0 の所で Newton 法を使うと、極大へ向かったり、接線が水平に近くて遠くへ飛んだりする。そういうときは <var>t₀</var> のままにする。</li>
+<li><b>距離が縮んだときだけ採る</b>: 更新した <var>t₁</var> を 0〜1 に丸め、<var>f(t₁)</var> ＜ <var>f(t₀)</var> なら採り、そうでなければ <var>t₀</var> のままにする。どんな場合でも、Newton 法で答えが悪くなることは無い。</li>
+</ol>
+
+<h3 id="newton-why"><span class="num">11.3</span>なぜ 1 反復で足りるか</h3>
+<p>Newton 法は、根の近くでは<b>誤差が 1 回ごとにおよそ 2 乗</b>になる（2 次収束・付録 D）。根からのずれが <var>ε</var> なら、次は <var>C ε²</var> 程度（<var>C</var> は <var>g″/(2g′)</var> で決まる定数）である。表 1 の評価で <var>t</var> の誤差は</p>
+<div class="eq">閉形式 <!-- gen:W_ERR0 -->6.8×10<sup>-3</sup><!-- /gen -->　→　1 反復 <!-- gen:W_ERR1 -->1.2×10<sup>-5</sup><!-- /gen -->　→（2 反復なら）<!-- gen:W_ERR2 -->4.1×10<sup>-11</sup><!-- /gen --></div>
+<p>と縮む（<var>t₀</var> ＝ <!-- gen:W_T_CLOSED -->0.79359794<!-- /gen -->、<var>t₁</var> ＝ <!-- gen:W_T_NEWTON1 -->0.7867677<!-- /gen -->、<var>t₂</var> ＝ <!-- gen:W_T_NEWTON2 -->0.78678012<!-- /gen -->、真の根 <!-- gen:W_T_REF -->0.78678012<!-- /gen -->・倍精度で計算）。最悪の評価でも 1 反復で <var>t</var> の誤差は 1e−5 ほどになり、最も近い点では <var>f′</var> ＝ 0 なので、距離への影響はさらに小さい（<var>t</var> のずれの 2 乗に比例する）。表 2 の「Newton の後」の誤差は最大でも 1e−6 em（§9 で端を選ぶ幅と同じ大きさ）で、これより先の反復は単精度の丸めより細かい所を直すだけになる。</p>
+
+<h3 id="newton-alone"><span class="num">11.4</span>なぜ閉形式も要るか</h3>
+<p>Newton 法だけで解くこともできるが、出発点が要る。<var>f</var> は極小を 2 つ持ちうる（図 2 の点 A）ので、悪い出発点からは、遠い方の極小や極大へ進むことがある。閉形式は全部の極小を候補として出し、<var>f</var> を比べて正しい方を選べる。閉形式で大まかに正しい根を取り、Newton 法で桁を取り戻す、という分担である。</p>
+<p class="note">カルダノの公式の桁落ちには、数値計算でよく使う別の手当てもある: 大きい方の立方根 <var>v</var> だけを公式で求め、小さい方は <var>uv ＝ −p</var> から <var>u ＝ −p/v</var> で求める（引き算が消える）。Rinkaku のシェーダはこの形ではなく、Newton 法の 1 反復で仕上げる。Newton 法は桁落ちに限らず、GPU の <code>acos</code>・<code>pow</code> の近似による誤差もまとめて直せる。</p>
+
+<h2 id="line"><span class="num">12</span>直線は正射影</h2>
+<p>制御点の差が 0 の項目は直線で（README §3.2）、3 次方程式を解かない。直線 <var>p₀ + t v</var>（<var>v ＝ p₁ − p₀</var>）への垂線の足は、<var>(P − p₀ − t v)·v ＝ 0</var> から</p>
+<div class="eq">t ＝ (P − p₀)·v / |v|²</div>
+<p>で、これを 0〜1 に丸めた点が最も近い点である（<var>f</var> は <var>t</var> の 2 次式で、極小は 1 つ）。丸めたかどうか（<var>t</var> ≤ 0・≥ 1）で端かを決める。曲線より計算がずっと軽いので、ベイカーはセルのセグメントを曲線を先・直線を後に並べ、GPU の並列の単位（ウェーブ）で曲線の手順を通る回を減らしている（01 章 §5）。</p>
+
+<h2 id="appendix">付録</h2>
+
+<h3 id="app-vector">A　ベクトルの内積と微分</h3>
+<p>2 次元のベクトル <var>u ＝ (u<sub>x</sub>, u<sub>y</sub>)</var>、<var>w ＝ (w<sub>x</sub>, w<sub>y</sub>)</var> の内積は <var>u·w ＝ u<sub>x</sub>w<sub>x</sub> ＋ u<sub>y</sub>w<sub>y</sub></var> で、<var>u·u ＝ |u|²</var>（長さの 2 乗）、<var>u·w ＝ 0</var> は直交を表す。内積は和に分配でき（<var>u·(w ＋ z) ＝ u·w ＋ u·z</var>）、数を外に出せる（<var>u·(k w) ＝ k(u·w)</var>）。</p>
+<p>ベクトルが <var>t</var> の関数 <var>u(t)</var>, <var>w(t)</var> のとき、成分ごとに積の微分を使うと</p>
+<div class="eq">d/dt [ u(t)·w(t) ] ＝ u′(t)·w(t) ＋ u(t)·w′(t)</div>
+<p>になる（普通の積の微分と同じ形）。とくに <var>d/dt |u(t)|² ＝ 2 u(t)·u′(t)</var>。§3 の <var>f′</var> と §11 の <var>g′</var> はこの 2 つの式から出る。</p>
+
+<h3 id="app-cubic">B　3 次方程式の根の数と解の公式</h3>
+<p><b>根の数</b>: 実数の係数の 3 次式 <var>F(s) ＝ s³ ＋ 3p s ＋ q</var> は、<var>s</var> → −∞ で −∞、+∞ で +∞ なので、実根を少なくとも 1 つ持つ。<var>F′(s) ＝ 3s² ＋ 3p</var> なので、</p>
+<ul>
+<li><var>p</var> ≥ 0 なら <var>F</var> は単調に増え、実根はちょうど 1 つ。</li>
+<li><var>p</var> &lt; 0 なら <var>s ＝ ±√(−p)</var> で極大と極小を持ち、その値は <var>F(±√(−p)) ＝ q ∓ 2(−p)<sup>3/2</sup></var>。実根が 3 つになるのは、極大が正・極小が負のとき、つまり 2 つの値の積 <var>q² − 4(−p)³ ＝ q² ＋ 4p³ ＝ h</var> が負のときである。</li>
+</ul>
+<p>よって <var>h</var> &lt; 0 ⇔ 異なる実根 3 つ、<var>h</var> &gt; 0 ⇔ 実根 1 つ（残る 2 つは互いに共役な複素数）、<var>h</var> ＝ 0 ⇔ 重根。教科書の判別式 <var>Δ ＝ −4(3p)³ − 27q²</var> とは <var>Δ ＝ −27h</var> の関係で、符号が逆になる。</p>
+<p><b>カルダノの公式で実根 3 つを扱えない理由</b>: <var>h</var> &lt; 0 のとき、§7 の <var>u³, v³ ＝ (−q ± √h)/2</var> は複素数になる。答えの 3 つの根は実数なのに、公式は複素数の立方根を通らないと書けない（歴史的に「還元不能の場合」と呼ばれる）。§8 の三角関数の解は、複素数の立方根を角度の 1/3 として書き直したものに当たる。</p>
+
+<h3 id="app-triple">C　3 倍角の公式</h3>
+<p>加法定理 <var>cos(α ＋ β) ＝ cos α cos β − sin α sin β</var> から、<var>cos 2φ ＝ 2cos²φ − 1</var>、<var>sin 2φ ＝ 2 sin φ cos φ</var>。これを使って</p>
+<div class="eq">cos 3φ ＝ cos 2φ cos φ − sin 2φ sin φ<br>
+　　　＝ (2cos²φ − 1) cos φ − 2 sin²φ cos φ<br>
+　　　＝ (2cos²φ − 1) cos φ − 2(1 − cos²φ) cos φ ＝ 4cos³φ − 3cos φ</div>
+<p>§8 は、3 次方程式をこの恒等式の形に合わせ込み、「3 倍した角の cos が分かっている」問題に変えている。<var>arccos</var> で 1 つの角が出れば、残りの 2 つは 2π/3 ずつずらした角である。</p>
+
+<h3 id="app-newton">D　Newton 法と 2 次収束</h3>
+<p>方程式 <var>g(t)</var> ＝ 0 の根を <var>r</var>、今の近似を <var>t₀</var> とする。<var>g</var> を <var>t₀</var> のまわりで 1 次の式（接線）で近似すると <var>g(t) ≈ g(t₀) ＋ g′(t₀)(t − t₀)</var> で、これを 0 にする <var>t</var> が <var>t₁ ＝ t₀ − g(t₀)/g′(t₀)</var> である。</p>
+<p><b>2 次収束</b>: Taylor の定理から、<var>t₀</var> と <var>r</var> の間のある点 <var>ξ</var> で</p>
+<div class="eq">0 ＝ g(r) ＝ g(t₀) ＋ g′(t₀)(r − t₀) ＋ ½ g″(ξ)(r − t₀)²</div>
+<p>両辺を <var>g′(t₀)</var> で割って <var>t₁</var> の式と比べると、</p>
+<div class="eq">t₁ − r ＝ ( g″(ξ) / (2g′(t₀)) ) (t₀ − r)²</div>
+<p>つまり新しい誤差は古い誤差の 2 乗に比例する。誤差が 10<sup>−3</sup> なら次は 10<sup>−6</sup> 程度、その次は 10<sup>−12</sup> 程度で、正しい桁の数が 1 回ごとにおよそ倍になる。この性質は、<var>g′(r)</var> ≠ 0（重根でない）で、<var>t₀</var> が根に十分近いときに成り立つ。遠い出発点や <var>g′</var> が 0 に近い所では、行き過ぎたり別の根へ行ったりするので、§11.2 の 2 つの守りを置く。</p>
+
+<h3 id="app-float">E　浮動小数点と桁落ち</h3>
+<p>単精度の浮動小数点数（IEEE 754 binary32）は、符号 1 ビット・指数 8 ビット・仮数 23 ビット（先頭の 1 を含めて 24 桁）で、数を <var>±1.xxx…(2 進) × 2<sup>e</sup></var> の形で持つ。相対的な精度は <var>2<sup>−24</sup></var> ≈ 6×10<sup>−8</sup> で、たとえば 52.8 の近くで表せる隣どうしの数の間隔（ulp）は <var>2<sup>−18</sup></var> ≈ 3.8×10<sup>−6</sup> である。足し算や掛け算の結果は、いちばん近い表せる数に丸められる。</p>
+<p><b>桁落ち</b>（cancellation）: 52.808477 と 52.808464 のように、ほぼ等しい 2 数を引くと、上の桁が打ち消し合い、下の桁——もともと丸めの誤差を含む桁——だけが残る。2 数がそれぞれ ulp の半分ほどの誤差を持てば、差の誤差も ulp ほど（3.8×10<sup>−6</sup>）で、真の差が 10<sup>−7</sup> ならそれは誤差に埋もれる。表 1 では、単精度の <var>√h</var> と <var>q</var> がまったく同じ数に丸められ、差がちょうど 0 になった。</p>
+<p><b>立方根による拡大</b>: <var>∛x</var> の傾きは <var>x</var> → 0 で無限大になるので、0 の近くの小さな誤差は立方根で大きく引き伸ばされる（∛(3×10<sup>−7</sup>) ≈ 0.0068）。§10.1 の誤差はこの 2 つが重なったものである。</p>
+<p><b>FMA</b>（fused multiply-add）: GPU は <var>a × b ＋ c</var> を、途中で丸めずに 1 回の丸めで計算する命令を持ち、コンパイラはそれを使うことがある。丸めの回数が変わるので、同じ式でも CPU と GPU で下の桁が違いうる。モデルの「GPU の近似を真似る」計算はこれも真似る。</p>
+
+<h2 id="terms"><span class="num">13</span>記号と用語</h2>
+<dl class="defs">
+<dt><var>P</var></dt><dd>画素の位置（em）</dd>
+<dt><var>p₀</var>・<var>q</var>・<var>p₁</var></dt><dd>セグメントの始点・制御点・終点</dd>
+<dt><var>a</var>・<var>b</var>・<var>c</var>・<var>d</var></dt><dd><var>q − p₀</var>・<var>p₀ − 2q + p₁</var>・<var>2a</var>・<var>p₀ − P</var>（コードと同じ名前）</dd>
+<dt><var>f(t)</var>・<var>g(t)</var></dt><dd>距離の二乗 <var>|B(t) − P|²</var> と、その導関数の半分 <var>(B(t) − P)·B′(t)</var></dd>
+<dt><var>k<sub>x</sub></var>・<var>k<sub>y</sub></var>・<var>k<sub>z</sub></var></dt><dd><var>g</var> を <var>|b|²</var> で割った 3 次式の係数（§4）</dd>
+<dt><var>p</var>・<var>q</var>・<var>h</var></dt><dd>2 次の項を消した 3 次式 <var>s³ + 3ps + q</var> の係数と、根の数を決める <var>q² + 4p³</var>（コードの <code>p</code>・<code>q3</code>・<code>h</code>）</dd>
+<dt>閉形式</dt><dd>closed form。有限回の四則と平方根・立方根・三角関数で書いた答え（反復しない）</dd>
+<dt>Newton 法</dt><dd>Newton's method。接線で根を近似する反復。本書では 1 回だけ使う</dd>
+<dt>リファイン</dt><dd>refine。近似の答えを少ない手間で仕上げて精度を上げること</dd>
+<dt>桁落ち</dt><dd>cancellation。ほぼ等しい数の引き算で有効な桁が失われること</dd>
+</dl>
+
+<h2 id="method"><span class="num">14</span>図の作り方</h2>
+<p>図 2〜4 と表 1・表 2 の数値は、01 章と同じ <code>Tools/docs-figures/rinkaku-01-structure/</code> のスクリプト（<code>Dump/FiguresDistance.cs</code>）が作り、本書の <code>&lt;!-- gen:名前 --&gt;</code> と <code>&lt;!-- /gen --&gt;</code> の間を書き換える。単精度の計算はシェーダの手順を写したモデル <code>Tests/Rinkaku/RinkakuShaderModel.cs</code>（外部 NUnit がシェーダと同じ値を出すことを検査しているもの）、倍精度の参照はベイカーの <code>Curve.DistanceSquared</code>（単調な区間ごとの挟み込み付き Newton 法）。画素は検査用のベイク仕様 RinkakuMplus1c.t2font の全グリフの quad を 128px で並べた中心、セグメントは画素のセルに書かれた曲線。図 1 は模式図で、本書を直接直す。</p>
+
+<footer>
+<p>Rinkaku アーキテクチャ解説 03（T2Engine から写したもの）。契約の正典はパッケージ Rinkaku の README（<code>Packages/info.someiyoshino.rinkaku/README.md</code>）§3.5、構造の全体は <a href="01-structure.html">01 章「Rinkaku の構造」</a>、セルに書くセグメントの選び方は <a href="02-nearest-set.html">02 章「Rinkaku の必要集合の作り方」</a>、経緯は D-RINKAKU とその追記。</p>
+</footer>
+</main>
+</div>
+</body>
+</html>

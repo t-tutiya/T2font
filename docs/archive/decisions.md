@@ -19,10 +19,12 @@
 
 ---
 
-## 2026-11 — [`decisions/decisions-2026-11.md`](decisions/decisions-2026-11.md)（2 件）
+## 2026-11 — [`decisions/decisions-2026-11.md`](decisions/decisions-2026-11.md)（4 件）
 
 | 日付 | 決定 |
 |---|---|
+| 2026-11-18 | **HTML の図解を Pages で配り、Rinkaku の図解を写す — D-PAGES** — 配備は Actions・図解は版ごとに写す |
+| 2026-11-18 | **利用者向けの手引きと API リファレンスを置く — D-USERDOCS** — 手引きは外・コード例と API は生成 |
 | 2026-11-16 | **「表現」をグリフ表現と書き、用語の表に訳語を足す — D-TERMS2** — 正典は reference の用語表 |
 | 2026-11-09 | **版 0.3.0 を公開し、グリフ表現 Rinkaku を同梱する — D-T2FREPUB** — 正本は外・版ごとに写す |
 
