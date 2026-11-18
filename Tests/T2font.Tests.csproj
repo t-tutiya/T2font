@@ -23,6 +23,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <!-- API リファレンスのジェネレーター（ApiReferenceDocTests）がパッケージのソースを構文だけで読む。Unity 側には入らない（D-USERDOCS）。 -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
     <!-- パッケージの Bake（生成仕様の読取）が使う。Unity 側は com.unity.nuget.newtonsoft-json の DLL を参照する。 -->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NUnit" Version="3.14.0" />

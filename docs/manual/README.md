@@ -25,6 +25,11 @@ T2Font（Unity uGUI の文字描画のパッケージ）と Rinkaku（その上�
 | [`README.en.md`](README.en.md) | 本書の英語版（The English version of this page） |
 | [`01-quickstart.en.md`](01-quickstart.en.md) | クイックスタートの英語版 |
 
+## API リファレンス
+
+公開型のシグネチャと説明は [API リファレンス](../generated/api/README.md)（パッケージのソースから生成）。**契約の内**（利用者が使う型・役割別）と
+**契約の外**（ベイカーの部品や検査のための公開。版の間で予告なく変わりうる）に分けてある。利用側のコードは契約の内の型だけを使う。
+
 ## 仕組みを知る
 
 使うだけなら読まなくてよい。動作の理解や、問題の切り分けに使う。

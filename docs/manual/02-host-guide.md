@@ -20,7 +20,7 @@
 | 変える | フェードと面の色は幾何を作り直さずに変える | `CanvasRenderer.SetAlpha`・`SetColor` |
 | 片付ける | Mesh とマテリアルを捨てる | `GlyphMaterialCache.Release`・`Dispose` |
 
-各 API の引数と返り値は API リファレンス（`docs/generated/api/`）を見る。
+各 API の引数と返り値は [API リファレンス](../generated/api/t2font.md)（契約の内・ホストの節）を見る。
 
 ## 2. アセンブリの参照
 

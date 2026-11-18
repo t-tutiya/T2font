@@ -22,6 +22,13 @@ Japanese pages (日本語の文書), listed in [`README.md`](README.md):
 
 - [`02-host-guide.md`](02-host-guide.md): writing your own host (loading a font, placing glyphs, geometry, materials, fades, cleanup)
 
+## API reference
+
+Signatures and descriptions of the public types are in the [API reference](../generated/api/README.md), generated from the package
+sources (the descriptions are in Japanese). Types are split into **inside the contract** (types meant for users, grouped by role) and
+**outside the contract** (baker internals and types for tests and measurements, which may change without notice between versions). Use
+only the types inside the contract from your code.
+
 ## How it works
 
 You do not need these pages to use the packages. They help you understand the behavior and narrow down problems. They are in Japanese.

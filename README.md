@@ -32,6 +32,8 @@ https://github.com/t-tutiya/T2font.git?path=/Packages/info.someiyoshino.rinkaku#
 
 - **User guide / 利用の手引き**: [English](docs/manual/README.en.md) · [日本語](docs/manual/README.md) — quickstart, writing your own host,
   choosing a glyph representation and more. / クイックスタート・自分のホストの書き方・グリフ表現の選び方など。
+- **API reference / API リファレンス**: [docs/generated/api](docs/generated/api/README.md) — generated from the package sources, split into types
+  inside the contract and outside it (Japanese). / パッケージのソースから生成。契約の内と外に分けてある。
 - **Contract / 契約の正典**: the package READMEs ([T2Font](Packages/info.someiyoshino.t2font/README.md) ·
   [Rinkaku](Packages/info.someiyoshino.rinkaku/README.md), Japanese) and the CHANGELOGs. / 各パッケージの README と CHANGELOG。
 

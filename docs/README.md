@@ -44,6 +44,7 @@
 | ドキュメント | 生成元 |
 |---|---|
 | [`generated/assembly-reference.md`](generated/assembly-reference.md) | `Assets/` 配下の `.asmdef`（ジェネレーターは `Tests/AssemblyReferenceDocTests.cs`） |
+| [`generated/api/README.md`](generated/api/README.md) | パッケージのソースの公開型と XML コメント、契約の内と外の分類表（ジェネレーターは `Tests/ApiReferenceDocTests.cs`・D-USERDOCS） |
 
 ## 作業手順（`guides/`）
 
