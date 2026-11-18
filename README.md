@@ -43,12 +43,13 @@ https://github.com/t-tutiya/T2font.git?path=/Packages/info.someiyoshino.rinkaku#
 
 Each release is archived on Zenodo with its own DOI. The DOI in the badge,
 [10.5281/zenodo.24076087](https://doi.org/10.5281/zenodo.24076087), cites all versions and resolves to the latest one
-(v0.4.2: T2Font 0.4.0 and Rinkaku 0.2.2); its page lists the DOI of each version. v0.4.1 (T2Font 0.4.0 and Rinkaku 0.2.1) is
+(v0.4.2: T2Font 0.4.0 and Rinkaku 0.2.2, [10.5281/zenodo.24338408](https://doi.org/10.5281/zenodo.24338408)); its page lists the DOI of each
+version. v0.4.1 (T2Font 0.4.0 and Rinkaku 0.2.1) is
 [10.5281/zenodo.24163863](https://doi.org/10.5281/zenodo.24163863), v0.4.0 (T2Font 0.4.0 and Rinkaku 0.2.0) is
 [10.5281/zenodo.24152696](https://doi.org/10.5281/zenodo.24152696) and v0.3.0 (T2Font 0.3.0 and Rinkaku 0.1.0) is
 [10.5281/zenodo.24076088](https://doi.org/10.5281/zenodo.24076088). /
 リリースは版ごとに Zenodo に記録し、DOI が付く。バッジの DOI（10.5281/zenodo.24076087）は全版をまとめるもので、最新の版
-（v0.4.2＝T2Font 0.4.0 と Rinkaku 0.2.2）へ解決し、そのページに版ごとの DOI が並ぶ。v0.4.1（T2Font 0.4.0 と Rinkaku 0.2.1）の DOI は
+（v0.4.2＝T2Font 0.4.0 と Rinkaku 0.2.2・10.5281/zenodo.24338408）へ解決し、そのページに版ごとの DOI が並ぶ。v0.4.1（T2Font 0.4.0 と Rinkaku 0.2.1）の DOI は
 10.5281/zenodo.24163863、v0.4.0（T2Font 0.4.0 と Rinkaku 0.2.0）の DOI は 10.5281/zenodo.24152696、v0.3.0（T2Font 0.3.0 と Rinkaku 0.1.0）の DOI は 10.5281/zenodo.24076088。
 
 ```
@@ -56,11 +57,12 @@ Tsuchiya, T. (2026). T2Font and Rinkaku: glyph representation packages for Unity
 Zenodo. https://doi.org/10.5281/zenodo.24076087
 ```
 
-The paper on Rinkaku (preprint, English and Japanese) is archived separately. Version 1.2 describes v0.4.1,
-version 1.1 (10.5281/zenodo.24152359) describes v0.4.0 and version 1.0 (10.5281/zenodo.24095980) describes v0.3.0.
+The paper on Rinkaku (preprint, English and Japanese) is archived separately. Version 1.3 (10.5281/zenodo.24338889) describes v0.4.2,
+version 1.2 (10.5281/zenodo.24163078) describes v0.4.1, version 1.1 (10.5281/zenodo.24152359) describes v0.4.0 and version 1.0
+(10.5281/zenodo.24095980) describes v0.3.0.
 The DOI below cites all versions of the paper and resolves to the latest one. /
-Rinkaku の論文（Preprint・英語版と日本語版）は別の記録にある。版 1.2 が v0.4.1 に、版 1.1（10.5281/zenodo.24152359）が v0.4.0 に、
-版 1.0（10.5281/zenodo.24095980）が v0.3.0 に対応する。下の DOI は論文の全版をまとめるもので、最新の版へ解決する。
+Rinkaku の論文（Preprint・英語版と日本語版）は別の記録にある。版 1.3（10.5281/zenodo.24338889）が v0.4.2 に、版 1.2（10.5281/zenodo.24163078）が v0.4.1 に、
+版 1.1（10.5281/zenodo.24152359）が v0.4.0 に、版 1.0（10.5281/zenodo.24095980）が v0.3.0 に対応する。下の DOI は論文の全版をまとめるもので、最新の版へ解決する。
 
 ```
 Tsuchiya, T. (2026). Rinkaku: Exact Signed Distance Rendering of CJK Glyphs with a Nearest-Segment Index [Preprint].
