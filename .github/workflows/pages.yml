@@ -1,0 +1,50 @@
+# 図解の HTML を GitHub Pages へ公開する（D-PAGES）
+#
+# docs/architecture/ の HTML は GitHub の画面ではソースが表示されて読めないので、Pages で配る。
+# Tools/pages/build_site.py が図解と画像を写し、目次の index.html を作る（Markdown の文書は GitHub の画面で読めるので写さない）。
+#
+# 前提: リポジトリの Settings → Pages → Build and deployment の Source を「GitHub Actions」にしておく。
+# 設定の前に走った回は deploy が失敗するので、設定の後に Actions の画面からこのワークフローを手動で実行し直す。
+name: pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/architecture/**'
+      - 'Tools/pages/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 配備は 1 本ずつ。途中の配備は取り消さない（公開中のサイトを半端な状態にしない）。
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build site
+        run: python3 Tools/pages/build_site.py _site
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

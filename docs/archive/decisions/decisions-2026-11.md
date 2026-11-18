@@ -5,6 +5,26 @@
 
 ---
 
+## 2026-11-18 HTML の図解を GitHub Pages で配り、Rinkaku の図解を版ごとに写す — D-PAGES
+
+**発端**: `docs/architecture/` の図解は HTML で、GitHub の画面ではソースが表示されて読めない。利用者向けの手引き（D-USERDOCS）から
+図解へ案内しても、リポジトリを手元に置かないと読めなかった。Rinkaku の図解は正本の開発環境（T2Engine）にだけあった。
+
+**決定 1（配り方）**: `.github/workflows/pages.yml` が `main` への push（`docs/architecture/`・`Tools/pages/`・ワークフロー自身の変更）と手動実行で、
+`Tools/pages/build_site.py` が組み立てたサイトを GitHub Pages へ配る。サイトは HTML の図解とその画像と、各 HTML の `<title>` から作る目次だけを持つ
+（`.nojekyll`）。手引きと README の図解へのリンクは Pages の URL にする。
+
+**決定 2（Rinkaku の図解）**: 正本の開発環境の `docs/architecture/rinkaku/` の 3 章を、パッケージと同じく版ごとに写す（D-T2FREPUB）。図の作り直しには
+本リポジトリに無い元フォントと計測のツールが要るので、本リポジトリでは作り直さない。冒頭に写しである旨を書き、写し元にだけある決定 ID とパスは
+書き換えずに残す（地の文を大きく書き換えると、次に写すときの差分が読めなくなる）。T2Font の図解へのリンクだけを本リポジトリの置き場に直す。
+
+**採らなかった案**: Pages の配信元を「ブランチの `docs/`」にする（Markdown の文書・設計判断ログまで、整形されないまま Pages に並ぶ。Jekyll を通すと
+コード例の波括弧が Liquid に読まれうる）。図解を Markdown に書き直す（SVG と数式の図が保てない）。
+
+**前提**: リポジトリの Settings → Pages の Source を「GitHub Actions」にしておく（ワークフローの冒頭のコメントにも書く）。
+
+---
+
 ## 2026-11-18 利用者向けの手引きを docs/manual に置き、API リファレンスを生成する — D-USERDOCS
 
 **発端**: パッケージを自分のプロジェクトで使うプログラマ向けの文書が無かった。契約の正典（パッケージの README）は仕様書で、手順とコード例を

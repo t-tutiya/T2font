@@ -40,11 +40,15 @@ T2Font（Unity uGUI の文字描画のパッケージ）と Rinkaku（その上�
 
 | 文書 | 内容 |
 |---|---|
-| [TrueType からアトラスへ](../architecture/02-truetype-to-atlas.html) | TrueType の構造・タイポグラフィテーブルの生成・SDF のアトラスをベイクする工程 |
-| [アトラスから画面へ](../architecture/03-atlas-to-screen.html) | 字の配置・マテリアル・CanvasRenderer とバッチ・シェーダがレンダーターゲットへ描くまで |
-| [ベイク仕様の書き方](../architecture/04-bake-spec.html) | `.t2font` のキー・アセットを作る手順・インポートの失敗と直し方・文字セットの中身 |
+| [TrueType からアトラスへ](https://t-tutiya.github.io/T2font/architecture/02-truetype-to-atlas.html) | TrueType の構造・タイポグラフィテーブルの生成・SDF のアトラスをベイクする工程 |
+| [アトラスから画面へ](https://t-tutiya.github.io/T2font/architecture/03-atlas-to-screen.html) | 字の配置・マテリアル・CanvasRenderer とバッチ・シェーダがレンダーターゲットへ描くまで |
+| [ベイク仕様の書き方](https://t-tutiya.github.io/T2font/architecture/04-bake-spec.html) | `.t2font` のキー・アセットを作る手順・インポートの失敗と直し方・文字セットの中身 |
+| [Rinkaku の構造](https://t-tutiya.github.io/T2font/architecture/rinkaku/01-structure.html) | SDF の角が丸くなる理由・和集合輪郭・セグメントテーブル・最近傍インデックス・シェーダ・SDF と比べた結果 |
+| [Rinkaku の必要集合](https://t-tutiya.github.io/T2font/architecture/rinkaku/02-nearest-set.html) | セルごとに書くセグメントの選び方・取りこぼしの誤差の上界 |
+| [Rinkaku の距離の解き方](https://t-tutiya.github.io/T2font/architecture/rinkaku/03-distance.html) | 2 次ベジエへの最短距離・単精度で起きること・Newton 法の 1 反復 |
 
-この 3 つは図を含む HTML で、GitHub の画面ではソースが表示される。リポジトリを手元に置いて（clone か ZIP）、ブラウザで開く。
+どれも図を含む HTML で、[GitHub Pages](https://t-tutiya.github.io/T2font/) で読む（リポジトリの中の `docs/architecture/` の HTML は、GitHub の画面ではソースが表示される）。
+Rinkaku の 3 章は、パッケージの正本の開発環境の図解を版ごとに写したもの。
 
 ## 版と変更
 

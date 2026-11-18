@@ -15,7 +15,9 @@ Rinkaku の README §4.3・§8 の取りこぼしの説明（起きうる領域�
 - パッケージ: `Packages/info.someiyoshino.rinkaku/`（変更点は CHANGELOG の 0.2.2）。`Packages/info.someiyoshino.t2font/` は README §11 のタグだけが変わる
   （版は 0.4.0 のまま・コードは同じ）。
 - 検証のプロジェクト: 無改修で通る。API リファレンス・手引きのコード例も変わらない（変わった `NearestIndex` は公開の型ではない）。
-- 文書: 根の README の導入のタグと引用（v0.4.1 の版の DOI を足した）。
+- 文書: 根の README の導入のタグと引用（v0.4.1 の版の DOI を足した）。Rinkaku の図解 3 章（構造・必要集合・距離の解き方）を正本の開発環境から
+  `docs/architecture/rinkaku/` へ写した（冒頭に写しである旨の注記を足し、T2Font の図解へのリンクを直した）。HTML の図解を GitHub Pages へ配る
+  `.github/workflows/pages.yml` を置いた（D-PAGES）。
 - **移行に効く事実**: ベイクの出力・データの形式・描く絵・API は変わらない（再インポートは要らない）。論文の版 1.2 は正す前の説明のまま。
 - 正典: 各パッケージの README・CHANGELOG。
 

@@ -3,7 +3,7 @@
 [English](01-quickstart.en.md)
 
 パッケージを導入し、元フォントからフォントアセットをベイクして、Canvas に最初の字を出すまで。最後にグリフ表現を SDF から Rinkaku へ替えて
-比べる。コードは書かない。各段の詳しい説明は [ベイク仕様の書き方](../architecture/04-bake-spec.html) §2（HTML・手元のブラウザで開く）にある。
+比べる。コードは書かない。各段の詳しい説明は [ベイク仕様の書き方](https://t-tutiya.github.io/T2font/architecture/04-bake-spec.html) §2 にある。
 
 ## 1. 要るもの
 
@@ -60,7 +60,7 @@ T2Font はそれを使わない（インポーターがファイルのバイト�
 | `characters` | 追加の字。元フォントに無い字を書くとインポートが失敗する |
 | `representation` | グリフ表現の種類と設定。省いた設定は既定値になる |
 
-キーの正典は README §7.1、文字セットの中身は [ベイク仕様の書き方](../architecture/04-bake-spec.html) §6。
+キーの正典は README §7.1、文字セットの中身は [ベイク仕様の書き方](https://t-tutiya.github.io/T2font/architecture/04-bake-spec.html) §6。
 
 ## 5. インポートを確かめる
 
@@ -69,7 +69,7 @@ T2Font はそれを使わない（インポーターがファイルのバイト�
 ページのテクスチャが並ぶ。
 
 失敗すると Console に赤い誤りが出て、アセットは作られない。文面の頭にベイク仕様のパスと行番号が付く。直し方は
-[ベイク仕様の書き方](../architecture/04-bake-spec.html) §8。
+[ベイク仕様の書き方](https://t-tutiya.github.io/T2font/architecture/04-bake-spec.html) §8。
 
 ベイクした結果（アトラスとタイポグラフィテーブル）は Library に作られる生成物で、リポジトリに入れるのはベイク仕様と元フォント（とそれぞれの
 `.meta`）だけ（README §2.4）。
@@ -120,5 +120,5 @@ Rinkaku は画素あたりの描画の費用が SDF より大きい。どちら�
 - 自分のテキスト描画に組み込む: [`02-host-guide.md`](02-host-guide.md)。
 - うまく動かない: [`05-troubleshooting.md`](05-troubleshooting.md)。
 - 出荷のために文字セットを絞るなど、目的別の文書は [`README.md`](README.md) の表から選ぶ。
-- `.t2font` のキー・文字セット・インポートの失敗の全部は [ベイク仕様の書き方](../architecture/04-bake-spec.html)。
+- `.t2font` のキー・文字セット・インポートの失敗の全部は [ベイク仕様の書き方](https://t-tutiya.github.io/T2font/architecture/04-bake-spec.html)。
 - 契約（API の約束・シェーダの規約）は [T2Font の README](../../Packages/info.someiyoshino.t2font/README.md)。

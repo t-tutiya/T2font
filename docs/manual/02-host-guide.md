@@ -5,7 +5,7 @@
 コード例 [`Assets/Samples/SampleTextHost.cs`](../../Assets/Samples/SampleTextHost.cs) で示す。
 
 - 契約（ホストとグリフ表現の分担・頂点・テクスチャ・マテリアル・シェーダの規約）の正典は README §4・§5。
-- 字が画面に出るまでに何が起きるかの図解は [アトラスから画面へ](../architecture/03-atlas-to-screen.html)（HTML）。
+- 字が画面に出るまでに何が起きるかの図解は [アトラスから画面へ](https://t-tutiya.github.io/T2font/architecture/03-atlas-to-screen.html)（HTML）。
 - **ホストはグリフ表現の具体型を知らない**。`GlyphRepresentation` の抽象だけで描くので、同じホストが SDF でも Rinkaku でも、利用側が
   足したグリフ表現でも動く（README §2.2）。
 

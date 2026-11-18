@@ -39,11 +39,15 @@ You do not need these pages to use the packages. They help you understand the be
 
 | Page | Contents |
 |---|---|
-| [From TrueType to the atlas](../architecture/02-truetype-to-atlas.html) | TrueType structure, building the typography table, baking the SDF atlas |
-| [From the atlas to the screen](../architecture/03-atlas-to-screen.html) | Glyph placement, materials, CanvasRenderer and batching, the shader drawing to the render target |
-| [Writing a bake spec](../architecture/04-bake-spec.html) | `.t2font` keys, creating a font asset, import errors and fixes, character set contents |
+| [From TrueType to the atlas](https://t-tutiya.github.io/T2font/architecture/02-truetype-to-atlas.html) | TrueType structure, building the typography table, baking the SDF atlas |
+| [From the atlas to the screen](https://t-tutiya.github.io/T2font/architecture/03-atlas-to-screen.html) | Glyph placement, materials, CanvasRenderer and batching, the shader drawing to the render target |
+| [Writing a bake spec](https://t-tutiya.github.io/T2font/architecture/04-bake-spec.html) | `.t2font` keys, creating a font asset, import errors and fixes, character set contents |
+| [Structure of Rinkaku](https://t-tutiya.github.io/T2font/architecture/rinkaku/01-structure.html) | Why SDF rounds corners, union outlines, the segment table, the nearest-segment index, the shader, comparison with SDF |
+| [Rinkaku's necessary sets](https://t-tutiya.github.io/T2font/architecture/rinkaku/02-nearest-set.html) | Choosing the segments stored per cell, the error bound of missed segments |
+| [How Rinkaku solves the distance](https://t-tutiya.github.io/T2font/architecture/rinkaku/03-distance.html) | Closest distance to a quadratic Bézier, single-precision issues, one Newton step |
 
-These pages are HTML with figures. GitHub shows their source, so clone the repository (or download it as ZIP) and open them in a browser.
+These pages are HTML with figures, published on [GitHub Pages](https://t-tutiya.github.io/T2font/) (GitHub shows the source of the HTML files
+under `docs/architecture/`).
 
 ## Versions and changes
 
