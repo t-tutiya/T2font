@@ -1,0 +1,55 @@
+# T2Font・Rinkaku 利用の手引き
+
+[English](README.en.md)
+
+T2Font（Unity uGUI の文字描画のパッケージ）と Rinkaku（その上のグリフ表現）を、自分の Unity プロジェクトで使うプログラマ向けの手引き。
+やりたいことから、読む文書を選ぶ。
+
+- **契約の正典はパッケージの README**（[T2Font](../../Packages/info.someiyoshino.t2font/README.md)・
+  [Rinkaku](../../Packages/info.someiyoshino.rinkaku/README.md)）。API の約束・データの形式・シェーダの規約はそちらが持ち、本手引きは
+  手順とコード例を受け持つ。手引きの中の「README §n」は、断りが無ければ T2Font の README の節を指す。
+- 前提: Unity 6・uGUI（Canvas と `RectTransform`）・C#。
+- 手引きのコード例は、本リポジトリの検証のプロジェクトでコンパイルしているファイルから生成している（D-USERDOCS）。
+
+## 文書
+
+| 文書 | こんなときに読む |
+|---|---|
+| [`01-quickstart.md`](01-quickstart.md) | 導入して、Canvas に最初の字を出す。グリフ表現を SDF から Rinkaku へ替えて比べる |
+
+### 英語版 / English
+
+| 文書 | 内容 |
+|---|---|
+| [`README.en.md`](README.en.md) | 本書の英語版（The English version of this page） |
+| [`01-quickstart.en.md`](01-quickstart.en.md) | クイックスタートの英語版 |
+
+## 仕組みを知る
+
+使うだけなら読まなくてよい。動作の理解や、問題の切り分けに使う。
+
+| 文書 | 内容 |
+|---|---|
+| [TrueType からアトラスへ](../architecture/02-truetype-to-atlas.html) | TrueType の構造・タイポグラフィテーブルの生成・SDF のアトラスをベイクする工程 |
+| [アトラスから画面へ](../architecture/03-atlas-to-screen.html) | 字の配置・マテリアル・CanvasRenderer とバッチ・シェーダがレンダーターゲットへ描くまで |
+| [ベイク仕様の書き方](../architecture/04-bake-spec.html) | `.t2font` のキー・アセットを作る手順・インポートの失敗と直し方・文字セットの中身 |
+
+この 3 つは図を含む HTML で、GitHub の画面ではソースが表示される。リポジトリを手元に置いて（clone か ZIP）、ブラウザで開く。
+
+## 版と変更
+
+- 導入の URL と最新の版のタグは、リポジトリのルートの [`README.md`](../../README.md)（Install / 導入）。
+- 版ごとの変更（互換を壊す変更を含む）は各パッケージの CHANGELOG（[T2Font](../../Packages/info.someiyoshino.t2font/CHANGELOG.md)・
+  [Rinkaku](../../Packages/info.someiyoshino.rinkaku/CHANGELOG.md)）。0.x の間は小さい版でも互換を壊しうる。
+
+## 用語
+
+訳語は [`../reference/terminology.md`](../reference/terminology.md) に従う。手引きでよく使う語:
+
+| 語 | 意味 |
+|---|---|
+| ホスト | 字を画面へ置く側のコード。検証ビュー `T2FontText`、または利用側のテキスト描画 |
+| タイポグラフィテーブル | 送り幅・インク境界・縦メトリクス。どのグリフ表現でベイクしても同じ |
+| グリフ表現 | 字のインクをどう描くか（SDF・Rinkaku など）。フォントアセットのサブアセット |
+| ベイク仕様 | `.t2font` のファイル（JSON）。インポーターが元フォントからフォントアセットをベイクする |
+| エッジスタイル | 面の縁のずらしとぼかし・縁取りの幅と色・外縁のぼかし。値は em |

@@ -23,7 +23,7 @@ namespace info.someiyoshino.T2font.Tests
     /// <item><b>月別に分けた記録</b>（<c>archive/completed-roadmap.md</c>）: ①月見出しの「（N 件）」＝その月の
     /// 索引行数 ②本文の <c>## 見出し</c> と索引行が、完了日ごとに同じ数だけある（索引行と本文見出しは同じ
     /// 完了日の文字列を持つ規約なので、1 対 1 で突き合わせられる）。</item>
-    /// <item><b>フォルダの一覧</b>（<c>plans/README.md</c>・<c>archive/README.md</c> の <c>completed-designs/</c> 節と
+    /// <item><b>フォルダの一覧</b>（<c>plans/README.md</c>・<c>manual/README.md</c>・<c>archive/README.md</c> の <c>completed-designs/</c> 節と
     /// <c>evaluations/</c> 節）: ③フォルダの <c>*.md</c> の集合＝索引行が名指すファイルの集合（漏れも宙吊りも落とす）。</item>
     /// </list>
     ///
@@ -183,7 +183,7 @@ namespace info.someiyoshino.T2font.Tests
                 string.Join("\n  ", problems));
         }
 
-        // ── フォルダの一覧（plans/・completed-designs/・evaluations/） ──────────────
+        // ── フォルダの一覧（plans/・manual/・completed-designs/・evaluations/） ──────────────
 
         /// <summary>
         /// 索引ファイルのうち <paramref name="sectionPrefix"/> で始まる <c>## 見出し</c> の節（null なら全体）から、
@@ -226,6 +226,8 @@ namespace info.someiyoshino.T2font.Tests
         {
             yield return new TestCaseData("plans/README.md", null, "plans")
                 .SetName("FolderIndex_plans");
+            yield return new TestCaseData("manual/README.md", null, "manual")
+                .SetName("FolderIndex_manual");
             yield return new TestCaseData("archive/README.md", "completed-designs/", "archive/completed-designs")
                 .SetName("FolderIndex_completed_designs");
             yield return new TestCaseData("archive/README.md", "evaluations/", "archive/evaluations")

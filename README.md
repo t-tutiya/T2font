@@ -28,6 +28,13 @@ https://github.com/t-tutiya/T2font.git?path=/Packages/info.someiyoshino.rinkaku#
 `#` の後ろは版のタグ。Rinkaku は T2Font に依存するので、T2Font を先に同じタグで入れる。パッケージのフォルダを利用側の `Packages/` へ写して
 使うこともできる（使い分けは T2Font の README §11・Rinkaku の README §11）。
 
+## Documentation / ドキュメント
+
+- **User guide / 利用の手引き**: [English](docs/manual/README.en.md) · [日本語](docs/manual/README.md) — quickstart, writing your own host,
+  choosing a glyph representation and more. / クイックスタート・自分のホストの書き方・グリフ表現の選び方など。
+- **Contract / 契約の正典**: the package READMEs ([T2Font](Packages/info.someiyoshino.t2font/README.md) ·
+  [Rinkaku](Packages/info.someiyoshino.rinkaku/README.md), Japanese) and the CHANGELOGs. / 各パッケージの README と CHANGELOG。
+
 ## Citation / 引用
 
 Each release is archived on Zenodo with its own DOI. The DOI in the badge,
